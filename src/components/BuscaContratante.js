@@ -15,6 +15,7 @@ const BuscaContratante = ({ onBuscar }) => {
   return (
     <div className="busca-container">
       <div className="busca-header">
+        <img src="https://raw.githubusercontent.com/observadores1/o-trabalhador-app/main/Logo%20o%20Trabalhador.jpeg" alt="Logo O Trabalhador" className="logo" />
         <h1>O TRABALHADOR</h1>
         <p>Encontre o profissional ideal para seu serviço</p>
       </div>
