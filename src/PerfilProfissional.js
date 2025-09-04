@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { supabase } from './services/supabaseClient';
 import './PerfilProfissional.css';
 
 // Dados simulados do trabalhador (mockados)
@@ -47,47 +48,113 @@ const PerfilProfissional = () => {
     'Cuidador de Idosos'
   ];
 
-  // Simula carregamento dos dados do backend
+  // Carrega dados do perfil do Supabase
   useEffect(() => {
     const carregarDados = async () => {
       setIsLoading(true);
-      // Simula delay de API
-      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Atualiza os valores do formulário com os dados carregados
-      setValue('biografia', dadosTrabalhador.biografia);
-      setValue('habilidades', dadosTrabalhador.habilidades);
-      setValue('disponivel', dadosTrabalhador.disponivel);
-      setValue('fotoPerfil', dadosTrabalhador.fotoPerfil);
-      
-      setIsLoading(false);
+      try {
+        // Simula um usuário logado (ID fixo para teste)
+        const userId = 1; // Em produção, isso viria do contexto de autenticação
+        
+        // Busca dados do perfil nas tabelas perfis e perfis_profissionais
+        const { data: perfilData, error: perfilError } = await supabase
+          .from('perfis')
+          .select('*')
+          .eq('id', userId)
+          .single();
+
+        const { data: perfilProfissionalData, error: perfilProfissionalError } = await supabase
+          .from('perfis_profissionais')
+          .select('*')
+          .eq('perfil_id', userId)
+          .single();
+
+        if (perfilError && perfilError.code !== 'PGRST116') {
+          console.error('Erro ao carregar perfil:', perfilError);
+        }
+
+        if (perfilProfissionalError && perfilProfissionalError.code !== 'PGRST116') {
+          console.error('Erro ao carregar perfil profissional:', perfilProfissionalError);
+        }
+
+        // Combina os dados ou usa valores padrão
+        const dadosCarregados = {
+          ...dadosSimulados,
+          ...perfilData,
+          ...perfilProfissionalData,
+          biografia: perfilProfissionalData?.biografia || '',
+          habilidades: perfilProfissionalData?.habilidades || [],
+          disponivel: perfilProfissionalData?.disponivel ?? true
+        };
+
+        setDadosTrabalhador(dadosCarregados);
+        
+        // Atualiza os valores do formulário com os dados carregados
+        setValue('biografia', dadosCarregados.biografia);
+        setValue('habilidades', dadosCarregados.habilidades);
+        setValue('disponivel', dadosCarregados.disponivel);
+        setValue('fotoPerfil', dadosCarregados.fotoPerfil);
+        
+      } catch (error) {
+        console.error('Erro inesperado ao carregar dados:', error);
+        // Em caso de erro, usa dados simulados
+        setValue('biografia', dadosSimulados.biografia);
+        setValue('habilidades', dadosSimulados.habilidades);
+        setValue('disponivel', dadosSimulados.disponivel);
+        setValue('fotoPerfil', dadosSimulados.fotoPerfil);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     carregarDados();
-  }, [setValue, dadosTrabalhador]);
+  }, [setValue]);
 
-  // Função para salvar os dados (simulada)
+  // Função para salvar os dados no Supabase
   const onSubmit = async (data) => {
     setIsSaving(true);
     
     try {
-      // Simula delay de salvamento no backend
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Simula um usuário logado (ID fixo para teste)
+      const userId = 1; // Em produção, isso viria do contexto de autenticação
       
-      // Atualiza os dados locais simulados
+      // Prepara os dados para salvar na tabela perfis_profissionais
+      const dadosParaSalvar = {
+        perfil_id: userId,
+        biografia: data.biografia,
+        habilidades: data.habilidades,
+        disponivel: data.disponivel,
+        updated_at: new Date().toISOString()
+      };
+      
+      // Usa upsert para inserir ou atualizar os dados
+      const { data: dadosSalvos, error } = await supabase
+        .from('perfis_profissionais')
+        .upsert(dadosParaSalvar, {
+          onConflict: 'perfil_id'
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Atualiza os dados locais com os dados salvos
       const dadosAtualizados = {
         ...dadosTrabalhador,
-        ...data,
-        dataUltimaAtualizacao: new Date().toISOString()
+        ...dadosSalvos,
+        dataUltimaAtualizacao: dadosSalvos.updated_at
       };
       
       setDadosTrabalhador(dadosAtualizados);
       
-      console.log('Dados salvos:', dadosAtualizados);
+      console.log('Dados salvos no Supabase:', dadosSalvos);
       alert('✅ Perfil atualizado com sucesso!');
       
     } catch (error) {
-      console.error('Erro ao salvar:', error);
+      console.error('Erro ao salvar no Supabase:', error);
       alert('❌ Erro ao salvar. Tente novamente.');
     } finally {
       setIsSaving(false);

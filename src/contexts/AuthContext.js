@@ -16,6 +16,21 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // SIMULAÇÃO TEMPORÁRIA: Simula um usuário logado para teste
+    // Em produção, isso deve ser removido
+    const simulateUser = {
+      id: '1',
+      email: 'joao.silva@email.com',
+      user_metadata: {
+        nome: 'João Silva'
+      }
+    };
+    
+    setUser(simulateUser);
+    setLoading(false);
+    
+    // Código original comentado para teste
+    /*
     // Verificar se há uma sessão ativa
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -34,6 +49,7 @@ export const AuthProvider = ({ children }) => {
     );
 
     return () => subscription.unsubscribe();
+    */
   }, []);
 
   const signUp = async (email, password, userData) => {
@@ -88,6 +104,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    session: user ? { user } : null, // Adiciona session para compatibilidade
     loading,
     signUp,
     signIn,
