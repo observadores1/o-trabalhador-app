@@ -1,67 +1,90 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Importações de AMBAS as features
+// Contexto de autenticação
+import { AuthProvider } from './contexts/AuthContext';
+
+// Componentes de autenticação
+import Login from './components/Login';
+import Register from './components/Register';
+import ProtectedRoute from './components/ProtectedRoute';
+import Dashboard from './components/Dashboard';
+
+// Componentes existentes
 import PerfilProfissional from './PerfilProfissional';
 import BuscaContratante from './components/BuscaContratante';
 import ResultadosBusca from './components/ResultadosBusca';
 
-// Importações de estilo e dados
+// Estilos
 import './App.css';
-import { buscarTrabalhadores } from './data/mockData';
 
 function App() {
-  // Estados para controlar a tela e os dados da busca
-  const [telaAtual, setTelaAtual] = useState('busca'); // 'busca', 'resultados', ou 'perfil'
-  const [resultados, setResultados] = useState([]);
-  const [termoBusca, setTermoBusca] = useState({ servico: '', localizacao: '' });
-
-  // Função para executar a busca quando o formulário é enviado
-  const handleBuscar = (dadosBusca) => {
-    const trabalhadoresEncontrados = buscarTrabalhadores(dadosBusca.servico, dadosBusca.localizacao);
-    setResultados(trabalhadoresEncontrados);
-    setTermoBusca(dadosBusca);
-    setTelaAtual('resultados');
-  };
-
-  // Função para ver o perfil (ainda em desenvolvimento)
-  const handleVerPerfil = (trabalhador) => {
-    alert(`Exibindo perfil de ${trabalhador.nome} - Funcionalidade em desenvolvimento!`);
-    // No futuro, aqui mudaremos a tela: setTelaAtual('perfil');
-  };
-
-  // Função para voltar para a tela de busca
-  const handleVoltarBusca = () => {
-    setTelaAtual('busca');
-  };
-
-  // Lógica para renderizar a tela correta
-  const renderizarTela = () => {
-    switch (telaAtual) {
-      case 'resultados':
-        return (
-          <ResultadosBusca 
-            resultados={resultados}
-            termoBusca={termoBusca}
-            onVerPerfil={handleVerPerfil}
-            onVoltarBusca={handleVoltarBusca}
-          />
-        );
-      // O case 'perfil' será adicionado no futuro
-      // case 'perfil':
-      //   return <PerfilProfissional />;
-      case 'busca':
-      default:
-        return <BuscaContratante onBuscar={handleBuscar} />;
-    }
-  };
-
   return (
-    <div className="App">
-      {/* NOTA: A tela de PerfilProfissional não está visível ainda, 
-          mas seu código está importado e pronto para ser usado 
-          quando implementarmos a navegação completa. */}
-      {renderizarTela()}
-    </div>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* Rotas públicas */}
+            <Route 
+              path="/login" 
+              element={
+                <ProtectedRoute requireAuth={false}>
+                  <Login />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/register" 
+              element={
+                <ProtectedRoute requireAuth={false}>
+                  <Register />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Rotas protegidas */}
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/perfil" 
+              element={
+                <ProtectedRoute>
+                  <PerfilProfissional />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/busca" 
+              element={
+                <ProtectedRoute>
+                  <BuscaContratante />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/resultados" 
+              element={
+                <ProtectedRoute>
+                  <ResultadosBusca />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Rota padrão - redireciona para dashboard se autenticado, senão para login */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            
+            {/* Rota 404 */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
