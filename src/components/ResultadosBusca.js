@@ -1,7 +1,15 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './ResultadosBusca.css';
 
-const ResultadosBusca = ({ resultados, termoBusca, onVerPerfil, onVoltarBusca }) => {
+const ResultadosBusca = ({ resultados: propsResultados, termoBusca: propsTermoBusca, onVerPerfil, onVoltarBusca }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Usar dados do state da navegação ou props (para compatibilidade)
+  const resultados = location.state?.resultados || propsResultados || [];
+  const termoBusca = location.state?.termoBusca || propsTermoBusca || { servico: '', localizacao: '' };
+
   const renderEstrelas = (avaliacao) => {
     const estrelas = [];
     const avaliacaoInt = Math.floor(avaliacao);
@@ -20,16 +28,33 @@ const ResultadosBusca = ({ resultados, termoBusca, onVerPerfil, onVoltarBusca })
     return estrelas;
   };
 
+  const handleVoltarBusca = () => {
+    if (onVoltarBusca) {
+      onVoltarBusca();
+    } else {
+      navigate('/dashboard');
+    }
+  };
+
+  const handleVerPerfil = (trabalhador) => {
+    if (onVerPerfil) {
+      onVerPerfil(trabalhador);
+    } else {
+      // Navegar para o perfil do trabalhador
+      navigate('/perfil', { state: { trabalhador } });
+    }
+  };
+
   return (
     <div className="resultados-container">
       <div className="resultados-header">
-        <button className="voltar-btn" onClick={onVoltarBusca}>
+        <button className="voltar-btn" onClick={handleVoltarBusca}>
           ← Voltar à Busca
         </button>
         <h2>Trabalhadores encontrados</h2>
         <p>
           {resultados.length} profissionais encontrados para "{termoBusca.servico}" 
-          em {termoBusca.localizacao}
+          {termoBusca.localizacao && ` em ${termoBusca.localizacao}`}
         </p>
       </div>
 
@@ -73,7 +98,7 @@ const ResultadosBusca = ({ resultados, termoBusca, onVerPerfil, onVoltarBusca })
                 </div>
                 <button 
                   className="ver-perfil-btn"
-                  onClick={() => onVerPerfil(trabalhador)}
+                  onClick={() => handleVerPerfil(trabalhador)}
                 >
                   Ver Perfil e Contratar
                 </button>

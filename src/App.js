@@ -1,97 +1,84 @@
-import React, { useState, useEffect } from 'react';
-import WhatsAppButton from './components/WhatsAppButton';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Importações de AMBAS as features
-import PerfilProfissional from './PerfilProfissional';
-import BuscaContratante from './components/BuscaContratante';
-import ResultadosBusca from './components/ResultadosBusca';
+// Contexto de autenticação (a base da nossa segurança)
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
-// Importações de estilo e dados
+// Componentes e Páginas
+import Login from './components/Login';
+import Register from './components/Register';
+import ProtectedRoute from './components/ProtectedRoute';
+import Dashboard from './components/Dashboard';
+import PerfilProfissional from './PerfilProfissional'; // Mantido para a rota de perfil
+import WhatsAppButton from './components/WhatsAppButton'; // Importado da outra feature
+
+// Estilos
 import './App.css';
-import { buscarTrabalhadores } from './data/mockData';
 
-function App() {
-  // Estados para controlar a tela e os dados da busca
-  const [telaAtual, setTelaAtual] = useState("busca"); // 'busca', 'resultados', ou 'perfil'
-  const [resultados, setResultados] = useState([]);
-  const [termoBusca, setTermoBusca] = useState({ servico: '', localizacao: '' });
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Novo estado para simular login
-
-  // Simulação de login/logout para testes
-  useEffect(() => {
-    // Em uma aplicação real, isso viria de um contexto de autenticação
-    const loggedIn = localStorage.getItem('isLoggedIn');
-    if (loggedIn === 'true') {
-      setIsLoggedIn(true);
-    }
-  }, []);
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    localStorage.setItem('isLoggedIn', 'true');
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    localStorage.removeItem('isLoggedIn');
-  };
-
-  // Função para executar a busca quando o formulário é enviado
-  const handleBuscar = (dadosBusca) => {
-    const trabalhadoresEncontrados = buscarTrabalhadores(dadosBusca.servico, dadosBusca.localizacao);
-    setResultados(trabalhadoresEncontrados);
-    setTermoBusca(dadosBusca);
-    setTelaAtual('resultados');
-  };
-
-  // Função para ver o perfil (ainda em desenvolvimento)
-  const handleVerPerfil = (trabalhador) => {
-    alert(`Exibindo perfil de ${trabalhador.nome} - Funcionalidade em desenvolvimento!`);
-    // No futuro, aqui mudaremos a tela: setTelaAtual('perfil');
-  };
-
-  // Função para voltar para a tela de busca
-  const handleVoltarBusca = () => {
-    setTelaAtual('busca');
-  };
-
-  // Lógica para renderizar a tela correta
-  const renderizarTela = () => {
-    switch (telaAtual) {
-      case 'resultados':
-        return (
-          <ResultadosBusca 
-            resultados={resultados}
-            termoBusca={termoBusca}
-            onVerPerfil={handleVerPerfil}
-            onVoltarBusca={handleVoltarBusca}
-          />
-        );
-      // O case 'perfil' será adicionado no futuro
-      // case 'perfil':
-      //   return <PerfilProfissional />;
-      case 'busca':
-      default:
-        return <BuscaContratante onBuscar={handleBuscar} />;
-    }
-  };
+// Componente interno para gerenciar a lógica de exibição
+function AppLayout() {
+  const { session } = useAuth(); // Usamos o hook para saber se o usuário está logado
 
   return (
     <div className="App">
-      {/* NOTA: A tela de PerfilProfissional não está visível ainda, 
-          mas seu código está importado e pronto para ser usado 
-          quando implementarmos a navegação completa. */}
-      {renderizarTela()}
-      {isLoggedIn && <WhatsAppButton />}
-      {/* Botões de login/logout para teste */}
-      <div style={{ position: 'fixed', bottom: '20px', left: '20px', zIndex: '1000' }}>
-        {!isLoggedIn ? (
-          <button onClick={handleLogin}>Login (para testar WhatsApp)</button>
-        ) : (
-          <button onClick={handleLogout}>Logout</button>
-        )}
-      </div>
+      <Routes>
+        {/* Rotas Públicas: Acessíveis apenas para usuários deslogados */}
+        <Route 
+          path="/login" 
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <Login />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/register" 
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <Register />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Rotas Protegidas: Acessíveis apenas para usuários logados */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/perfil" 
+          element={
+            <ProtectedRoute>
+              <PerfilProfissional />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Rota Padrão: Redireciona para o dashboard se logado, senão para o login */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        
+        {/* Rota 404 (Coringa): Redireciona qualquer outra URL para a rota padrão */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      
+      {/* O botão do WhatsApp só aparece se a sessão (usuário logado) existir */}
+      {session && <WhatsAppButton />}
     </div>
+  );
+}
+
+// Componente principal que envolve tudo com os provedores necessários
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <AppLayout />
+      </Router>
+    </AuthProvider>
   );
 }
 

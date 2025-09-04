@@ -1,14 +1,33 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { buscarTrabalhadores } from '../data/mockData';
 import './BuscaContratante.css';
 
 const BuscaContratante = ({ onBuscar }) => {
   const [servico, setServico] = useState('');
   const [localizacao, setLocalizacao] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (servico.trim() && localizacao.trim()) {
+    
+    if (!servico.trim()) {
+      alert('Por favor, digite o tipo de serviço que você precisa.');
+      return;
+    }
+
+    // Se onBuscar foi passado como prop (uso no Dashboard), usar a função
+    if (onBuscar) {
       onBuscar({ servico: servico.trim(), localizacao: localizacao.trim() });
+    } else {
+      // Caso contrário, usar navegação (uso standalone)
+      const resultados = buscarTrabalhadores(servico.trim(), localizacao.trim());
+      navigate('/resultados', { 
+        state: { 
+          resultados, 
+          termoBusca: { servico: servico.trim(), localizacao: localizacao.trim() } 
+        } 
+      });
     }
   };
 
@@ -43,7 +62,6 @@ const BuscaContratante = ({ onBuscar }) => {
             onChange={(e) => setLocalizacao(e.target.value)}
             placeholder="Ex: Centro, Copacabana, São Paulo..."
             className="form-input"
-            required
           />
         </div>
 
