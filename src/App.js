@@ -1,88 +1,82 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// Contexto de autenticação
-import { AuthProvider } from './contexts/AuthContext';
+// Contexto de autenticação (a base da nossa segurança)
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
-// Componentes de autenticação
+// Componentes e Páginas
 import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './components/Dashboard';
-
-// Componentes existentes
-import PerfilProfissional from './PerfilProfissional';
-import BuscaContratante from './components/BuscaContratante';
-import ResultadosBusca from './components/ResultadosBusca';
+import PerfilProfissional from './PerfilProfissional'; // Mantido para a rota de perfil
+import WhatsAppButton from './components/WhatsAppButton'; // Importado da outra feature
 
 // Estilos
 import './App.css';
 
+// Componente interno para gerenciar a lógica de exibição
+function AppLayout() {
+  const { session } = useAuth(); // Usamos o hook para saber se o usuário está logado
+
+  return (
+    <div className="App">
+      <Routes>
+        {/* Rotas Públicas: Acessíveis apenas para usuários deslogados */}
+        <Route 
+          path="/login" 
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <Login />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/register" 
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <Register />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Rotas Protegidas: Acessíveis apenas para usuários logados */}
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/perfil" 
+          element={
+            <ProtectedRoute>
+              <PerfilProfissional />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Rota Padrão: Redireciona para o dashboard se logado, senão para o login */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        
+        {/* Rota 404 (Coringa): Redireciona qualquer outra URL para a rota padrão */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      
+      {/* O botão do WhatsApp só aparece se a sessão (usuário logado) existir */}
+      {session && <WhatsAppButton />}
+    </div>
+  );
+}
+
+// Componente principal que envolve tudo com os provedores necessários
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="App">
-          <Routes>
-            {/* Rotas públicas */}
-            <Route 
-              path="/login" 
-              element={
-                <ProtectedRoute requireAuth={false}>
-                  <Login />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/register" 
-              element={
-                <ProtectedRoute requireAuth={false}>
-                  <Register />
-                </ProtectedRoute>
-              } 
-            />
-
-            {/* Rotas protegidas */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/perfil" 
-              element={
-                <ProtectedRoute>
-                  <PerfilProfissional />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/busca" 
-              element={
-                <ProtectedRoute>
-                  <BuscaContratante />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/resultados" 
-              element={
-                <ProtectedRoute>
-                  <ResultadosBusca />
-                </ProtectedRoute>
-              } 
-            />
-
-            {/* Rota padrão - redireciona para dashboard se autenticado, senão para login */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            
-            {/* Rota 404 */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </div>
+        <AppLayout />
       </Router>
     </AuthProvider>
   );
