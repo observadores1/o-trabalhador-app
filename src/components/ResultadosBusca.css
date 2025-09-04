@@ -1,0 +1,245 @@
+.resultados-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8faff 0%, #e8f2ff 100%);
+  min-height: 100vh;
+}
+
+.resultados-header {
+  margin-bottom: 2rem;
+}
+
+.voltar-btn {
+  background: white;
+  border: 2px solid #3b82f6;
+  color: #3b82f6;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.voltar-btn:hover {
+  background: #3b82f6;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.resultados-header h2 {
+  color: #1e40af;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.resultados-header p {
+  color: #64748b;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.resultados-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.trabalhador-card {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 25px rgba(30, 64, 175, 0.1);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  gap: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.trabalhador-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(30, 64, 175, 0.15);
+}
+
+.card-foto {
+  flex-shrink: 0;
+}
+
+.foto-trabalhador {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #e2e8f0;
+}
+
+.card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.nome-trabalhador {
+  color: #1e40af;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.avaliacao {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.estrelas {
+  display: flex;
+  gap: 2px;
+}
+
+.estrela {
+  font-size: 1.2rem;
+}
+
+.estrela.cheia {
+  color: #fbbf24;
+}
+
+.estrela.meia {
+  color: #fbbf24;
+  opacity: 0.6;
+}
+
+.estrela.vazia {
+  color: #d1d5db;
+}
+
+.nota-avaliacao {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1rem;
+}
+
+.total-avaliacoes {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.habilidades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.habilidade-tag {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border: 1px solid #93c5fd;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.preco-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.preco {
+  color: #059669;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.ver-perfil-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.ver-perfil-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.sem-resultados {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(30, 64, 175, 0.1);
+}
+
+.sem-resultados h3 {
+  color: #1e40af;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.sem-resultados p {
+  color: #64748b;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .resultados-container {
+    padding: 1rem;
+  }
+  
+  .trabalhador-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .card-foto {
+    align-self: center;
+  }
+  
+  .foto-trabalhador {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .card-footer {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .ver-perfil-btn {
+    width: 100%;
+    padding: 1rem;
+  }
+  
+  .resultados-header h2 {
+    font-size: 1.5rem;
+  }
+  
+  .habilidades {
+    justify-content: center;
+  }
+}
+
