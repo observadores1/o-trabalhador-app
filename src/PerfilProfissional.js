@@ -1,38 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from './services/supabaseClient';
+import { useAuth } from './contexts/AuthContext';
 import './PerfilProfissional.css';
 
-// Dados simulados do trabalhador (mockados)
-const dadosSimulados = {
-  id: 1,
-  nome: "João Silva",
-  email: "joao.silva@email.com",
-  telefone: "(11) 99999-9999",
-  biografia: "Sou um profissional experiente com mais de 10 anos de atuação no mercado. Trabalho com dedicação e qualidade em todos os projetos, sempre buscando a satisfação total do cliente.",
-  habilidades: ['Pintor', 'Eletricista'],
-  disponivel: true,
-  fotoPerfil: null,
-  avaliacaoMedia: 4.8,
-  totalServicos: 127,
-  dataUltimaAtualizacao: new Date().toISOString()
-};
-
 const PerfilProfissional = () => {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [dadosTrabalhador, setDadosTrabalhador] = useState(dadosSimulados);
+  const [dadosTrabalhador, setDadosTrabalhador] = useState({});
 
   const { register, handleSubmit, watch, setValue, formState: { errors, isDirty } } = useForm({
     defaultValues: {
-      biografia: dadosTrabalhador.biografia,
-      habilidades: dadosTrabalhador.habilidades,
-      disponivel: dadosTrabalhador.disponivel,
-      fotoPerfil: dadosTrabalhador.fotoPerfil
+      apelido: '',
+      telefone: '',
+      endereco: {
+        rua: '',
+        numero: '',
+        bairro: '',
+        cidade: ''
+      },
+      biografia: '',
+      habilidades: [],
+      disponivel: true,
+      fotoPerfil: null
     }
   });
 
-  // Lista simulada de todas as habilidades disponíveis
+  // Lista de todas as habilidades disponíveis
   const habilidadesDisponiveis = [
     'Pintor',
     'Eletricista', 
@@ -48,49 +43,65 @@ const PerfilProfissional = () => {
     'Cuidador de Idosos'
   ];
 
-  // Carrega dados do perfil do Supabase
+  // Carrega dados do perfil do Supabase com JOIN
   useEffect(() => {
     const carregarDados = async () => {
+      if (!user) return;
+      
       setIsLoading(true);
       
       try {
-        // Simula um usuário logado (ID fixo para teste)
-        const userId = 1; // Em produção, isso viria do contexto de autenticação
-        
-        // Busca dados do perfil nas tabelas perfis e perfis_profissionais
+        // Busca dados do perfil com JOIN para perfis_profissionais
         const { data: perfilData, error: perfilError } = await supabase
           .from('perfis')
-          .select('*')
-          .eq('id', userId)
+          .select(`
+            *,
+            perfis_profissionais (
+              biografia,
+              habilidades,
+              disponivel,
+              atualizado_em
+            )
+          `)
+          .eq('id', user.id)
           .single();
 
-        const { data: perfilProfissionalData, error: perfilProfissionalError } = await supabase
-          .from('perfis_profissionais')
-          .select('*')
-          .eq('perfil_id', userId)
-          .single();
-
-        if (perfilError && perfilError.code !== 'PGRST116') {
+        if (perfilError) {
           console.error('Erro ao carregar perfil:', perfilError);
+          return;
         }
 
-        if (perfilProfissionalError && perfilProfissionalError.code !== 'PGRST116') {
-          console.error('Erro ao carregar perfil profissional:', perfilProfissionalError);
-        }
-
-        // Combina os dados ou usa valores padrão
+        // Processa os dados carregados
         const dadosCarregados = {
-          ...dadosSimulados,
           ...perfilData,
-          ...perfilProfissionalData,
-          biografia: perfilProfissionalData?.biografia || '',
-          habilidades: perfilProfissionalData?.habilidades || [],
-          disponivel: perfilProfissionalData?.disponivel ?? true
+          biografia: perfilData.perfis_profissionais?.[0]?.biografia || '',
+          habilidades: perfilData.perfis_profissionais?.[0]?.habilidades || [],
+          disponivel: perfilData.perfis_profissionais?.[0]?.disponivel ?? true
         };
 
         setDadosTrabalhador(dadosCarregados);
         
+        // Processa o endereço JSONB
+        let enderecoObj = { rua: '', numero: '', bairro: '', cidade: '' };
+        if (perfilData.endereco) {
+          try {
+            if (typeof perfilData.endereco === 'string') {
+              enderecoObj = JSON.parse(perfilData.endereco);
+            } else {
+              enderecoObj = perfilData.endereco;
+            }
+          } catch (e) {
+            console.warn('Erro ao processar endereço:', e);
+          }
+        }
+        
         // Atualiza os valores do formulário com os dados carregados
+        setValue('apelido', dadosCarregados.apelido || '');
+        setValue('telefone', dadosCarregados.telefone || '');
+        setValue('endereco.rua', enderecoObj.rua || '');
+        setValue('endereco.numero', enderecoObj.numero || '');
+        setValue('endereco.bairro', enderecoObj.bairro || '');
+        setValue('endereco.cidade', enderecoObj.cidade || '');
         setValue('biografia', dadosCarregados.biografia);
         setValue('habilidades', dadosCarregados.habilidades);
         setValue('disponivel', dadosCarregados.disponivel);
@@ -98,54 +109,74 @@ const PerfilProfissional = () => {
         
       } catch (error) {
         console.error('Erro inesperado ao carregar dados:', error);
-        // Em caso de erro, usa dados simulados
-        setValue('biografia', dadosSimulados.biografia);
-        setValue('habilidades', dadosSimulados.habilidades);
-        setValue('disponivel', dadosSimulados.disponivel);
-        setValue('fotoPerfil', dadosSimulados.fotoPerfil);
       } finally {
         setIsLoading(false);
       }
     };
 
     carregarDados();
-  }, [setValue]);
+  }, [user, setValue]);
 
-  // Função para salvar os dados no Supabase
+  // Função para salvar os dados no Supabase usando upsert
   const onSubmit = async (data) => {
+    if (!user) return;
+    
     setIsSaving(true);
     
     try {
-      // Simula um usuário logado (ID fixo para teste)
-      const userId = 1; // Em produção, isso viria do contexto de autenticação
+      // Prepara o objeto de endereço JSONB
+      const enderecoObj = {
+        rua: data.endereco.rua,
+        numero: data.endereco.numero,
+        bairro: data.endereco.bairro,
+        cidade: data.endereco.cidade
+      };
       
-      // Prepara os dados para salvar na tabela perfis_profissionais
-      const dadosParaSalvar = {
-        perfil_id: userId,
+      // Atualiza dados na tabela perfis
+      const { error: perfilError } = await supabase
+        .from('perfis')
+        .update({
+          apelido: data.apelido,
+          telefone: data.telefone,
+          endereco: enderecoObj,
+          atualizado_em: new Date().toISOString()
+        })
+        .eq('id', user.id);
+      
+      if (perfilError) {
+        throw perfilError;
+      }
+      
+      // Prepara os dados para salvar na tabela perfis_profissionais usando upsert
+      const dadosPerfilProfissional = {
+        perfil_id: user.id,
         biografia: data.biografia,
         habilidades: data.habilidades,
         disponivel: data.disponivel,
-        updated_at: new Date().toISOString()
+        atualizado_em: new Date().toISOString()
       };
       
       // Usa upsert para inserir ou atualizar os dados
-      const { data: dadosSalvos, error } = await supabase
+      const { data: dadosSalvos, error: perfilProfissionalError } = await supabase
         .from('perfis_profissionais')
-        .upsert(dadosParaSalvar, {
+        .upsert(dadosPerfilProfissional, {
           onConflict: 'perfil_id'
         })
         .select()
         .single();
       
-      if (error) {
-        throw error;
+      if (perfilProfissionalError) {
+        throw perfilProfissionalError;
       }
       
       // Atualiza os dados locais com os dados salvos
       const dadosAtualizados = {
         ...dadosTrabalhador,
+        apelido: data.apelido,
+        telefone: data.telefone,
+        endereco: enderecoObj,
         ...dadosSalvos,
-        dataUltimaAtualizacao: dadosSalvos.updated_at
+        dataUltimaAtualizacao: dadosSalvos.atualizado_em
       };
       
       setDadosTrabalhador(dadosAtualizados);
@@ -192,11 +223,11 @@ const PerfilProfissional = () => {
         <p>Gerencie suas informações e disponibilidade</p>
         <div className="perfil-stats">
           <div className="stat-item">
-            <span className="stat-number">⭐ {dadosTrabalhador.avaliacaoMedia}</span>
+            <span className="stat-number">⭐ {dadosTrabalhador.avaliacaoMedia || 'N/A'}</span>
             <span className="stat-label">Avaliação</span>
           </div>
           <div className="stat-item">
-            <span className="stat-number">{dadosTrabalhador.totalServicos}</span>
+            <span className="stat-number">{dadosTrabalhador.totalServicos || 0}</span>
             <span className="stat-label">Serviços</span>
           </div>
         </div>
@@ -204,6 +235,126 @@ const PerfilProfissional = () => {
 
       <form onSubmit={handleSubmit(onSubmit)} className="perfil-form">
         
+        {/* Seção de Informações Pessoais */}
+        <div className="form-section">
+          <h2>Informações Pessoais</h2>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="apelido">Apelido/Nome de Exibição</label>
+              <input
+                type="text"
+                id="apelido"
+                {...register('apelido', { 
+                  required: 'O apelido é obrigatório',
+                  minLength: {
+                    value: 2,
+                    message: 'O apelido deve ter pelo menos 2 caracteres'
+                  }
+                })}
+                className={errors.apelido ? 'error' : ''}
+                placeholder="Como você gostaria de ser chamado?"
+              />
+              {errors.apelido && (
+                <span className="error-message">{errors.apelido.message}</span>
+              )}
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="telefone">Telefone</label>
+              <input
+                type="tel"
+                id="telefone"
+                {...register('telefone', { 
+                  required: 'O telefone é obrigatório',
+                  pattern: {
+                    value: /^\(\d{2}\)\s\d{4,5}-\d{4}$/,
+                    message: 'Formato: (11) 99999-9999'
+                  }
+                })}
+                className={errors.telefone ? 'error' : ''}
+                placeholder="(11) 99999-9999"
+              />
+              {errors.telefone && (
+                <span className="error-message">{errors.telefone.message}</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Seção de Endereço */}
+        <div className="form-section">
+          <h2>Endereço</h2>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="endereco.rua">Rua</label>
+              <input
+                type="text"
+                id="endereco.rua"
+                {...register('endereco.rua', { 
+                  required: 'A rua é obrigatória'
+                })}
+                className={errors.endereco?.rua ? 'error' : ''}
+                placeholder="Nome da rua"
+              />
+              {errors.endereco?.rua && (
+                <span className="error-message">{errors.endereco.rua.message}</span>
+              )}
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="endereco.numero">Número</label>
+              <input
+                type="text"
+                id="endereco.numero"
+                {...register('endereco.numero', { 
+                  required: 'O número é obrigatório'
+                })}
+                className={errors.endereco?.numero ? 'error' : ''}
+                placeholder="123"
+              />
+              {errors.endereco?.numero && (
+                <span className="error-message">{errors.endereco.numero.message}</span>
+              )}
+            </div>
+          </div>
+          
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="endereco.bairro">Bairro</label>
+              <input
+                type="text"
+                id="endereco.bairro"
+                {...register('endereco.bairro', { 
+                  required: 'O bairro é obrigatório'
+                })}
+                className={errors.endereco?.bairro ? 'error' : ''}
+                placeholder="Nome do bairro"
+              />
+              {errors.endereco?.bairro && (
+                <span className="error-message">{errors.endereco.bairro.message}</span>
+              )}
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="endereco.cidade">Cidade</label>
+              <input
+                type="text"
+                id="endereco.cidade"
+                {...register('endereco.cidade', { 
+                  required: 'A cidade é obrigatória'
+                })}
+                className={errors.endereco?.cidade ? 'error' : ''}
+                placeholder="Nome da cidade"
+              />
+              {errors.endereco?.cidade && (
+                <span className="error-message">{errors.endereco.cidade.message}</span>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Seção da Foto de Perfil */}
         <div className="form-section">
           <h2>Foto do Perfil</h2>

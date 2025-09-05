@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-    } catch (error)
+    } catch (error) {
       console.error('Erro ao fazer logout:', error);
     }
   };
