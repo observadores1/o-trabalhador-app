@@ -42,11 +42,14 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
         options: {
-          data: userData
-        }
+          data: userData,
+        },
       });
-      
+
       if (error) throw error;
+
+
+
       return { data, error: null };
     } catch (error) {
       return { data: null, error };
