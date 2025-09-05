@@ -16,21 +16,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // SIMULAÇÃO TEMPORÁRIA: Simula um usuário logado para teste
-    // Em produção, isso deve ser removido
-    const simulateUser = {
-      id: '1',
-      email: 'joao.silva@email.com',
-      user_metadata: {
-        nome: 'João Silva'
-      }
-    };
-    
-    setUser(simulateUser);
-    setLoading(false);
-    
-    // Código original comentado para teste
-    /*
+    // ESTE É O CÓDIGO CORRETO E REAL, DA EVELYN
     // Verificar se há uma sessão ativa
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -49,7 +35,6 @@ export const AuthProvider = ({ children }) => {
     );
 
     return () => subscription.unsubscribe();
-    */
   }, []);
 
   const signUp = async (email, password, userData) => {
@@ -58,11 +43,12 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
         options: {
-          data: userData
-        }
+          data: userData,
+        },
       });
-      
+
       if (error) throw error;
+
       return { data, error: null };
     } catch (error) {
       return { data: null, error };
@@ -87,7 +73,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-    } catch (error) {
+    } catch (error)
       console.error('Erro ao fazer logout:', error);
     }
   };
@@ -102,9 +88,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Mantemos a session para compatibilidade, mas agora ela é derivada do 'user' real
   const value = {
     user,
-    session: user ? { user } : null, // Adiciona session para compatibilidade
+    session: user ? { user } : null,
     loading,
     signUp,
     signIn,
@@ -118,4 +105,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-

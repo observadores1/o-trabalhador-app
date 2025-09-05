@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { buscarTrabalhadores } from '../data/mockData';
+import { buscarTrabalhadoresSupabase, buscarTrabalhadoresFallback } from '../services/buscaService';
 import './BuscaContratante.css';
 
 const BuscaContratante = ({ onBuscar }) => {
   const [servico, setServico] = useState('');
   const [localizacao, setLocalizacao] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!servico.trim()) {
@@ -16,18 +17,35 @@ const BuscaContratante = ({ onBuscar }) => {
       return;
     }
 
-    // Se onBuscar foi passado como prop (uso no Dashboard), usar a função
-    if (onBuscar) {
-      onBuscar({ servico: servico.trim(), localizacao: localizacao.trim() });
-    } else {
-      // Caso contrário, usar navegação (uso standalone)
-      const resultados = buscarTrabalhadores(servico.trim(), localizacao.trim());
-      navigate('/resultados', { 
-        state: { 
-          resultados, 
-          termoBusca: { servico: servico.trim(), localizacao: localizacao.trim() } 
-        } 
-      });
+    setIsLoading(true);
+
+    try {
+      // Tenta buscar no Supabase primeiro
+      let resultados = await buscarTrabalhadoresSupabase(servico.trim(), localizacao.trim());
+      
+      // Se não encontrou resultados no Supabase, usa dados simulados como fallback
+      if (resultados.length === 0) {
+        console.log('Nenhum resultado encontrado no Supabase, usando dados simulados');
+        resultados = buscarTrabalhadoresFallback(servico.trim(), localizacao.trim());
+      }
+
+      // Se onBuscar foi passado como prop (uso no Dashboard), usar a função
+      if (onBuscar) {
+        onBuscar({ servico: servico.trim(), localizacao: localizacao.trim(), resultados });
+      } else {
+        // Caso contrário, usar navegação (uso standalone)
+        navigate('/resultados', { 
+          state: { 
+            resultados, 
+            termoBusca: { servico: servico.trim(), localizacao: localizacao.trim() } 
+          } 
+        });
+      }
+    } catch (error) {
+      console.error('Erro na busca:', error);
+      alert('Erro ao buscar trabalhadores. Tente novamente.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -65,8 +83,8 @@ const BuscaContratante = ({ onBuscar }) => {
           />
         </div>
 
-        <button type="submit" className="buscar-btn">
-          Buscar Trabalhadores
+        <button type="submit" className="buscar-btn" disabled={isLoading}>
+          {isLoading ? 'Buscando...' : 'Buscar Trabalhadores'}
         </button>
       </form>
     </div>

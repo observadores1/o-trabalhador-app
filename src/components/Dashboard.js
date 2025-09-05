@@ -3,7 +3,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import BuscaContratante from './BuscaContratante';
 import ResultadosBusca from './ResultadosBusca';
-import { buscarTrabalhadores } from '../data/mockData';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -19,9 +18,9 @@ const Dashboard = () => {
   };
 
   const handleBuscar = (dadosBusca) => {
-    const trabalhadoresEncontrados = buscarTrabalhadores(dadosBusca.servico, dadosBusca.localizacao);
-    setResultados(trabalhadoresEncontrados);
-    setTermoBusca(dadosBusca);
+    // Os resultados agora vêm diretamente do componente BuscaContratante
+    setResultados(dadosBusca.resultados || []);
+    setTermoBusca({ servico: dadosBusca.servico, localizacao: dadosBusca.localizacao });
     setTelaAtual('resultados');
   };
 
