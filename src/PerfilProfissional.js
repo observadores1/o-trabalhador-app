@@ -22,7 +22,7 @@ const PerfilProfissional = () => {
       },
       biografia: '',
       habilidades: [],
-      disponivel: true,
+      disponivel_para_servicos: true,
       fotoPerfil: null
     }
   });
@@ -59,7 +59,7 @@ const PerfilProfissional = () => {
             perfis_profissionais (
               biografia,
               habilidades,
-              disponivel,
+              disponivel_para_servicos,
               atualizado_em
             )
           `)
@@ -76,7 +76,7 @@ const PerfilProfissional = () => {
           ...perfilData,
           biografia: perfilData.perfis_profissionais?.[0]?.biografia || '',
           habilidades: perfilData.perfis_profissionais?.[0]?.habilidades || [],
-          disponivel: perfilData.perfis_profissionais?.[0]?.disponivel ?? true
+          disponivel_para_servicos: perfilData.perfis_profissionais?.[0]?.disponivel_para_servicos ?? true
         };
 
         setDadosTrabalhador(dadosCarregados);
@@ -104,9 +104,8 @@ const PerfilProfissional = () => {
         setValue('endereco.cidade', enderecoObj.cidade || '');
         setValue('biografia', dadosCarregados.biografia);
         setValue('habilidades', dadosCarregados.habilidades);
-        setValue('disponivel', dadosCarregados.disponivel);
-        setValue('fotoPerfil', dadosCarregados.fotoPerfil);
-        
+                setValue('disponivel_para_servicos', dadosCarregados.disponivel_para_servicos);
+        setValue('fotoPerfil', dadosCarregados.fotoPerfil);        
       } catch (error) {
         console.error('Erro inesperado ao carregar dados:', error);
       } finally {
@@ -152,7 +151,7 @@ const PerfilProfissional = () => {
         perfil_id: user.id,
         biografia: data.biografia,
         habilidades: data.habilidades,
-        disponivel: data.disponivel,
+        disponivel_para_servicos: data.disponivel_para_servicos,
         atualizado_em: new Date().toISOString()
       };
       
@@ -432,20 +431,17 @@ const PerfilProfissional = () => {
             <label className="switch-container">
               <input
                 type="checkbox"
-                {...register('disponivel')}
-                className="switch-input"
-              />
+                {...register(\'disponivel_para_servicos\')}\n                className=\'switch-input\' />
               <span className="switch-slider"></span>
               <span className="switch-label">
-                {watch('disponivel') ? 'Estou disponível para novos serviços' : 'Não estou disponível no momento'}
+          {watch(\'disponivel_para_servicos\') ? \'Estou disponível para novos serviços\' : \'Não estou disponível no momento\'}
               </span>
             </label>
           </div>
           <p className="availability-note">
-            {watch('disponivel') 
-              ? '✅ Seu perfil será exibido nas buscas de clientes' 
-              : '⏸️ Seu perfil ficará oculto temporariamente'
-            }
+         {watch(\'disponivel_para_servicos\') 
+              ? \'✅ Seu perfil será exibido nas buscas de clientes\' 
+              : \'⏸️ Seu perfil ficará oculto temporariamente\'          }
           </p>
         </div>
 

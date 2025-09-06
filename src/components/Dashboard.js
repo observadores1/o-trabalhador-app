@@ -33,7 +33,7 @@ const Dashboard = () => {
   };
 
   const tipoUsuario = user?.user_metadata?.tipo_usuario || 'trabalhador';
-  const nomeUsuario = user?.user_metadata?.nome || user?.email;
+  const nomeUsuario = user?.user_metadata?.apelido || user?.email;
 
   const renderConteudo = () => {
     if (telaAtual === 'resultados') {
