@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import InputMask from 'react-input-mask';
 import { supabase } from './services/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
 import './PerfilProfissional.css';
@@ -253,15 +254,7 @@ const PerfilProfissional = () => {
               <label htmlFor="apelido">Apelido/Nome de Exibição</label>
               <input
                 type="text"
-                id="apelido"
-                {...register('apelido', { 
-                  required: 'O apelido é obrigatório',
-                  minLength: {
-                    value: 2,
-                    message: 'O apelido deve ter pelo menos 2 caracteres'
-                  }
-                })}
-                className={errors.apelido ? 'error' : ''}
+                id="apelid           className={errors.apelido ? 'error' : ''}
                 placeholder="Como você gostaria de ser chamado?"
               />
               {errors.apelido && (
@@ -271,18 +264,17 @@ const PerfilProfissional = () => {
             
             <div className="form-group">
               <label htmlFor="telefone">Telefone</label>
-              <input
-                type="tel"
-                id="telefone"
-                {...register('telefone', { 
-                  required: 'O telefone é obrigatório',
-                  pattern: {
-                    value: /^\(\d{2}\)\s\d{4,5}-\d{4}$/,
-                    message: 'Formato: (11) 99999-9999'
-                  }
-                })}
-                className={errors.telefone ? 'error' : ''}
-                placeholder="(11) 99999-9999"
+              <Controller
+                name="telefone"
+                control={control}
+                render={({ field }) => (
+                  <InputMask
+                    {...field}
+                    mask="(99) 99999-9999"
+                    placeholder="(XX) XXXXX-XXXX"
+                    className={errors.telefone ? "error" : ""}
+                  />
+                )}
               />
               {errors.telefone && (
                 <span className="error-message">{errors.telefone.message}</span>
