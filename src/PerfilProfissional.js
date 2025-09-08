@@ -20,6 +20,7 @@ const PerfilProfissional = () => {
         bairro: '',
         cidade: ''
       },
+      titulo_profissional: '',
       biografia: '',
       habilidades: [],
       disponivel_para_servicos: true,
@@ -57,6 +58,7 @@ const PerfilProfissional = () => {
           .select(`
             *,
             perfis_profissionais (
+              titulo_profissional,
               biografia,
               habilidades,
               disponivel_para_servicos,
@@ -71,9 +73,13 @@ const PerfilProfissional = () => {
           return;
         }
 
+        // Debug: Inspeciona a estrutura completa dos dados
+        console.log('Dados do perfil carregados:', JSON.stringify(perfilData, null, 2));
+
         // Processa os dados carregados
         const dadosCarregados = {
           ...perfilData,
+          titulo_profissional: perfilData.perfis_profissionais?.[0]?.titulo_profissional || '',
           biografia: perfilData.perfis_profissionais?.[0]?.biografia || '',
           habilidades: perfilData.perfis_profissionais?.[0]?.habilidades || [],
           disponivel_para_servicos: perfilData.perfis_profissionais?.[0]?.disponivel_para_servicos ?? true
@@ -96,16 +102,19 @@ const PerfilProfissional = () => {
         }
         
         // Atualiza os valores do formulário com os dados carregados
-        setValue('apelido', dadosCarregados.apelido || '');
-        setValue('telefone', dadosCarregados.telefone || '');
+        setValue('apelido', perfilData.apelido || '');
+        setValue('telefone', perfilData.telefone || '');
         setValue('endereco.rua', enderecoObj.rua || '');
         setValue('endereco.numero', enderecoObj.numero || '');
         setValue('endereco.bairro', enderecoObj.bairro || '');
         setValue('endereco.cidade', enderecoObj.cidade || '');
-        setValue('biografia', dadosCarregados.biografia);
-        setValue('habilidades', dadosCarregados.habilidades);
-                setValue('disponivel_para_servicos', dadosCarregados.disponivel_para_servicos);
-        setValue('fotoPerfil', dadosCarregados.fotoPerfil);        
+        
+        // Corrige o acesso aos dados do perfil profissional
+        setValue('titulo_profissional', perfilData.perfis_profissionais?.[0]?.titulo_profissional || '');
+        setValue('biografia', perfilData.perfis_profissionais?.[0]?.biografia || '');
+        setValue('habilidades', perfilData.perfis_profissionais?.[0]?.habilidades || []);
+        setValue('disponivel_para_servicos', perfilData.perfis_profissionais?.[0]?.disponivel_para_servicos ?? true);
+        setValue('fotoPerfil', perfilData.fotoPerfil || null);        
       } catch (error) {
         console.error('Erro inesperado ao carregar dados:', error);
       } finally {
@@ -149,6 +158,7 @@ const PerfilProfissional = () => {
       // Prepara os dados para salvar na tabela perfis_profissionais usando upsert
       const dadosPerfilProfissional = {
         perfil_id: user.id,
+        titulo_profissional: data.titulo_profissional,
         biografia: data.biografia,
         habilidades: data.habilidades,
         disponivel_para_servicos: data.disponivel_para_servicos,
