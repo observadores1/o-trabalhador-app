@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { supabase } from './services/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
@@ -6,6 +7,7 @@ import './PerfilProfissional.css';
 
 const PerfilProfissional = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [dadosTrabalhador, setDadosTrabalhador] = useState({});
@@ -213,6 +215,49 @@ const PerfilProfissional = () => {
 
   const habilidadesSelecionadas = watch('habilidades') || [];
 
+  // Função para gerenciar o upload da foto de perfil
+  const handleFotoUpload = async (event) => {
+    if (!user) return;
+
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setIsSaving(true);
+    try {
+      const { data, error } = await supabase.storage
+        .from("fotos-de-perfil")
+        .upload(`public/${user.id}-${Date.now()}`, file);
+
+      if (error) {
+        throw error;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("fotos-de-perfil")
+        .getPublicUrl(data.path);
+
+      // Atualiza a tabela perfis com a URL da foto
+      const { error: updateError } = await supabase
+        .from("perfis")
+        .update({ foto_perfil_url: publicUrl })
+        .eq("id", user.id);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Atualiza o estado local para exibir a nova foto
+      setValue("fotoPerfil", publicUrl);
+      alert("✅ Foto de perfil atualizada com sucesso!");
+
+    } catch (error) {
+      console.error("Erro ao fazer upload da foto:", error);
+      alert("❌ Erro ao fazer upload da foto. Tente novamente.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   // Loading state durante carregamento inicial
   if (isLoading) {
     return (
@@ -377,8 +422,9 @@ const PerfilProfissional = () => {
             <input 
               type="file" 
               accept="image/*" 
-              {...register('fotoPerfil')}
+              {...register("fotoPerfil")}
               className="foto-input"
+              onChange={handleFotoUpload}
             />
           </div>
         </div>
@@ -441,17 +487,18 @@ const PerfilProfissional = () => {
             <label className="switch-container">
               <input
                 type="checkbox"
-                {...register(\'disponivel_para_servicos\')}\n                className=\'switch-input\' />
+                {...register('disponivel_para_servicos')}
+                className="switch-input" />
               <span className="switch-slider"></span>
               <span className="switch-label">
-          {watch(\'disponivel_para_servicos\') ? \'Estou disponível para novos serviços\' : \'Não estou disponível no momento\'}
+          {watch('disponivel_para_servicos') ? 'Estou disponível para novos serviços' : 'Não estou disponível no momento'}
               </span>
             </label>
           </div>
           <p className="availability-note">
-         {watch(\'disponivel_para_servicos\') 
-              ? \'✅ Seu perfil será exibido nas buscas de clientes\' 
-              : \'⏸️ Seu perfil ficará oculto temporariamente\'          }
+         {watch('disponivel_para_servicos') 
+              ? '✅ Seu perfil será exibido nas buscas de clientes' 
+              : '⏸️ Seu perfil ficará oculto temporariamente'          }
           </p>
         </div>
 
@@ -465,8 +512,15 @@ const PerfilProfissional = () => {
         {/* Botão de Salvar */}
         <div className="form-actions">
           <button 
+            type="button" 
+            className="btn-voltar"
+            onClick={() => navigate(-1)}
+          >
+            Voltar
+          </button>
+          <button 
             type="submit" 
-            className={`btn-salvar ${isSaving ? 'saving' : ''}`}
+            className={`btn-salvar ${isSaving ? "saving" : ""}`}
             disabled={isSaving || habilidadesSelecionadas.length === 0}
           >
             {isSaving ? (
@@ -486,4 +540,5 @@ const PerfilProfissional = () => {
 };
 
 export default PerfilProfissional;
+
 
