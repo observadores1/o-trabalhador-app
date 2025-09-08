@@ -56,7 +56,7 @@ export const buscarTrabalhadoresSupabase = async (servico, localizacao) => {
     // Transformar os dados para o formato esperado pela interface
     const trabalhadoresFormatados = resultados.map(item => ({
       id: item.perfil_id,
-      nome: item.perfis?.nome || 'Nome não informado',
+      apelido: item.perfis?.apelido || 'Apelido não informado',
       foto: item.perfis?.foto_perfil_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
       avaliacao: 4.5, // Valor padrão - pode ser calculado de uma tabela de avaliações
       totalAvaliacoes: 0, // Valor padrão - pode ser calculado de uma tabela de avaliações

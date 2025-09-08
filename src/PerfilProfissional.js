@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import InputMask from 'react-input-mask';
 import { supabase } from './services/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
 import './PerfilProfissional.css';
@@ -12,7 +13,7 @@ const PerfilProfissional = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [dadosTrabalhador, setDadosTrabalhador] = useState({});
 
-  const { register, handleSubmit, watch, setValue, formState: { errors, isDirty } } = useForm({
+  const { register, handleSubmit, watch, setValue, control, formState: { errors, isDirty } } = useForm({
     defaultValues: {
       apelido: '',
       telefone: '',
@@ -26,7 +27,7 @@ const PerfilProfissional = () => {
       biografia: '',
       habilidades: [],
       disponivel_para_servicos: true,
-      fotoPerfil: null
+      foto_perfil_url: null
     }
   });
 
@@ -113,10 +114,12 @@ const PerfilProfissional = () => {
         
         // Corrige o acesso aos dados do perfil profissional
         setValue('titulo_profissional', perfilData.perfis_profissionais?.[0]?.titulo_profissional || '');
-        setValue('biografia', perfilData.perfis_profissionais?.[0]?.biografia || '');
-        setValue('habilidades', perfilData.perfis_profissionais?.[0]?.habilidades || []);
+        setTimeout(() => {
+          setValue("biografia", perfilData.perfis_profissionais?.[0]?.biografia || "");
+          setValue("habilidades", perfilData.perfis_profissionais?.[0]?.habilidades || []);
+        }, 0);
         setValue('disponivel_para_servicos', perfilData.perfis_profissionais?.[0]?.disponivel_para_servicos ?? true);
-        setValue('fotoPerfil', perfilData.fotoPerfil || null);        
+        setValue('foto_perfil_url', perfilData.foto_perfil_url || null);        
       } catch (error) {
         console.error('Erro inesperado ao carregar dados:', error);
       } finally {
@@ -247,7 +250,7 @@ const PerfilProfissional = () => {
       }
 
       // Atualiza o estado local para exibir a nova foto
-      setValue("fotoPerfil", publicUrl);
+      setValue("foto_perfil_url", publicUrl);
       alert("✅ Foto de perfil atualizada com sucesso!");
 
     } catch (error) {
@@ -273,7 +276,7 @@ const PerfilProfissional = () => {
   return (
     <div className="perfil-container">
       <div className="perfil-header">
-        <h1>Meu Perfil Profissional</h1>
+        <button onClick={() => navigate('/dashboard')} className="back-button">← Voltar ao Painel</button><h1>Meu Perfil Profissional</h1>
         <p>Gerencie suas informações e disponibilidade</p>
         <div className="perfil-stats">
           <div className="stat-item">
@@ -316,18 +319,27 @@ const PerfilProfissional = () => {
             
             <div className="form-group">
               <label htmlFor="telefone">Telefone</label>
-              <input
-                type="tel"
-                id="telefone"
-                {...register('telefone', { 
-                  required: 'O telefone é obrigatório',
+              <Controller
+                name="telefone"
+                control={control}
+                rules={{
+                  required: "O telefone é obrigatório",
                   pattern: {
                     value: /^\(\d{2}\)\s\d{4,5}-\d{4}$/,
-                    message: 'Formato: (11) 99999-9999'
+                    message: "Formato: (11) 99999-9999"
                   }
-                })}
-                className={errors.telefone ? 'error' : ''}
-                placeholder="(11) 99999-9999"
+                }}
+                render={({ field }) => (
+                  <InputMask
+                    mask="(99) 99999-9999"
+                    maskChar="_"
+                    type="tel"
+                    id="telefone"
+                    {...field}
+                    className={errors.telefone ? "error" : ""}
+                    placeholder="(11) 99999-9999"
+                  />
+                )}
               />
               {errors.telefone && (
                 <span className="error-message">{errors.telefone.message}</span>
@@ -422,7 +434,7 @@ const PerfilProfissional = () => {
             <input 
               type="file" 
               accept="image/*" 
-              {...register("fotoPerfil")}
+              {...register("foto_perfil_url")}
               className="foto-input"
               onChange={handleFotoUpload}
             />
