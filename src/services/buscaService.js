@@ -17,14 +17,14 @@ export const buscarTrabalhadoresSupabase = async (servico, localizacao) => {
         *,
         perfis (
           id,
-          nome,
+          nome_completo,
           email,
           telefone,
           endereco,
           foto_perfil_url
         )
       `)
-      .eq('disponivel', true); // Apenas trabalhadores disponíveis
+     .eq(\'disponivel_para_servicos\', true) // Apenas trabalhadores disponíveis
 
     // Filtro por habilidade (se fornecido)
     if (servico && servico.trim()) {

@@ -48,7 +48,7 @@ const Register = () => {
     setSuccess('');
 
     const userData = {
-      nome: formData.nome,
+      nome_completo: formData.nome,
       tipo_usuario: formData.tipoUsuario
     };
 
