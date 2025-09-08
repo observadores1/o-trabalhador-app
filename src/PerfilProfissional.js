@@ -194,10 +194,9 @@ const PerfilProfissional = () => {
       };
       
       setDadosTrabalhador(dadosAtualizados);
-      
       console.log('Dados salvos no Supabase:', dadosSalvos);
       alert('✅ Perfil atualizado com sucesso!');
-      
+      navigate(`/perfil/${user.id}`);
     } catch (error) {
       console.error('Erro ao salvar no Supabase:', error);
       alert('❌ Erro ao salvar. Tente novamente.');
@@ -276,7 +275,7 @@ const PerfilProfissional = () => {
   return (
     <div className="perfil-container">
       <div className="perfil-header">
-        <button onClick={() => navigate('/dashboard')} className="back-button">← Voltar ao Painel</button><h1>Meu Perfil Profissional</h1>
+        <button onClick={() => navigate(`/perfil/${user.id}`)} className="back-button">← Voltar ao Meu Perfil</button><h1>Meu Perfil Profissional</h1>
         <p>Gerencie suas informações e disponibilidade</p>
         <div className="perfil-stats">
           <div className="stat-item">
