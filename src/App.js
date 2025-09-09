@@ -9,7 +9,8 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './components/Dashboard';
-import PerfilProfissional from './PerfilProfissional'; // Mantido para a rota de perfil
+import PerfilProfissional from './PerfilProfissional';
+import PerfilVitrine from './components/PerfilVitrine';
 import WhatsAppButton from './components/WhatsAppButton'; // Importado da outra feature
 
 // Estilos
@@ -50,7 +51,15 @@ function AppLayout() {
           } 
         />
         <Route 
-          path="/perfil" 
+          path="/perfil/:id" 
+          element={
+            <ProtectedRoute>
+              <PerfilVitrine />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/perfil/editar" 
           element={
             <ProtectedRoute>
               <PerfilProfissional />
