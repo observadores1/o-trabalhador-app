@@ -61,7 +61,13 @@ const Dashboard = () => {
               <div className="dashboard-card">
                 <h3>Meu Perfil</h3>
                 <p>Gerencie suas informações profissionais</p>
-                <button onClick={() => navigate('/perfil')}>
+                <button onClick={() => {
+                  if (user && user.id) {
+                    navigate('/perfil/editar'); // Navega para a página de EDIÇÃO
+                  } else {
+                    console.error("ID do usuário não encontrado para navegar.");
+                  }
+                }}>
                   Ver Perfil
                 </button>
               </div>
@@ -69,7 +75,7 @@ const Dashboard = () => {
               <div className="dashboard-card">
                 <h3>Oportunidades</h3>
                 <p>Veja trabalhos disponíveis na sua área</p>
-                <button onClick={() => navigate('/oportunidades')}>
+                <button disabled>
                   Ver Oportunidades
                 </button>
               </div>
@@ -77,7 +83,7 @@ const Dashboard = () => {
               <div className="dashboard-card">
                 <h3>Meus Trabalhos</h3>
                 <p>Acompanhe seus trabalhos em andamento</p>
-                <button onClick={() => navigate('/trabalhos')}>
+                <button disabled>
                   Ver Trabalhos
                 </button>
               </div>
@@ -109,4 +115,5 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
 
