@@ -17,7 +17,7 @@ export const buscarTrabalhadoresSupabase = async (servico, localizacao) => {
         *,
         perfis (
           id,
-          nome_completo,
+          apelido,
           email,
           telefone,
           endereco,
