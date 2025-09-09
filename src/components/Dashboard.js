@@ -61,7 +61,13 @@ const Dashboard = () => {
               <div className="dashboard-card">
                 <h3>Meu Perfil</h3>
                 <p>Gerencie suas informações profissionais</p>
-                <button onClick={() => navigate('/perfil')}>
+                <button onClick={() => {
+                  if (user && user.id) {
+                    navigate(`/perfil/${user.id}`);
+                  } else {
+                    console.error("ID do usuário não encontrado para navegar.");
+                  }
+                }}>
                   Ver Perfil
                 </button>
               </div>

@@ -70,13 +70,10 @@ const PerfilProfissional = () => {
           .eq('id', user.id)
           .single();
 
-        if (perfilError) {
+       if (perfilError) {
           console.error('Erro ao carregar perfil:', perfilError);
           return;
         }
-
-        // Debug: Inspeciona a estrutura completa dos dados
-        console.log('Dados do perfil carregados:', JSON.stringify(perfilData, null, 2));
 
         // Processa os dados carregados
         const dadosCarregados = {
@@ -103,20 +100,25 @@ const PerfilProfissional = () => {
           }
         }
         
-        // Atualiza os valores do formulário com os dados carregados
-        setValue('apelido', perfilData.apelido || '');
-        setValue('telefone', perfilData.telefone || '');
-        setValue('endereco.rua', enderecoObj.rua || '');
-        setValue('endereco.numero', enderecoObj.numero || '');
-        setValue('endereco.bairro', enderecoObj.bairro || '');
-        setValue('endereco.cidade', enderecoObj.cidade || '');
-        
-        // Corrige o acesso aos dados do perfil profissional
-        setValue('titulo_profissional', perfilData.perfis_profissionais?.[0]?.titulo_profissional || '');
-        setValue('biografia', perfilData.perfis_profissionais?.[0]?.biografia || '');
-        setValue('habilidades', perfilData.perfis_profissionais?.[0]?.habilidades || []);
-        setValue('disponivel_para_servicos', perfilData.perfis_profissionais?.[0]?.disponivel_para_servicos ?? true);
-        setValue('fotoPerfil', perfilData.fotoPerfil || null);        
+        if (perfilData) {
+          setTimeout(() => {
+            setValue("apelido", perfilData.apelido || "");
+            setValue("telefone", perfilData.telefone || "");
+            setValue("endereco.rua", enderecoObj.rua || "");
+            setValue("endereco.numero", enderecoObj.numero || "");
+            setValue("endereco.bairro", enderecoObj.bairro || "");
+            setValue("endereco.cidade", enderecoObj.cidade || "");
+
+            const perfilProf = perfilData.perfis_profissionais?.[0];
+            if (perfilProf) {
+              setValue("titulo_profissional", perfilProf.titulo_profissional || "");
+              setValue("biografia", perfilProf.biografia || "");
+              setValue("habilidades", perfilProf.habilidades || []);
+              setValue("disponivel_para_servicos", perfilProf.disponivel_para_servicos ?? true);
+            }
+            setValue("fotoPerfil", perfilData.fotoPerfil || null);
+          }, 0);
+        }        
       } catch (error) {
         console.error('Erro inesperado ao carregar dados:', error);
       } finally {
