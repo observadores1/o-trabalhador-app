@@ -17,7 +17,7 @@ export const buscarTrabalhadoresSupabase = async (servico, localizacao) => {
         *,
         perfis (
           id,
-          nome_completo,
+          apelido,
           email,
           telefone,
           endereco,
@@ -29,8 +29,7 @@ export const buscarTrabalhadoresSupabase = async (servico, localizacao) => {
     // Filtro por habilidade (se fornecido)
     if (servico && servico.trim()) {
       const servicoLower = servico.toLowerCase().trim();
-      query = query.contains('habilidades', [servicoLower]);
-    }
+      query = query.contains(\'habilidades\', `{${servicoLower}}`);   }
 
     // Executar a query
     const { data, error } = await query;
