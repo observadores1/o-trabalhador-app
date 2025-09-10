@@ -25,7 +25,11 @@ const Dashboard = () => {
   };
 
   const handleVerPerfil = (trabalhador) => {
-    navigate('/perfil', { state: { trabalhador } });
+    if (trabalhador && trabalhador.id) {
+      navigate(`/perfil/${trabalhador.id}`);
+    } else {
+      console.error("ID do trabalhador não encontrado para navegar.");
+    }
   };
 
   const handleVoltarBusca = () => {
