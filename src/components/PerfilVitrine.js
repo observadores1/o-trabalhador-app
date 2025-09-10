@@ -100,56 +100,19 @@ const PerfilVitrine = () => {
         <p><strong>Localização:</strong> {profile.cidade}, {profile.bairro}</p>
       </div>
 
-      {isOwner && (
-        <div style={{ marginTop: '30px' }}>
-          <button 
-            onClick={() => navigate('/perfil/editar')}
-            style={{
-              backgroundColor: '#007bff',
-              color: 'white',
-              padding: '10px 20px',
-              border: 'none',
-              borderRadius: '5px',
-              marginRight: '10px',
-              cursor: 'pointer'
-            }}
-          >
+      <div className="perfil-actions">
+        {user && user.id === id ? (
+          // Se o usuário logado é o dono do perfil
+          <button onClick={() => navigate('/perfil/editar')}>
             Editar Perfil
           </button>
-          <button 
-            onClick={() => navigate('/dashboard')}
-            style={{
-              backgroundColor: '#6c757d',
-              color: 'white',
-              padding: '10px 20px',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            Voltar ao Painel
+        ) : (
+          // Se for um visitante
+          <button onClick={() => alert('Lógica de contratação a ser implementada')}>
+            Contratar
           </button>
-        </div>
-      )}
-
-      {/* Condição 3: Visualização do Contratante - Exibição dos dados */}
-      {!isOwner && (
-        <div style={{ marginTop: '30px' }}>
-          <button 
-            onClick={() => navigate('/dashboard')}
-            style={{
-              backgroundColor: '#28a745',
-              color: 'white',
-              padding: '10px 20px',
-              border: 'none',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            Voltar à Busca
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
