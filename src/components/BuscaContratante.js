@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { buscarTrabalhadoresSupabase, buscarTrabalhadoresFallback } from '../services/buscaService';
+import { buscarTrabalhadoresSupabase } from '../services/buscaService';
 import './BuscaContratante.css';
 
 const BuscaContratante = ({ onBuscar }) => {
@@ -23,11 +23,7 @@ const BuscaContratante = ({ onBuscar }) => {
       // Tenta buscar no Supabase primeiro
       let resultados = await buscarTrabalhadoresSupabase(servico.trim(), localizacao.trim());
       
-      // Se não encontrou resultados no Supabase, usa dados simulados como fallback
-      if (resultados.length === 0) {
-        console.log('Nenhum resultado encontrado no Supabase, usando dados simulados');
-        resultados = buscarTrabalhadoresFallback(servico.trim(), localizacao.trim());
-      }
+
 
       // Se onBuscar foi passado como prop (uso no Dashboard), usar a função
       if (onBuscar) {
