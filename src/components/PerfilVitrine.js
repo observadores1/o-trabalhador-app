@@ -1,121 +1,141 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseClient';
+import { useAuth } from '../contexts/AuthContext';
+import './PerfilVitrine.css'; // Vamos precisar criar este arquivo de estilo
 
 const PerfilVitrine = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // Pega o ID do perfil da URL
+  const { user } = useAuth(); // Pega o usuário logado do contexto
   const navigate = useNavigate();
-  const { user } = useAuth(); // Usar o hook de autenticação real
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+
+  const [perfil, setPerfil] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const carregarPerfil = async () => {
+      if (!id) {
+        setError("ID do perfil não fornecido.");
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('perfis') // Assumindo que a tabela principal de perfis se chama 'perfis'
+        // Query corrigida para buscar o perfil e os dados profissionais
+        const { data, error: fetchError } = await supabase
+          .from('perfis')
           .select(`
-            *,
-            perfis_profissionais (*)
+            id,
+            apelido,
+            foto_perfil_url,
+            perfis_profissionais (
+              titulo_profissional,
+              biografia,
+              habilidades,
+              avaliacao_media
+            )
           `)
           .eq('id', id)
           .single();
 
-        if (error) {
-          throw error;
+        if (fetchError) {
+          // Se o erro for 'PGRST116', significa que não encontrou o perfil, o que é um estado válido
+          if (fetchError.code === 'PGRST116') {
+            setPerfil(null);
+          } else {
+            throw fetchError;
+          }
+        } else {
+          setPerfil(data);
         }
-
-        setProfile(data);
-      } catch (err) {
-        setError(err.message);
+      } catch (e) {
+        console.error("Erro detalhado ao carregar perfil:", e);
+        setError("Ocorreu um erro ao carregar o perfil.");
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchProfile();
-  }, [id]);
+    carregarPerfil();
+  }, [id]); // A busca é refeita sempre que o ID na URL mudar
 
-  if (loading) {
-    return <div>Carregando perfil...</div>;
+  // --- Estados de Renderização ---
+
+  if (isLoading) {
+    return <div className="vitrine-container"><p>Carregando perfil...</p></div>;
   }
 
   if (error) {
-    return <div>Erro ao carregar perfil: {error}</div>;
+    return <div className="vitrine-container"><p className="error-message">{error}</p></div>;
   }
 
-  if (!profile) {
-    return <div>Perfil não encontrado.</div>;
+  if (!perfil) {
+    return <div className="vitrine-container"><p>Este trabalhador não foi encontrado ou não está disponível.</p></div>;
   }
 
-  // Condição 1: Disponibilidade
-  if (!profile.disponivel_para_servicos) {
-    return <div>Este trabalhador não está disponível no momento.</div>;
-  }
+  // --- Lógica do Botão de Ação ---
+  const isOwner = user && user.id === perfil.id;
 
-  // Condição 2: Dono do Perfil
-  const isOwner = user && user.id === profile.id; // Comparar com o ID do perfil
+  const renderBotaoAcao = () => {
+    if (isOwner) {
+      return (
+        <button className="btn-acao btn-editar" onClick={() => navigate('/perfil/editar')}>
+          Editar Meu Perfil
+        </button>
+      );
+    }
+    return (
+      <button className="btn-acao btn-contratar" onClick={() => alert('Lógica de contratação a ser implementada')}>
+        Contratar
+      </button>
+    );
+  };
+
+  // Extrai os dados profissionais para facilitar o acesso
+  const dadosProfissionais = perfil.perfis_profissionais[0] || {};
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1>Perfil de {profile.apelido}</h1>
-      
-      {profile.foto_perfil_url && (
+    <div className="vitrine-container">
+      <header className="vitrine-header">
         <img 
-          src={profile.foto_perfil_url} 
-          alt="Foto de Perfil" 
-          style={{ 
-            width: '150px', 
-            height: '150px', 
-            borderRadius: '50%',
-            objectFit: 'cover',
-            marginBottom: '20px'
-          }} 
+          src={perfil.foto_perfil_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'} 
+          alt={`Foto de ${perfil.apelido}`} 
+          className="vitrine-foto"
         />
-      )}
-      
-      <div style={{ marginBottom: '15px' }}>
-        <p><strong>Título Profissional:</strong> {profile.titulo_profissional}</p>
-      </div>
-      
-      <div style={{ marginBottom: '15px' }}>
-        <p><strong>Biografia:</strong> {profile.biografia}</p>
-      </div>
-      
-      <div style={{ marginBottom: '15px' }}>
-        <p><strong>Habilidades:</strong> {
-          profile.perfis_profissionais?.habilidades 
-            ? profile.perfis_profissionais.habilidades.join(', ') 
-            : 'Nenhuma habilidade listada'
-        }</p>
-      </div>
-      
-      <div style={{ marginBottom: '15px' }}>
-        <p><strong>Avaliação Média:</strong> {profile.perfis_profissionais?.avaliacao_media || 'N/A'}</p>
-      </div>
-      
-      <div style={{ marginBottom: '15px' }}>
-        <p><strong>Localização:</strong> {profile.cidade}, {profile.bairro}</p>
-      </div>
+        <h1>{perfil.apelido}</h1>
+        <p className="vitrine-titulo">{dadosProfissionais.titulo_profissional || 'Trabalhador'}</p>
+        <div className="vitrine-avaliacao">
+          ⭐ {dadosProfissionais.avaliacao_media || 'N/A'}
+        </div>
+      </header>
 
-      <div className="perfil-actions">
-        {user && user.id === id ? (
-          // Se o usuário logado é o dono do perfil
-          <button onClick={() => navigate('/perfil/editar')}>
-            Editar Perfil
-          </button>
-        ) : (
-          // Se for um visitante
-          <button onClick={() => alert('Lógica de contratação a ser implementada')}>
-            Contratar
-          </button>
-        )}
-      </div>
+      <main className="vitrine-main">
+        <section className="vitrine-section">
+          <h2>Sobre Mim</h2>
+          <p>{dadosProfissionais.biografia || 'Nenhuma biografia informada.'}</p>
+        </section>
+
+        <section className="vitrine-section">
+          <h2>Habilidades</h2>
+          <div className="habilidades-container">
+            {(dadosProfissionais.habilidades && dadosProfissionais.habilidades.length > 0 ) ? (
+              dadosProfissionais.habilidades.map(habilidade => (
+                <span key={habilidade} className="habilidade-tag">{habilidade}</span>
+              ))
+            ) : (
+              <p>Nenhuma habilidade informada.</p>
+            )}
+          </div>
+        </section>
+      </main>
+
+      <footer className="vitrine-footer">
+        {renderBotaoAcao()}
+      </footer>
     </div>
   );
 };
 
 export default PerfilVitrine;
-
