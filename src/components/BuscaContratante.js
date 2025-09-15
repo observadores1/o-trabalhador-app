@@ -9,31 +9,32 @@ const BuscaContratante = ({ onBuscar }) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  const habilidadesDisponiveis = [
+    'Pintor', 'Eletricista', 'Encanador', 'Jardineiro', 'Pedreiro', 
+    'Marceneiro', 'Soldador', 'Mecânico', 'Limpeza', 'Cozinheiro', 
+    'Babá', 'Cuidador de Idosos'
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!servico.trim()) {
-      alert('Por favor, digite o tipo de serviço que você precisa.');
+    if (!servico) { // Alterado para verificar se o serviço foi selecionado
+      alert('Por favor, selecione o tipo de serviço que você precisa.');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Tenta buscar no Supabase primeiro
-      let resultados = await buscarTrabalhadoresSupabase(servico.trim(), localizacao.trim());
+      let resultados = await buscarTrabalhadoresSupabase(servico, localizacao.trim());
       
-
-
-      // Se onBuscar foi passado como prop (uso no Dashboard), usar a função
       if (onBuscar) {
-        onBuscar({ servico: servico.trim(), localizacao: localizacao.trim(), resultados });
+        onBuscar({ servico: servico, localizacao: localizacao.trim(), resultados });
       } else {
-        // Caso contrário, usar navegação (uso standalone)
         navigate('/resultados', { 
           state: { 
             resultados, 
-            termoBusca: { servico: servico.trim(), localizacao: localizacao.trim() } 
+            termoBusca: { servico: servico, localizacao: localizacao.trim() } 
           } 
         });
       }
@@ -56,15 +57,18 @@ const BuscaContratante = ({ onBuscar }) => {
       <form className="busca-form" onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="servico">Qual serviço você precisa?</label>
-          <input
-            type="text"
+          <select
             id="servico"
             value={servico}
             onChange={(e) => setServico(e.target.value)}
-            placeholder="Ex: Pintor, Eletricista, Encanador..."
             className="form-input"
             required
-          />
+          >
+            <option value="">-- Selecione um serviço --</option>
+            {habilidadesDisponiveis.map(h => (
+              <option key={h} value={h}>{h}</option>
+            ))}
+          </select>
         </div>
 
         <div className="form-group">
@@ -88,4 +92,5 @@ const BuscaContratante = ({ onBuscar }) => {
 };
 
 export default BuscaContratante;
+
 
