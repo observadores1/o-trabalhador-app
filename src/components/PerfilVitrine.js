@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
-import './PerfilVitrine.css'; // Vamos precisar criar este arquivo de estilo
+import './PerfilVitrine.css';
 
 const PerfilVitrine = () => {
-  const { id } = useParams(); // Pega o ID do perfil da URL
-  const { user } = useAuth(); // Pega o usuário logado do contexto
+  const { id } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [perfil, setPerfil] = useState(null);
@@ -23,14 +23,14 @@ const PerfilVitrine = () => {
 
       setIsLoading(true);
       try {
-        // Query corrigida para buscar o perfil e os dados profissionais
+        // Query corrigida para fazer o JOIN explícito usando perfil_id
         const { data, error: fetchError } = await supabase
           .from('perfis')
           .select(`
             id,
             apelido,
             foto_perfil_url,
-            perfis_profissionais (
+            perfis_profissionais!inner(
               titulo_profissional,
               biografia,
               habilidades,
@@ -41,7 +41,6 @@ const PerfilVitrine = () => {
           .single();
 
         if (fetchError) {
-          // Se o erro for 'PGRST116', significa que não encontrou o perfil, o que é um estado válido
           if (fetchError.code === 'PGRST116') {
             setPerfil(null);
           } else {
@@ -59,9 +58,7 @@ const PerfilVitrine = () => {
     };
 
     carregarPerfil();
-  }, [id]); // A busca é refeita sempre que o ID na URL mudar
-
-  // --- Estados de Renderização ---
+  }, [id]);
 
   if (isLoading) {
     return <div className="vitrine-container"><p>Carregando perfil...</p></div>;
@@ -71,11 +68,10 @@ const PerfilVitrine = () => {
     return <div className="vitrine-container"><p className="error-message">{error}</p></div>;
   }
 
-  if (!perfil) {
-    return <div className="vitrine-container"><p>Este trabalhador não foi encontrado ou não está disponível.</p></div>;
+  if (!perfil || !perfil.perfis_profissionais) {
+    return <div className="vitrine-container"><p>Este trabalhador não foi encontrado ou não possui um perfil profissional completo.</p></div>;
   }
 
-  // --- Lógica do Botão de Ação ---
   const isOwner = user && user.id === perfil.id;
 
   const renderBotaoAcao = () => {
@@ -93,8 +89,7 @@ const PerfilVitrine = () => {
     );
   };
 
-  // Extrai os dados profissionais para facilitar o acesso
-  const dadosProfissionais = perfil.perfis_profissionais[0] || {};
+  const dadosProfissionais = perfil.perfis_profissionais;
 
   return (
     <div className="vitrine-container">
