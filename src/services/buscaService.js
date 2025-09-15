@@ -1,94 +1,50 @@
 import { supabase } from './supabaseClient';
 
 /**
- * Busca trabalhadores no Supabase baseado em habilidade e localização
- * @param {string} servico - Tipo de serviço/habilidade procurada
- * @param {string} localizacao - Localização (cidade/bairro)
- * @returns {Promise<Array>} Lista de trabalhadores encontrados
+ * Busca trabalhadores usando a nova Função RPC no Supabase.
+ * Esta é a única função de busca que deve ser usada.
+ * @param {string} servico - Tipo de serviço/habilidade procurada.
+ * @returns {Promise<Array>} Lista de trabalhadores encontrados.
  */
-export const buscarTrabalhadoresSupabase = async (servico, localizacao) => {
+export const buscarTrabalhadoresSupabase = async (servico) => {
+  // Se o campo de busca estiver vazio, retorna uma lista vazia imediatamente.
+  if (!servico || !servico.trim()) {
+    return [];
+  }
+
   try {
-    console.log('Buscando trabalhadores:', { servico, localizacao });
+    console.log(`Chamando RPC 'buscar_perfis_por_habilidade' com o serviço: ${servico}`);
     
-    // Query base para buscar perfis profissionais com dados do perfil
-    let query = supabase
-      .from('perfis_profissionais')
-      .select(`
-        *,
-        perfis (
-          id,
-          apelido,
-          email,
-          telefone,
-          endereco,
-          foto_perfil_url
-        )
-      `)
-     .eq('disponivel_para_servicos', true) // Apenas trabalhadores disponíveis
+    // Chama a função customizada (RPC) que criamos no Supabase.
+    const { data, error } = await supabase.rpc('buscar_perfis_por_habilidade', {
+      habilidade_texto: servico.toLowerCase().trim()
+    });
 
-    // Filtro por habilidade (se fornecido)
-    if (servico && servico.trim()) {
-      const servicoLower = servico.toLowerCase().trim();
-      query = query.contains(\'habilidades\', `{${servicoLower}}`);   }
-
-    // Executar a query
-    const { data, error } = await query;
-
+    // Se o Supabase retornar um erro, nós o registramos no console e paramos.
     if (error) {
-      console.error('Erro ao buscar trabalhadores:', error);
+      console.error('Erro ao chamar a função RPC de busca:', error);
       throw error;
     }
 
-    console.log('Dados brutos do Supabase:', data);
-
-    // Filtrar por localização no lado do cliente (se fornecido)
-    let resultados = data || [];
-    
-    if (localizacao && localizacao.trim()) {
-      const localizacaoLower = localizacao.toLowerCase().trim();
-      resultados = resultados.filter(item => {
-        const endereco = item.perfis?.endereco || '';
-        return endereco.toLowerCase().includes(localizacaoLower);
-      });
-    }
-
-    // Transformar os dados para o formato esperado pela interface
-    const trabalhadoresFormatados = resultados.map(item => ({
-      id: item.perfil_id,
-      apelido: item.perfis?.apelido || 'Apelido não informado',
-      foto: item.perfis?.foto_perfil_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      avaliacao: 4.5, // Valor padrão - pode ser calculado de uma tabela de avaliações
-      totalAvaliacoes: 0, // Valor padrão - pode ser calculado de uma tabela de avaliações
-      habilidades: item.habilidades || [],
-      precoMinimo: 80, // Valor padrão - pode vir de uma tabela de preços
-      localizacao: item.perfis?.endereco || 'Localização não informada',
-      servicos: (item.habilidades || []).map(h => h.toLowerCase()),
-      biografia: item.biografia || '',
-      telefone: item.perfis?.telefone || '',
-      email: item.perfis?.email || ''
-    }));
-
-    console.log('Trabalhadores formatados:', trabalhadoresFormatados);
-    return trabalhadoresFormatados;
+    // Se tudo deu certo, retornamos os dados encontrados.
+    // O '|| []' garante que, se 'data' for nulo, retornamos uma lista vazia.
+    console.log('Trabalhadores encontrados via RPC:', data);
+    return data || [];
 
   } catch (error) {
-    console.error('Erro na busca de trabalhadores:', error);
-    
-    // Em caso de erro, retorna array vazio
-    // Em produção, você pode querer mostrar uma mensagem de erro específica
+    // Se qualquer outro erro inesperado acontecer, registramos e retornamos uma lista vazia.
+    console.error('Erro inesperado na busca de trabalhadores:', error);
     return [];
   }
 };
 
 /**
- * Função de fallback que usa dados simulados
- * Útil para desenvolvimento quando o banco ainda não está configurado
+ * ATENÇÃO: Esta função está obsoleta e não deve ser usada.
+ * Ela é mantida aqui temporariamente para evitar que o aplicativo quebre
+ * em locais que ainda possam estar a chamando, mas ela não faz nada.
+ * O objetivo é remover todas as chamadas a esta função.
  */
 export const buscarTrabalhadoresFallback = (servico, localizacao) => {
-  console.log('Usando dados simulados como fallback');
-  
-  // Importa a função original de dados simulados
-  const { buscarTrabalhadores } = require('../data/mockData');
-  return buscarTrabalhadores(servico, localizacao);
+  console.warn('A função obsoleta "buscarTrabalhadoresFallback" foi chamada. Ela não retorna mais dados.');
+  return []; // Retorna sempre uma lista vazia.
 };
-
