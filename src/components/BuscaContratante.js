@@ -6,6 +6,8 @@ import './BuscaContratante.css';
 const BuscaContratante = ({ onBuscar }) => {
   const [servico, setServico] = useState('');
   const [localizacao, setLocalizacao] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [estado, setEstado] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -26,15 +28,15 @@ const BuscaContratante = ({ onBuscar }) => {
     setIsLoading(true);
 
     try {
-      let resultados = await buscarTrabalhadoresSupabase(servico, localizacao.trim());
+      let resultados = await buscarTrabalhadoresSupabase(servico, localizacao.trim(), cidade.trim(), estado.trim());
       
       if (onBuscar) {
-        onBuscar({ servico: servico, localizacao: localizacao.trim(), resultados });
+        onBuscar({ servico: servico, localizacao: localizacao.trim(), cidade: cidade.trim(), estado: estado.trim(), resultados });
       } else {
         navigate('/resultados', { 
           state: { 
             resultados, 
-            termoBusca: { servico: servico, localizacao: localizacao.trim() } 
+            termoBusca: { servico: servico, localizacao: localizacao.trim(), cidade: cidade.trim(), estado: estado.trim() } 
           } 
         });
       }
@@ -79,6 +81,30 @@ const BuscaContratante = ({ onBuscar }) => {
             value={localizacao}
             onChange={(e) => setLocalizacao(e.target.value)}
             placeholder="Ex: Centro, Copacabana, São Paulo..."
+            className="form-input"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="cidade">Cidade</label>
+          <input
+            type="text"
+            id="cidade"
+            value={cidade}
+            onChange={(e) => setCidade(e.target.value)}
+            placeholder="Ex: São Paulo, Rio de Janeiro..."
+            className="form-input"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="estado">Estado (UF)</label>
+          <input
+            type="text"
+            id="estado"
+            value={estado}
+            onChange={(e) => setEstado(e.target.value)}
+            placeholder="Ex: SP, RJ, MG..."
             className="form-input"
           />
         </div>

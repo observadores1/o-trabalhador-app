@@ -23,7 +23,7 @@ const PerfilProfissional = () => {
     defaultValues: {
       apelido: '',
       telefone: '',
-      endereco: { rua: '', numero: '', bairro: '', cidade: '' },
+      endereco: { rua: '', numero: '', bairro: '', cidade: '', estado: '' },
       titulo_profissional: '',
       biografia: '',
       habilidades: [],
@@ -70,6 +70,7 @@ const PerfilProfissional = () => {
           setValue('endereco.numero', endereco.numero || '');
           setValue('endereco.bairro', endereco.bairro || '');
           setValue('endereco.cidade', endereco.cidade || '');
+          setValue('endereco.estado', endereco.estado || '');
 
           // Preenche os dados do perfil profissional (se existirem)
           const profissionalData = perfilData.perfis_profissionais || {};
@@ -215,6 +216,10 @@ const PerfilProfissional = () => {
           <div className="form-group">
             <label>Cidade</label>
             <input {...register('endereco.cidade')} placeholder="Sua cidade" />
+          </div>
+          <div className="form-group">
+            <label>Estado (UF)</label>
+            <input {...register('endereco.estado')} placeholder="Ex: SP, RJ, MG" />
           </div>
         </div>
 
