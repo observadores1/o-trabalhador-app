@@ -2,6 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ResultadosBusca.css'; // Supondo que você tenha um arquivo de estilo
 
+const getOptimizedUrl = (url) => {
+  if (!url) return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face'; // Use a mesma URL de fallback
+  return `${url}?width=80&height=80&resize=cover`; 
+};
+
 const ResultadosBusca = ({ resultados, termoBusca, onVoltarBusca }) => {
   const navigate = useNavigate();
 
@@ -30,7 +35,7 @@ const ResultadosBusca = ({ resultados, termoBusca, onVoltarBusca }) => {
         {resultados.map((trabalhador) => (
           <div key={trabalhador.id} className="trabalhador-card">
             <img 
-              src={trabalhador.foto_perfil_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face'} 
+              src={getOptimizedUrl(trabalhador.foto_perfil_url)} 
               alt={trabalhador.apelido} 
             />
             <h3>{trabalhador.apelido}</h3>
