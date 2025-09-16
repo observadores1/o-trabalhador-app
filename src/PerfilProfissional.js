@@ -115,12 +115,40 @@ const PerfilProfissional = () => {
 
       if (perfilError) throw perfilError;
 
-      // Faz o upsert na tabela 'perfis_profissionais'
+      // Gerenciar habilidades na tabela de junção habilidades_do_usuario
+      // 1. Remover todas as habilidades antigas do usuário
+      await supabase
+        .from('habilidades_do_usuario')
+        .delete()
+        .eq('perfil_id', user.id);
+
+      // 2. Se há habilidades selecionadas, mapear nomes para IDs e inserir
+      if (data.habilidades && data.habilidades.length > 0) {
+        // Buscar IDs das habilidades selecionadas
+        const { data: idsHabilidades } = await supabase
+          .from('habilidades')
+          .select('id')
+          .in('nome', data.habilidades);
+
+        // Preparar dados para inserção
+        const novasHabilidadesParaSalvar = idsHabilidades.map(item => ({
+          perfil_id: user.id,
+          habilidade_id: item.id
+        }));
+
+        // Inserir novas habilidades
+        if (novasHabilidadesParaSalvar.length > 0) {
+          await supabase
+            .from('habilidades_do_usuario')
+            .insert(novasHabilidadesParaSalvar);
+        }
+      }
+
+      // Faz o upsert na tabela 'perfis_profissionais' (sem habilidades)
       const { error: profissionalError } = await supabase.from('perfis_profissionais').upsert({
         perfil_id: user.id,
         titulo_profissional: data.titulo_profissional,
         biografia: data.biografia,
-        habilidades: data.habilidades,
         disponivel_para_servicos: data.disponivel_para_servicos,
         atualizado_em: new Date().toISOString()
       }, { onConflict: 'perfil_id' });
