@@ -1,105 +1,88 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { buscarTrabalhadoresSupabase } from '../services/buscaService';
-import SeletorDeLocalizacao from './SeletorDeLocalizacao';
-import './BuscaContratante.css';
+import SeletorDeLocalizacao from './SeletorDeLocalizacao'; // Importando o componente
+import '../botoes.css';
 
 const BuscaContratante = ({ onBuscar }) => {
+  // Estados para controlar os valores dos campos do formulário
   const [servico, setServico] = useState('');
-  const [localizacao, setLocalizacao] = useState('');
-  const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [cidade, setCidade] = useState('');
+  const [buscando, setBuscando] = useState(false);
 
+  // Lista de habilidades para o seletor de serviço
   const habilidadesDisponiveis = [
-    'Pintor', 'Eletricista', 'Encanador', 'Jardineiro', 'Pedreiro', 
-    'Marceneiro', 'Soldador', 'Mecânico', 'Limpeza', 'Cozinheiro', 
+    'Pintor', 'Eletricista', 'Encanador', 'Jardineiro', 'Pedreiro',
+    'Marceneiro', 'Soldador', 'Mecânico', 'Limpeza', 'Cozinheiro',
     'Babá', 'Cuidador de Idosos'
   ];
 
+  // Função chamada quando o formulário é enviado
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!servico) { // Alterado para verificar se o serviço foi selecionado
-      alert('Por favor, selecione o tipo de serviço que você precisa.');
+    if (!servico) {
+      alert('Por favor, selecione um serviço.');
       return;
     }
-
-    setIsLoading(true);
-
+    setBuscando(true);
     try {
-      let resultados = await buscarTrabalhadoresSupabase(servico, localizacao.trim(), cidade.trim(), estado.trim());
-      
-      if (onBuscar) {
-        onBuscar({ servico: servico, localizacao: localizacao.trim(), cidade: cidade.trim(), estado: estado.trim(), resultados });
-      } else {
-        navigate('/resultados', { 
-          state: { 
-            resultados, 
-            termoBusca: { servico: servico, localizacao: localizacao.trim(), cidade: cidade.trim(), estado: estado.trim() } 
-          } 
-        });
-      }
+      // Chama a busca no backend passando todos os filtros
+      const resultados = await buscarTrabalhadoresSupabase(servico, cidade, estado);
+      // Notifica o componente pai (Dashboard) sobre os resultados
+      onBuscar({ resultados, servico, cidade, estado });
     } catch (error) {
-      console.error('Erro na busca:', error);
-      alert('Erro ao buscar trabalhadores. Tente novamente.');
+      alert('Ocorreu um erro ao realizar a busca.');
     } finally {
-      setIsLoading(false);
+      setBuscando(false);
     }
   };
 
+  // ==================================================
+  // AS "ORELHAS" DO PAI: Funções para receber a mudança do SeletorDeLocalizacao
+  // ==================================================
+  const handleEstadoChange = (novoEstado) => {
+    setEstado(novoEstado);
+    setCidade(''); // Limpa a cidade quando o estado muda, forçando nova seleção
+  };
+
+  const handleCidadeChange = (novaCidade) => {
+    setCidade(novaCidade);
+  };
+  // ==================================================
+
   return (
-    <div className="busca-container">
-      <div className="busca-header">
-        <img src="https://raw.githubusercontent.com/observadores1/o-trabalhador-app/main/Logo%20o%20Trabalhador.jpeg" alt="Logo O Trabalhador" className="logo" />
-        <h1>O TRABALHADOR</h1>
-        <p>Encontre o profissional ideal para seu serviço</p>
+    <form onSubmit={handleSubmit} className="busca-contratante-form">
+      <div className="form-group">
+        <label htmlFor="servico">Qual serviço você precisa?</label>
+        <select
+          id="servico"
+          value={servico}
+          onChange={(e) => setServico(e.target.value)}
+          className="form-input"
+          required
+        >
+          <option value="">-- Selecione um serviço --</option>
+          {habilidadesDisponiveis.map(h => (
+            <option key={h} value={h}>{h}</option>
+          ))}
+        </select>
       </div>
-      
-      <form className="busca-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="servico">Qual serviço você precisa?</label>
-          <select
-            id="servico"
-            value={servico}
-            onChange={(e) => setServico(e.target.value)}
-            className="form-input"
-            required
-          >
-            <option value="">-- Selecione um serviço --</option>
-            {habilidadesDisponiveis.map(h => (
-              <option key={h} value={h}>{h}</option>
-            ))}
-          </select>
-        </div>
 
-        <div className="form-group">
-          <label htmlFor="localizacao">Onde é o serviço?</label>
-          <input
-            type="text"
-            id="localizacao"
-            value={localizacao}
-            onChange={(e) => setLocalizacao(e.target.value)}
-            placeholder="Ex: Centro, Copacabana, São Paulo..."
-            className="form-input"
-          />
-        </div>
+      {/* ================================================== */}
+      {/* A "BOCA" DO PAI: Passando os valores e as funções para o seletor */}
+      {/* ================================================== */}
+      <SeletorDeLocalizacao
+        valorEstado={estado}
+        valorCidade={cidade}
+        onEstadoChange={handleEstadoChange}
+        onCidadeChange={handleCidadeChange}
+      />
 
-        <SeletorDeLocalizacao
-          estado={estado}
-          cidade={cidade}
-          onEstadoChange={setEstado}
-          onCidadeChange={setCidade}
-        />
-
-        <button type="submit" className="buscar-btn" disabled={isLoading}>
-          {isLoading ? 'Buscando...' : 'Buscar Trabalhadores'}
-        </button>
-      </form>
-    </div>
+      <button type="submit" className="btn btn-primary" disabled={buscando}>
+        {buscando ? 'Buscando...' : 'Buscar Trabalhadores'}
+      </button>
+    </form>
   );
 };
 
 export default BuscaContratante;
-
