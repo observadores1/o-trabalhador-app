@@ -221,8 +221,8 @@ const PerfilProfissional = () => {
           
           {/* Usando o componente SeletorDeLocalizacao */}
           <SeletorDeLocalizacao
-            estado={watch('endereco.estado')}
-            cidade={watch('endereco.cidade')}
+            valorEstado={watch("endereco.estado")}
+            valorCidade={watch("endereco.cidade")}
             onEstadoChange={handleEstadoChange}
             onCidadeChange={handleCidadeChange}
           />
