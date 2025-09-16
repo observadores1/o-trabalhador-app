@@ -4,6 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { IMaskInput } from 'react-imask'; // <-- Importação da biblioteca correta
 import { supabase } from './services/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
+import SeletorDeLocalizacao from './components/SeletorDeLocalizacao';
 import './PerfilProfissional.css';
 
 const PerfilProfissional = () => {
@@ -164,6 +165,14 @@ const PerfilProfissional = () => {
     }
   };
 
+  const handleEstadoChange = (novoEstado) => {
+    setValue('endereco.estado', novoEstado, { shouldDirty: true });
+  };
+
+  const handleCidadeChange = (novaCidade) => {
+    setValue('endereco.cidade', novaCidade, { shouldDirty: true });
+  };
+
   if (isLoading) return <div className="perfil-container"><p>Carregando...</p></div>;
 
   return (
@@ -209,17 +218,18 @@ const PerfilProfissional = () => {
             <label>Número</label>
             <input {...register('endereco.numero')} placeholder="Nº" />
           </div>
+          
+          {/* Usando o componente SeletorDeLocalizacao */}
+          <SeletorDeLocalizacao
+            estado={watch('endereco.estado')}
+            cidade={watch('endereco.cidade')}
+            onEstadoChange={handleEstadoChange}
+            onCidadeChange={handleCidadeChange}
+          />
+          
           <div className="form-group">
             <label>Bairro</label>
             <input {...register('endereco.bairro')} placeholder="Seu bairro" />
-          </div>
-          <div className="form-group">
-            <label>Cidade</label>
-            <input {...register('endereco.cidade')} placeholder="Sua cidade" />
-          </div>
-          <div className="form-group">
-            <label>Estado (UF)</label>
-            <input {...register('endereco.estado')} placeholder="Ex: SP, RJ, MG" />
           </div>
         </div>
 
@@ -281,3 +291,4 @@ const PerfilProfissional = () => {
 };
 
 export default PerfilProfissional;
+

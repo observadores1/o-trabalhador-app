@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { buscarTrabalhadoresSupabase } from '../services/buscaService';
+import SeletorDeLocalizacao from './SeletorDeLocalizacao';
 import './BuscaContratante.css';
 
 const BuscaContratante = ({ onBuscar }) => {
@@ -8,66 +9,14 @@ const BuscaContratante = ({ onBuscar }) => {
   const [localizacao, setLocalizacao] = useState('');
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
-  const [cidades, setCidades] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
-  const estadosBrasileiros = [
-    { sigla: 'AC', nome: 'Acre' },
-    { sigla: 'AL', nome: 'Alagoas' },
-    { sigla: 'AP', nome: 'Amapá' },
-    { sigla: 'AM', nome: 'Amazonas' },
-    { sigla: 'BA', nome: 'Bahia' },
-    { sigla: 'CE', nome: 'Ceará' },
-    { sigla: 'DF', nome: 'Distrito Federal' },
-    { sigla: 'ES', nome: 'Espírito Santo' },
-    { sigla: 'GO', nome: 'Goiás' },
-    { sigla: 'MA', nome: 'Maranhão' },
-    { sigla: 'MT', nome: 'Mato Grosso' },
-    { sigla: 'MS', nome: 'Mato Grosso do Sul' },
-    { sigla: 'MG', nome: 'Minas Gerais' },
-    { sigla: 'PA', nome: 'Pará' },
-    { sigla: 'PB', nome: 'Paraíba' },
-    { sigla: 'PR', nome: 'Paraná' },
-    { sigla: 'PE', nome: 'Pernambuco' },
-    { sigla: 'PI', nome: 'Piauí' },
-    { sigla: 'RJ', nome: 'Rio de Janeiro' },
-    { sigla: 'RN', nome: 'Rio Grande do Norte' },
-    { sigla: 'RS', nome: 'Rio Grande do Sul' },
-    { sigla: 'RO', nome: 'Rondônia' },
-    { sigla: 'RR', nome: 'Roraima' },
-    { sigla: 'SC', nome: 'Santa Catarina' },
-    { sigla: 'SP', nome: 'São Paulo' },
-    { sigla: 'SE', nome: 'Sergipe' },
-    { sigla: 'TO', nome: 'Tocantins' }
-  ];
 
   const habilidadesDisponiveis = [
     'Pintor', 'Eletricista', 'Encanador', 'Jardineiro', 'Pedreiro', 
     'Marceneiro', 'Soldador', 'Mecânico', 'Limpeza', 'Cozinheiro', 
     'Babá', 'Cuidador de Idosos'
   ];
-
-  // useEffect para buscar cidades quando o estado muda
-  useEffect(() => {
-    if (estado) {
-      const buscarCidades = async () => {
-        try {
-          const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estado}/municipios`);
-          const cidadesData = await response.json();
-          setCidades(cidadesData);
-          setCidade(''); // Limpa a cidade selecionada quando o estado muda
-        } catch (error) {
-          console.error('Erro ao buscar cidades:', error);
-          setCidades([]);
-        }
-      };
-      buscarCidades();
-    } else {
-      setCidades([]);
-      setCidade('');
-    }
-  }, [estado]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -137,40 +86,12 @@ const BuscaContratante = ({ onBuscar }) => {
           />
         </div>
 
-        <div className="form-group">
-          <label htmlFor="cidade">Cidade</label>
-          <select
-            id="cidade"
-            value={cidade}
-            onChange={(e) => setCidade(e.target.value)}
-            className="form-input"
-            disabled={!estado || cidades.length === 0}
-          >
-            <option value="">
-              {!estado ? '-- Selecione um estado primeiro --' : 
-               cidades.length === 0 ? '-- Carregando cidades... --' : 
-               '-- Selecione uma cidade --'}
-            </option>
-            {cidades.map(cidadeObj => (
-              <option key={cidadeObj.id} value={cidadeObj.nome}>{cidadeObj.nome}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="estado">Estado (UF)</label>
-          <select
-            id="estado"
-            value={estado}
-            onChange={(e) => setEstado(e.target.value)}
-            className="form-input"
-          >
-            <option value="">-- Selecione um estado --</option>
-            {estadosBrasileiros.map(uf => (
-              <option key={uf.sigla} value={uf.sigla}>{uf.sigla} - {uf.nome}</option>
-            ))}
-          </select>
-        </div>
+        <SeletorDeLocalizacao
+          estado={estado}
+          cidade={cidade}
+          onEstadoChange={setEstado}
+          onCidadeChange={setCidade}
+        />
 
         <button type="submit" className="buscar-btn" disabled={isLoading}>
           {isLoading ? 'Buscando...' : 'Buscar Trabalhadores'}
@@ -181,5 +102,4 @@ const BuscaContratante = ({ onBuscar }) => {
 };
 
 export default BuscaContratante;
-
 
