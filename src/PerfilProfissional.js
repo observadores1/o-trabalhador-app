@@ -12,6 +12,7 @@ const PerfilProfissional = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [listaDeHabilidades, setListaDeHabilidades] = useState([]);
 
   const { 
     register, 
@@ -33,11 +34,20 @@ const PerfilProfissional = () => {
     }
   });
 
-  const habilidadesDisponiveis = [
-    'Pintor', 'Eletricista', 'Encanador', 'Jardineiro', 'Pedreiro',
-    'Marceneiro', 'Soldador', 'Mecânico', 'Limpeza', 'Cozinheiro',
-    'Babá', 'Cuidador de Idosos'
-  ];
+  // useEffect para buscar habilidades do Supabase
+  useEffect(() => {
+    const buscarHabilidades = async () => {
+      const { data, error } = await supabase
+        .from('habilidades')
+        .select('nome')
+        .order('nome', { ascending: true });
+
+      if (data) {
+        setListaDeHabilidades(data);
+      }
+    };
+    buscarHabilidades();
+  }, []);
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -257,15 +267,15 @@ const PerfilProfissional = () => {
         <div className="form-section">
           <h2>Minhas Habilidades</h2>
           <div className="habilidades-grid">
-            {habilidadesDisponiveis.map((habilidade) => (
-              <label key={habilidade} className="habilidade-item">
+            {listaDeHabilidades.map((habilidade) => (
+              <label key={habilidade.nome} className="habilidade-item">
                 <input
                   type="checkbox"
-                  value={habilidade}
-                  checked={(watch('habilidades') || []).includes(habilidade)}
-                  onChange={(e) => handleHabilidadeChange(habilidade, e.target.checked)}
+                  value={habilidade.nome}
+                  checked={(watch('habilidades') || []).includes(habilidade.nome)}
+                  onChange={(e) => handleHabilidadeChange(habilidade.nome, e.target.checked)}
                 />
-                {habilidade}
+                {habilidade.nome}
               </label>
             ))}
           </div>

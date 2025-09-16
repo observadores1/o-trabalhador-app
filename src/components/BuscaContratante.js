@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { buscarTrabalhadoresSupabase } from '../services/buscaService';
+import { supabase } from '../services/supabaseClient';
 import SeletorDeLocalizacao from './SeletorDeLocalizacao';
 import '../botoes.css';
 
@@ -10,13 +11,22 @@ const BuscaContratante = ({ onBuscar }) => {
   const [cidade, setCidade] = useState('');
   const [bairro, setBairro] = useState(''); // <-- Estado para o bairro adicionado
   const [buscando, setBuscando] = useState(false);
+  const [listaDeHabilidades, setListaDeHabilidades] = useState([]);
 
-  // Lista de habilidades para o seletor de serviço
-  const habilidadesDisponiveis = [
-    'Pintor', 'Eletricista', 'Encanador', 'Jardineiro', 'Pedreiro',
-    'Marceneiro', 'Soldador', 'Mecânico', 'Limpeza', 'Cozinheiro',
-    'Babá', 'Cuidador de Idosos'
-  ];
+  // useEffect para buscar habilidades do Supabase
+  useEffect(() => {
+    const buscarHabilidades = async () => {
+      const { data, error } = await supabase
+        .from('habilidades')
+        .select('nome')
+        .order('nome', { ascending: true });
+
+      if (data) {
+        setListaDeHabilidades(data);
+      }
+    };
+    buscarHabilidades();
+  }, []);
 
   // Função chamada quando o formulário é enviado
   const handleSubmit = async (e) => {
@@ -60,8 +70,8 @@ const BuscaContratante = ({ onBuscar }) => {
           required
         >
           <option value="">-- Selecione um serviço --</option>
-          {habilidadesDisponiveis.map(h => (
-            <option key={h} value={h}>{h}</option>
+          {listaDeHabilidades.map(h => (
+            <option key={h.nome} value={h.nome}>{h.nome}</option>
           ))}
         </select>
       </div>
