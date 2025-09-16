@@ -167,7 +167,7 @@ const PerfilProfissional = () => {
 
   return (
     <div className="perfil-container">
-      <button onClick={() => navigate(-1)} className="back-button">← Voltar</button>
+      <button onClick={() => navigate(-1)} className="btn btn-secondary">← Voltar</button>
       <h1>Editar Meu Perfil</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="perfil-form">
         
@@ -266,7 +266,7 @@ const PerfilProfissional = () => {
         </div>
 
         <div className="form-actions">
-          <button type="submit" disabled={isSaving || !isDirty}>
+          <button type="submit" className="btn btn-primary" disabled={isSaving || !isDirty}>
             {isSaving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </div>

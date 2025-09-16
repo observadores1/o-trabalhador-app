@@ -18,7 +18,7 @@ const ResultadosBusca = ({ resultados, termoBusca, onVoltarBusca }) => {
       <div className="resultados-container">
         <h2>Busca por "{termoBusca.servico}"</h2>
         <p>Nenhum trabalhador encontrado.</p>
-        <button onClick={onVoltarBusca} className="nova-busca-btn">Fazer Nova Busca</button>
+        <button onClick={onVoltarBusca} className="btn btn-secondary">Fazer Nova Busca</button>
       </div>
     );
   }
@@ -47,11 +47,11 @@ const ResultadosBusca = ({ resultados, termoBusca, onVoltarBusca }) => {
               {(trabalhador.habilidades || []).slice(0, 3).map(h => <span key={h}>{h}</span>)}
             </div>
 
-            <button onClick={() => handleVerPerfil(trabalhador.id)}>Ver Perfil</button>
+            <button className="btn btn-primary" onClick={() => handleVerPerfil(trabalhador.id)}>Ver Perfil</button>
           </div>
         ))}
       </div>
-      <button onClick={onVoltarBusca} className="nova-busca-btn">Fazer Nova Busca</button>
+      <button onClick={onVoltarBusca} className="btn btn-secondary">Fazer Nova Busca</button>
     </div>
   );
 };

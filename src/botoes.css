@@ -1,0 +1,57 @@
+/* src/botoes.css - Nosso Manual de Estilo de Botões */
+
+/* --- Estilo Base do Botão --- */
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* --- Botão Primário (Ações Principais) --- */
+.btn-primary {
+  background-color: #3498db; /* Azul Principal */
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #2980b9;
+}
+
+/* --- Botão Secundário (Ações Alternativas: Voltar) --- */
+.btn-secondary {
+  background-color: #ecf0f1; /* Cinza Claro */
+  color: #34495e;
+  border: 1px solid #bdc3c7;
+}
+.btn-secondary:hover {
+  background-color: #dadedf;
+}
+
+/* --- Botão de Perigo (Sair) --- */
+.btn-danger {
+  background-color: #e74c3c; /* Vermelho */
+  color: white;
+}
+.btn-danger:hover {
+  background-color: #c0392b;
+}
+
+/* Botão Desabilitado */
+.btn:disabled {
+  background-color: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+

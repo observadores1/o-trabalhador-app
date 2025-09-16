@@ -9,6 +9,11 @@ const PerfilVitrine = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
+
   const [perfil, setPerfil] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -77,13 +82,13 @@ const PerfilVitrine = () => {
   const renderBotaoAcao = () => {
     if (isOwner) {
       return (
-        <button className="btn-acao btn-editar" onClick={() => navigate('/perfil/editar')}>
+        <button className="btn btn-primary" onClick={() => navigate("/perfil/editar")}>
           Editar Meu Perfil
         </button>
       );
     }
     return (
-      <button className="btn-acao btn-contratar" onClick={() => alert('Lógica de contratação a ser implementada')}>
+      <button className="btn btn-primary" onClick={() => alert("Lógica de contratação a ser implementada")}>
         Contratar
       </button>
     );
@@ -93,6 +98,7 @@ const PerfilVitrine = () => {
 
   return (
     <div className="vitrine-container">
+      <button className="btn btn-secondary" onClick={handleGoBack}>← Voltar</button>
       <header className="vitrine-header">
         <img 
           src={perfil.foto_perfil_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'} 

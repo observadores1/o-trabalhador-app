@@ -65,7 +65,7 @@ const Dashboard = () => {
               <div className="dashboard-card">
                 <h3>Meu Perfil</h3>
                 <p>Gerencie suas informações profissionais</p>
-                <button onClick={() => navigate(`/perfil/${user.id}`)}>
+                <button className="btn btn-primary" onClick={() => navigate(`/perfil/${user.id}`)}>
                   Ver Perfil
                 </button>
               </div>
@@ -73,7 +73,7 @@ const Dashboard = () => {
               <div className="dashboard-card">
                 <h3>Oportunidades</h3>
                 <p>Veja trabalhos disponíveis na sua área</p>
-                <button disabled>
+                <button className="btn btn-primary" disabled>
                   Ver Oportunidades
                 </button>
               </div>
@@ -81,7 +81,7 @@ const Dashboard = () => {
               <div className="dashboard-card">
                 <h3>Meus Trabalhos</h3>
                 <p>Acompanhe seus trabalhos em andamento</p>
-                <button disabled>
+                <button className="btn btn-primary" disabled>
                   Ver Trabalhos
                 </button>
               </div>
@@ -100,7 +100,7 @@ const Dashboard = () => {
           <div className="user-info">
             <span>Olá, {nomeUsuario}</span>
             <span className="user-type">({tipoUsuario})</span>
-            <button onClick={handleLogout} className="logout-button">
+            <button onClick={handleLogout} className="btn btn-danger">
               Sair
             </button>
           </div>

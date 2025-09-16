@@ -15,6 +15,7 @@ import WhatsAppButton from './components/WhatsAppButton'; // Importado da outra 
 
 // Estilos
 import './App.css';
+import './botoes.css';
 
 // Componente interno para gerenciar a lógica de exibição
 function AppLayout() {
