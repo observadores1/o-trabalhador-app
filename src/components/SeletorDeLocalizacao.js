@@ -1,126 +1,84 @@
 import React, { useState, useEffect } from 'react';
 
-const SeletorDeLocalizacao = ({ 
-  estado, 
-  cidade, 
-  onEstadoChange, 
-  onCidadeChange,
-  className = '',
-  disabled = false 
-}) => {
-  const [cidades, setCidades] = useState([]);
-  const [isLoadingCidades, setIsLoadingCidades] = useState(false);
-
-  const estadosBrasileiros = [
-    { sigla: 'AC', nome: 'Acre' },
-    { sigla: 'AL', nome: 'Alagoas' },
-    { sigla: 'AP', nome: 'Amapá' },
-    { sigla: 'AM', nome: 'Amazonas' },
-    { sigla: 'BA', nome: 'Bahia' },
-    { sigla: 'CE', nome: 'Ceará' },
-    { sigla: 'DF', nome: 'Distrito Federal' },
-    { sigla: 'ES', nome: 'Espírito Santo' },
-    { sigla: 'GO', nome: 'Goiás' },
-    { sigla: 'MA', nome: 'Maranhão' },
-    { sigla: 'MT', nome: 'Mato Grosso' },
-    { sigla: 'MS', nome: 'Mato Grosso do Sul' },
-    { sigla: 'MG', nome: 'Minas Gerais' },
-    { sigla: 'PA', nome: 'Pará' },
-    { sigla: 'PB', nome: 'Paraíba' },
-    { sigla: 'PR', nome: 'Paraná' },
-    { sigla: 'PE', nome: 'Pernambuco' },
-    { sigla: 'PI', nome: 'Piauí' },
-    { sigla: 'RJ', nome: 'Rio de Janeiro' },
-    { sigla: 'RN', nome: 'Rio Grande do Norte' },
-    { sigla: 'RS', nome: 'Rio Grande do Sul' },
-    { sigla: 'RO', nome: 'Rondônia' },
-    { sigla: 'RR', nome: 'Roraima' },
-    { sigla: 'SC', nome: 'Santa Catarina' },
-    { sigla: 'SP', nome: 'São Paulo' },
-    { sigla: 'SE', nome: 'Sergipe' },
+// Lista de estados movida para cá para ser reutilizável
+const estadosBrasileiros = [
+    { sigla: 'AC', nome: 'Acre' }, { sigla: 'AL', nome: 'Alagoas' },
+    { sigla: 'AP', nome: 'Amapá' }, { sigla: 'AM', nome: 'Amazonas' },
+    { sigla: 'BA', nome: 'Bahia' }, { sigla: 'CE', nome: 'Ceará' },
+    { sigla: 'DF', nome: 'Distrito Federal' }, { sigla: 'ES', nome: 'Espírito Santo' },
+    { sigla: 'GO', nome: 'Goiás' }, { sigla: 'MA', nome: 'Maranhão' },
+    { sigla: 'MT', nome: 'Mato Grosso' }, { sigla: 'MS', nome: 'Mato Grosso do Sul' },
+    { sigla: 'MG', nome: 'Minas Gerais' }, { sigla: 'PA', nome: 'Pará' },
+    { sigla: 'PB', nome: 'Paraíba' }, { sigla: 'PR', nome: 'Paraná' },
+    { sigla: 'PE', nome: 'Pernambuco' }, { sigla: 'PI', nome: 'Piauí' },
+    { sigla: 'RJ', nome: 'Rio de Janeiro' }, { sigla: 'RN', nome: 'Rio Grande do Norte' },
+    { sigla: 'RS', nome: 'Rio Grande do Sul' }, { sigla: 'RO', nome: 'Rondônia' },
+    { sigla: 'RR', nome: 'Roraima' }, { sigla: 'SC', nome: 'Santa Catarina' },
+    { sigla: 'SP', nome: 'São Paulo' }, { sigla: 'SE', nome: 'Sergipe' },
     { sigla: 'TO', nome: 'Tocantins' }
-  ];
+];
 
-  // useEffect para buscar cidades quando o estado muda
+const SeletorDeLocalizacao = ({ estadoSelecionado, cidadeSelecionada, onEstadoChange, onCidadeChange }) => {
+  const [cidades, setCidades] = useState([]);
+  const [carregandoCidades, setCarregandoCidades] = useState(false);
+
   useEffect(() => {
-    if (estado) {
-      const buscarCidades = async () => {
-        setIsLoadingCidades(true);
-        try {
-          const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estado}/municipios`);
-          const cidadesData = await response.json();
-          setCidades(cidadesData);
-          
-          // Limpa a cidade selecionada quando o estado muda
-          if (onCidadeChange) {
-            onCidadeChange('');
-          }
-        } catch (error) {
-          console.error('Erro ao buscar cidades:', error);
+    // Se um estado foi selecionado, busca as cidades correspondentes
+    if (estadoSelecionado) {
+      setCarregandoCidades(true);
+      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado}/municipios` )
+        .then(response => response.json())
+        .then(data => {
+          setCidades(data);
+          setCarregandoCidades(false);
+        })
+        .catch(error => {
+          console.error("Erro ao buscar cidades:", error);
+          setCarregandoCidades(false);
           setCidades([]);
-        } finally {
-          setIsLoadingCidades(false);
-        }
-      };
-      buscarCidades();
+        });
     } else {
+      // Se nenhum estado está selecionado, limpa a lista de cidades
       setCidades([]);
-      if (onCidadeChange) {
-        onCidadeChange('');
-      }
     }
-  }, [estado, onCidadeChange]);
-
-  const handleEstadoChange = (e) => {
-    const novoEstado = e.target.value;
-    if (onEstadoChange) {
-      onEstadoChange(novoEstado);
-    }
-  };
-
-  const handleCidadeChange = (e) => {
-    const novaCidade = e.target.value;
-    if (onCidadeChange) {
-      onCidadeChange(novaCidade);
-    }
-  };
+  }, [estadoSelecionado]); // Este useEffect agora só depende do estadoSelecionado
 
   return (
     <>
-      <div className={`form-group ${className}`}>
-        <label htmlFor="estado">Estado (UF)</label>
+      <div className="form-group">
+        <label>Estado (UF)</label>
         <select
-          id="estado"
-          value={estado || ''}
-          onChange={handleEstadoChange}
+          value={estadoSelecionado || ''}
+          onChange={(e) => onEstadoChange(e.target.value)}
           className="form-input"
-          disabled={disabled}
         >
           <option value="">-- Selecione um estado --</option>
-          {estadosBrasileiros.map(uf => (
-            <option key={uf.sigla} value={uf.sigla}>{uf.sigla} - {uf.nome}</option>
+          {estadosBrasileiros.map(estado => (
+            <option key={estado.sigla} value={estado.sigla}>{estado.nome}</option>
           ))}
         </select>
       </div>
 
-      <div className={`form-group ${className}`}>
-        <label htmlFor="cidade">Cidade</label>
+      <div className="form-group">
+        <label>Cidade</label>
         <select
-          id="cidade"
-          value={cidade || ''}
-          onChange={handleCidadeChange}
+          value={cidadeSelecionada || ''}
+          onChange={(e) => onCidadeChange(e.target.value)}
+          disabled={!estadoSelecionado || carregandoCidades}
           className="form-input"
-          disabled={disabled || !estado || isLoadingCidades}
         >
-          <option value="">
-            {!estado ? '-- Selecione um estado primeiro --' : 
-             isLoadingCidades ? '-- Carregando cidades... --' : 
-             cidades.length === 0 ? '-- Nenhuma cidade encontrada --' :
-             '-- Selecione uma cidade --'}
-          </option>
-          {cidades.map(cidadeObj => (
-            <option key={cidadeObj.id} value={cidadeObj.nome}>{cidadeObj.nome}</option>
-          ))}
+          {carregandoCidades ? (
+            <option>Carregando cidades...</option>
+          ) : cidades.length > 0 ? (
+            <>
+              <option value="">-- Selecione uma cidade --</option>
+              {cidades.map(cidade => (
+                <option key={cidade.id} value={cidade.nome}>{cidade.nome}</option>
+              ))}
+            </>
+          ) : (
+            <option>-- Selecione um estado primeiro --</option>
+          )}
         </select>
       </div>
     </>
@@ -128,4 +86,3 @@ const SeletorDeLocalizacao = ({
 };
 
 export default SeletorDeLocalizacao;
-
