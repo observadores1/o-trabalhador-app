@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 const estadosBrasileiros = [
     { sigla: 'AC', nome: 'Acre' }, { sigla: 'AL', nome: 'Alagoas' },
@@ -24,10 +25,9 @@ const SeletorDeLocalizacao = ({ valorEstado, valorCidade, onEstadoChange, onCida
   useEffect(() => {
     if (valorEstado) {
       setCarregando(true);
-      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${valorEstado}/municipios` )
-        .then(response => response.json())
-        .then(data => {
-          const cidadesOrdenadas = data.sort((a, b) => a.nome.localeCompare(b.nome));
+      axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${valorEstado}/municipios` )
+        .then(response => {
+          const cidadesOrdenadas = response.data.sort((a, b) => a.nome.localeCompare(b.nome));
           setCidades(cidadesOrdenadas);
           setCarregando(false);
         })
