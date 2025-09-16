@@ -181,10 +181,16 @@ const PerfilProfissional = () => {
 
       if (uploadError) throw uploadError;
 
-      // Obtém a URL pública da imagem recém-enviada
+      // Obtém a URL pública da imagem recém-enviada com transformação
       const { data: { publicUrl } } = supabase.storage
         .from("fotos-de-perfil")
-        .getPublicUrl(filePath);
+        .getPublicUrl(filePath, {
+          transform: {
+            width: 200, // Largura desejada
+            height: 200, // Altura desejada
+            resize: 'cover' // 'cover' corta, 'contain' ajusta dentro
+          }
+        });
 
       // Atualiza o estado do formulário com a nova URL
       setValue("foto_perfil_url", publicUrl, { shouldDirty: true });
@@ -214,6 +220,12 @@ const PerfilProfissional = () => {
 
   const handleCidadeChange = (novaCidade) => {
     setValue('endereco.cidade', novaCidade, { shouldDirty: true });
+  };
+
+  // Função auxiliar para otimizar URLs de imagem
+  const getOptimizedUrl = (url) => {
+    if (!url) return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face'; // Retorna uma imagem padrão se não houver URL
+    return `${url}?width=200&height=200&resize=cover`;
   };
 
   if (isLoading) return <div className="perfil-container"><p>Carregando...</p></div>;
@@ -281,7 +293,7 @@ const PerfilProfissional = () => {
           <h2>Foto do Perfil</h2>
           {watch('foto_perfil_url') && (
             <img 
-              src={watch('foto_perfil_url')} 
+              src={getOptimizedUrl(watch('foto_perfil_url'))} 
               alt="Prévia da foto" 
               className="foto-preview"
             />

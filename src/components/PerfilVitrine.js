@@ -13,6 +13,12 @@ const PerfilVitrine = () => {
     navigate(-1);
   };
 
+  // Função auxiliar para otimizar URLs de imagem
+  const getOptimizedUrl = (url) => {
+    if (!url) return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face'; // Retorna uma imagem padrão se não houver URL
+    return `${url}?width=200&height=200&resize=cover`;
+  };
+
 
   const [perfil, setPerfil] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -101,7 +107,7 @@ const PerfilVitrine = () => {
       <button className="btn btn-secondary" onClick={handleGoBack}>← Voltar</button>
       <header className="vitrine-header">
         <img 
-          src={perfil.foto_perfil_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face'} 
+          src={getOptimizedUrl(perfil.foto_perfil_url)} 
           alt={`Foto de ${perfil.apelido}`} 
           className="vitrine-foto"
         />
