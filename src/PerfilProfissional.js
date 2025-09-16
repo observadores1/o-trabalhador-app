@@ -170,21 +170,26 @@ const PerfilProfissional = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    setIsSaving(true);
+    setIsSaving(true); // Usa o estado de 'isSaving' para feedback
     try {
       const filePath = `public/${user.id}-${Date.now()}`;
+      
+      // Faz o upload para o bucket 'fotos-de-perfil'
       const { error: uploadError } = await supabase.storage
         .from("fotos-de-perfil")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
+      // Obtém a URL pública da imagem recém-enviada
       const { data: { publicUrl } } = supabase.storage
         .from("fotos-de-perfil")
         .getPublicUrl(filePath);
 
+      // Atualiza o estado do formulário com a nova URL
       setValue("foto_perfil_url", publicUrl, { shouldDirty: true });
-      alert("✅ Foto pronta para ser salva. Clique em 'Salvar Alterações'.");
+
+      alert("✅ Foto carregada! Clique em 'Salvar Alterações' para confirmar.");
 
     } catch (error) {
       console.error("Erro ao fazer upload da foto:", error);
@@ -274,8 +279,23 @@ const PerfilProfissional = () => {
         {/* Seção da Foto de Perfil */}
         <div className="form-section">
           <h2>Foto do Perfil</h2>
-          <input type="file" accept="image/*" onChange={handleFotoUpload} />
-          {watch('foto_perfil_url') && <img src={watch('foto_perfil_url')} alt="Prévia da foto" style={{ width: '100px', height: '100px', marginTop: '10px' }} />}
+          {watch('foto_perfil_url') && (
+            <img 
+              src={watch('foto_perfil_url')} 
+              alt="Prévia da foto" 
+              className="foto-preview"
+            />
+          )}
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleFotoUpload} 
+            id="foto-upload"
+            style={{ display: 'none' }}
+          />
+          <label htmlFor="foto-upload" className="btn btn-secondary">
+            {isSaving ? 'Enviando...' : 'Escolher Nova Foto'}
+          </label>
         </div>
 
         {/* Seção Perfil Profissional */}
