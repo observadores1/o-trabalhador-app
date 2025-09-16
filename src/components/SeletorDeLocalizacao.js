@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 
-// Lista de estados movida para cá para ser reutilizável
 const estadosBrasileiros = [
     { sigla: 'AC', nome: 'Acre' }, { sigla: 'AL', nome: 'Alagoas' },
     { sigla: 'AP', nome: 'Amapá' }, { sigla: 'AM', nome: 'Amazonas' },
@@ -18,38 +17,36 @@ const estadosBrasileiros = [
     { sigla: 'TO', nome: 'Tocantins' }
 ];
 
-const SeletorDeLocalizacao = ({ estadoSelecionado, cidadeSelecionada, onEstadoChange, onCidadeChange }) => {
+const SeletorDeLocalizacao = ({ valorEstado, valorCidade, onEstadoChange, onCidadeChange }) => {
   const [cidades, setCidades] = useState([]);
-  const [carregandoCidades, setCarregandoCidades] = useState(false);
+  const [carregando, setCarregando] = useState(false);
 
   useEffect(() => {
-    // Se um estado foi selecionado, busca as cidades correspondentes
-    if (estadoSelecionado) {
-      setCarregandoCidades(true);
-      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado}/municipios` )
+    if (valorEstado) {
+      setCarregando(true);
+      fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${valorEstado}/municipios` )
         .then(response => response.json())
         .then(data => {
-          setCidades(data);
-          setCarregandoCidades(false);
+          const cidadesOrdenadas = data.sort((a, b) => a.nome.localeCompare(b.nome));
+          setCidades(cidadesOrdenadas);
+          setCarregando(false);
         })
         .catch(error => {
           console.error("Erro ao buscar cidades:", error);
-          setCarregandoCidades(false);
-          setCidades([]);
+          setCarregando(false);
         });
     } else {
-      // Se nenhum estado está selecionado, limpa a lista de cidades
       setCidades([]);
     }
-  }, [estadoSelecionado]); // Este useEffect agora só depende do estadoSelecionado
+  }, [valorEstado]);
 
   return (
     <>
       <div className="form-group">
         <label>Estado (UF)</label>
         <select
-          value={estadoSelecionado || ''}
-          onChange={(e) => onEstadoChange(e.target.value)}
+          value={valorEstado || ''}
+          onChange={e => onEstadoChange(e.target.value)}
           className="form-input"
         >
           <option value="">-- Selecione um estado --</option>
@@ -62,13 +59,13 @@ const SeletorDeLocalizacao = ({ estadoSelecionado, cidadeSelecionada, onEstadoCh
       <div className="form-group">
         <label>Cidade</label>
         <select
-          value={cidadeSelecionada || ''}
-          onChange={(e) => onCidadeChange(e.target.value)}
-          disabled={!estadoSelecionado || carregandoCidades}
+          value={valorCidade || ''}
+          onChange={e => onCidadeChange(e.target.value)}
+          disabled={!valorEstado || carregando}
           className="form-input"
         >
-          {carregandoCidades ? (
-            <option>Carregando cidades...</option>
+          {carregando ? (
+            <option>Carregando...</option>
           ) : cidades.length > 0 ? (
             <>
               <option value="">-- Selecione uma cidade --</option>
