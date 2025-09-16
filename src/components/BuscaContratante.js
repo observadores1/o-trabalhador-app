@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { buscarTrabalhadoresSupabase } from '../services/buscaService';
-import SeletorDeLocalizacao from './SeletorDeLocalizacao'; // Importando o componente
+import SeletorDeLocalizacao from './SeletorDeLocalizacao';
 import '../botoes.css';
 
 const BuscaContratante = ({ onBuscar }) => {
-  // Estados para controlar os valores dos campos do formulário
+  // Estados para controlar os valores de todos os campos do formulário
   const [servico, setServico] = useState('');
   const [estado, setEstado] = useState('');
   const [cidade, setCidade] = useState('');
+  const [bairro, setBairro] = useState(''); // <-- Estado para o bairro adicionado
   const [buscando, setBuscando] = useState(false);
 
   // Lista de habilidades para o seletor de serviço
@@ -26,10 +27,10 @@ const BuscaContratante = ({ onBuscar }) => {
     }
     setBuscando(true);
     try {
-      // Chama a busca no backend passando todos os filtros
-      const resultados = await buscarTrabalhadoresSupabase(servico, cidade, estado);
-      // Notifica o componente pai (Dashboard) sobre os resultados
-      onBuscar({ resultados, servico, cidade, estado });
+      // Chama a busca no backend passando TODOS os filtros, incluindo o bairro
+      const resultados = await buscarTrabalhadoresSupabase(servico, cidade, estado, bairro);
+      // Notifica o componente pai (Dashboard) sobre os resultados e todos os termos de busca
+      onBuscar({ resultados, servico, cidade, estado, bairro });
     } catch (error) {
       alert('Ocorreu um erro ao realizar a busca.');
     } finally {
@@ -37,18 +38,15 @@ const BuscaContratante = ({ onBuscar }) => {
     }
   };
 
-  // ==================================================
-  // AS "ORELHAS" DO PAI: Funções para receber a mudança do SeletorDeLocalizacao
-  // ==================================================
+  // Funções para receber as mudanças do SeletorDeLocalizacao
   const handleEstadoChange = (novoEstado) => {
     setEstado(novoEstado);
-    setCidade(''); // Limpa a cidade quando o estado muda, forçando nova seleção
+    setCidade(''); // Limpa a cidade quando o estado muda
   };
 
   const handleCidadeChange = (novaCidade) => {
     setCidade(novaCidade);
   };
-  // ==================================================
 
   return (
     <form onSubmit={handleSubmit} className="busca-contratante-form">
@@ -68,15 +66,26 @@ const BuscaContratante = ({ onBuscar }) => {
         </select>
       </div>
 
-      {/* ================================================== */}
-      {/* A "BOCA" DO PAI: Passando os valores e as funções para o seletor */}
-      {/* ================================================== */}
+      {/* Componente reutilizável para Estado e Cidade */}
       <SeletorDeLocalizacao
         valorEstado={estado}
         valorCidade={cidade}
         onEstadoChange={handleEstadoChange}
         onCidadeChange={handleCidadeChange}
       />
+
+      {/* Campo de Bairro (Opcional) adicionado de volta */}
+      <div className="form-group">
+        <label htmlFor="bairro">Bairro (Opcional)</label>
+        <input
+          type="text"
+          id="bairro"
+          value={bairro}
+          onChange={(e) => setBairro(e.target.value)}
+          placeholder="Filtre por um bairro específico"
+          className="form-input"
+        />
+      </div>
 
       <button type="submit" className="btn btn-primary" disabled={buscando}>
         {buscando ? 'Buscando...' : 'Buscar Trabalhadores'}
