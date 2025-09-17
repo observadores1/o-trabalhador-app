@@ -1,3 +1,5 @@
+// src/App.js - VERSÃO ATUALIZADA COM A ROTA PARA NOVA ORDEM DE SERVIÇO
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -11,7 +13,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Dashboard from './components/Dashboard';
 import PerfilProfissional from './PerfilProfissional';
 import PerfilVitrine from './components/PerfilVitrine';
-import WhatsAppButton from './components/WhatsAppButton'; // Importado da outra feature
+import WhatsAppButton from './components/WhatsAppButton';
+import PaginaNovaOS from './PaginaNovaOS'; // <-- 1. IMPORTAÇÃO DA NOVA PÁGINA
 
 // Estilos
 import './App.css';
@@ -64,6 +67,18 @@ function AppLayout() {
           element={
             <ProtectedRoute>
               <PerfilProfissional />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* ================================================== */}
+        {/* 2. ADIÇÃO DA NOVA ROTA PARA ORDEM DE SERVIÇO       */}
+        {/* ================================================== */}
+        <Route 
+          path="/nova-os" 
+          element={
+            <ProtectedRoute>
+              <PaginaNovaOS />
             </ProtectedRoute>
           } 
         />
