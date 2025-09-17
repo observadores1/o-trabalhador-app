@@ -1,15 +1,12 @@
-// src/PerfilProfissional.js - VERSÃO COMPLETA E SEGURA
-// Inclui: Redimensionamento de imagem + Exclusão da imagem antiga.
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
 import { supabase } from './services/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
-import SeletorDeLocalizacao from './components/SeletorDeLocalizacao';
+import imageCompression from 'browser-image-compression';
+import FormularioEndereco from './components/FormularioEndereco'; 
 import './PerfilProfissional.css';
-import imageCompression from 'browser-image-compression'; // <-- ADIÇÃO 1: Importação da biblioteca.
 
 const PerfilProfissional = () => {
   const { user } = useAuth();
@@ -38,42 +35,21 @@ const PerfilProfissional = () => {
     }
   });
 
-  // LÓGICA ORIGINAL PRESERVADA
   useEffect(() => {
     const buscarHabilidades = async () => {
-      const { data, error } = await supabase
-        .from('habilidades')
-        .select('nome')
-        .order('nome', { ascending: true });
-
-      if (data) {
-        setListaDeHabilidades(data);
-      }
+      const { data, error } = await supabase.from('habilidades').select('nome').order('nome', { ascending: true });
+      if (data) setListaDeHabilidades(data);
     };
     buscarHabilidades();
   }, []);
 
-  // LÓGICA ORIGINAL PRESERVADA
   useEffect(() => {
     const carregarDados = async () => {
-      if (!user) {
-        setIsLoading(false);
-        return;
-      }
-      
+      if (!user) { setIsLoading(false); return; }
       setIsLoading(true);
       try {
-        const { data: perfilData, error } = await supabase
-          .from('perfis')
-          .select(`
-            *,
-            perfis_profissionais!left(*)
-          `)
-          .eq('id', user.id)
-          .single();
-
+        const { data: perfilData, error } = await supabase.from('perfis').select(`*, perfis_profissionais!left(*)`).eq('id', user.id).single();
         if (error && error.code !== 'PGRST116') throw error;
-
         if (perfilData) {
           setValue('apelido', perfilData.apelido || '');
           setValue('telefone', perfilData.telefone || '');
@@ -100,12 +76,11 @@ const PerfilProfissional = () => {
     carregarDados();
   }, [user, setValue]);
 
-  // LÓGICA ORIGINAL PRESERVADA
   const onSubmit = async (data) => {
     if (!user) return;
     setIsSaving(true);
     try {
-      const { error: perfilError } = await supabase.from('perfis').update({
+      await supabase.from('perfis').update({
         apelido: data.apelido,
         telefone: data.telefone,
         endereco: data.endereco,
@@ -113,40 +88,23 @@ const PerfilProfissional = () => {
         atualizado_em: new Date().toISOString()
       }).eq('id', user.id);
 
-      if (perfilError) throw perfilError;
-
-      await supabase
-        .from('habilidades_do_usuario')
-        .delete()
-        .eq('perfil_id', user.id);
+      await supabase.from('habilidades_do_usuario').delete().eq('perfil_id', user.id);
 
       if (data.habilidades && data.habilidades.length > 0) {
-        const { data: idsHabilidades } = await supabase
-          .from('habilidades')
-          .select('id')
-          .in('nome', data.habilidades);
-
-        const novasHabilidadesParaSalvar = idsHabilidades.map(item => ({
-          perfil_id: user.id,
-          habilidade_id: item.id
-        }));
-
+        const { data: idsHabilidades } = await supabase.from('habilidades').select('id').in('nome', data.habilidades);
+        const novasHabilidadesParaSalvar = idsHabilidades.map(item => ({ perfil_id: user.id, habilidade_id: item.id }));
         if (novasHabilidadesParaSalvar.length > 0) {
-          await supabase
-            .from('habilidades_do_usuario')
-            .insert(novasHabilidadesParaSalvar);
+          await supabase.from('habilidades_do_usuario').insert(novasHabilidadesParaSalvar);
         }
       }
 
-      const { error: profissionalError } = await supabase.from('perfis_profissionais').upsert({
+      await supabase.from('perfis_profissionais').upsert({
         perfil_id: user.id,
         titulo_profissional: data.titulo_profissional,
         biografia: data.biografia,
         disponivel_para_servicos: data.disponivel_para_servicos,
         atualizado_em: new Date().toISOString()
       }, { onConflict: 'perfil_id' });
-
-      if (profissionalError) throw profissionalError;
 
       alert('✅ Perfil atualizado com sucesso!');
       navigate(`/perfil/${user.id}`);
@@ -158,60 +116,26 @@ const PerfilProfissional = () => {
     }
   };
 
-  // ADIÇÃO 2: LÓGICA DE UPLOAD ATUALIZADA
   const handleFotoUpload = async (event) => {
     if (!user) return;
-    const file = event.target.files[0];
+    const file = event.target.files[0]; // Alterado de event.target.files para event.target.files[0]
     if (!file) return;
-
     setIsSaving(true);
-
-    // Captura o caminho da foto antiga ANTES de qualquer outra operação
     const fotoAntigaUrl = watch('foto_perfil_url');
-
-    const options = {
-      maxSizeMB: 1,
-      maxWidthOrHeight: 800,
-      useWebWorker: true,
-    };
-
+    const options = { maxSizeMB: 1, maxWidthOrHeight: 800, useWebWorker: true };
     try {
-      // Comprime e redimensiona a nova imagem
       const compressedFile = await imageCompression(file, options);
       const novoFilePath = `public/${user.id}-${Date.now()}`;
-
-      // Faz o upload da NOVA imagem
-      const { error: uploadError } = await supabase.storage
-        .from("fotos-de-perfil")
-        .upload(novoFilePath, compressedFile);
-
-      if (uploadError) throw uploadError;
-
-      // Se o upload da nova imagem foi bem-sucedido, EXCLUI a antiga
+      await supabase.storage.from("fotos-de-perfil").upload(novoFilePath, compressedFile);
       if (fotoAntigaUrl) {
         const nomeArquivoAntigo = fotoAntigaUrl.split('/').pop();
         if (nomeArquivoAntigo) {
-          const { error: deleteError } = await supabase.storage
-            .from('fotos-de-perfil')
-            .remove([`public/${nomeArquivoAntigo}`]);
-
-          if (deleteError) {
-            console.error("Aviso: Não foi possível remover a foto antiga.", deleteError.message);
-          } else {
-            console.log("Foto de perfil antiga removida com sucesso.");
-          }
+          await supabase.storage.from('fotos-de-perfil').remove([`public/${nomeArquivoAntigo}`]);
         }
       }
-
-      // Obtém a URL pública da nova imagem e atualiza o estado do formulário
-      const { data: { publicUrl } } = supabase.storage
-        .from("fotos-de-perfil")
-        .getPublicUrl(novoFilePath);
-
+      const { data: { publicUrl } } = supabase.storage.from("fotos-de-perfil").getPublicUrl(novoFilePath);
       setValue("foto_perfil_url", publicUrl, { shouldDirty: true });
-
       alert("✅ Foto atualizada! Clique em 'Salvar Alterações' para confirmar.");
-
     } catch (error) {
       console.error("Erro no processo de atualização da foto:", error);
       alert("❌ Erro ao atualizar a foto. Tente novamente.");
@@ -220,7 +144,6 @@ const PerfilProfissional = () => {
     }
   };
 
-  // LÓGICA ORIGINAL PRESERVADA
   const handleHabilidadeChange = (habilidade, isChecked) => {
     const habilidadesAtuais = watch('habilidades') || [];
     if (isChecked) {
@@ -230,17 +153,6 @@ const PerfilProfissional = () => {
     }
   };
 
-  // LÓGICA ORIGINAL PRESERVADA
-  const handleEstadoChange = (novoEstado) => {
-    setValue('endereco.estado', novoEstado, { shouldDirty: true });
-  };
-
-  // LÓGICA ORIGINAL PRESERVADA
-  const handleCidadeChange = (novaCidade) => {
-    setValue('endereco.cidade', novaCidade, { shouldDirty: true });
-  };
-
-  // JSX ORIGINAL PRESERVADO
   if (isLoading) return <div className="perfil-container"><p>Carregando...</p></div>;
 
   return (
@@ -276,26 +188,11 @@ const PerfilProfissional = () => {
 
         <div className="form-section">
           <h2>Endereço</h2>
-          <div className="form-group">
-            <label>Rua</label>
-            <input {...register('endereco.rua')} placeholder="Sua rua" />
-          </div>
-          <div className="form-group">
-            <label>Número</label>
-            <input {...register('endereco.numero')} placeholder="Nº" />
-          </div>
-          
-          <SeletorDeLocalizacao
-            estadoInicial={watch("endereco.estado")}
-            cidadeInicial={watch("endereco.cidade")}
-            onEstadoChange={handleEstadoChange}
-            onCidadeChange={handleCidadeChange}
+          <FormularioEndereco 
+            register={register} 
+            watch={watch} 
+            setValue={setValue} 
           />
-          
-          <div className="form-group">
-            <label>Bairro</label>
-            <input {...register('endereco.bairro')} placeholder="Seu bairro" />
-          </div>
         </div>
 
         <div className="form-section">
@@ -367,3 +264,5 @@ const PerfilProfissional = () => {
 };
 
 export default PerfilProfissional;
+
+
