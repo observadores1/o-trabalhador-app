@@ -1,4 +1,4 @@
-// src/PerfilVitrine.js - CORRIGIDO
+// src/components/PerfilVitrine.js - VERSÃO CORRIGIDA COM O BOTÃO "CONTRATAR" FUNCIONAL
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -6,9 +6,7 @@ import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import './PerfilVitrine.css';
 
-const FOTO_PADRAO_URL = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face';
-
-const PerfilVitrine = ( ) => {
+const PerfilVitrine = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -67,6 +65,31 @@ const PerfilVitrine = ( ) => {
     carregarPerfil();
   }, [id]);
 
+  const renderBotaoAcao = () => {
+    const isOwner = user && user.id === perfil.id;
+
+    if (isOwner) {
+      return (
+        <button className="btn btn-primary" onClick={() => navigate("/perfil/editar")}>
+          Editar Meu Perfil
+        </button>
+      );
+    }
+    
+    // ==================================================
+    // AQUI ESTÁ A CORREÇÃO DEFINITIVA
+    // ==================================================
+    return (
+      <button 
+        className="btn btn-primary" 
+        // Ação: Navega para a página de nova OS, passando o ID do trabalhador na URL
+        onClick={() => navigate(`/nova-os?trabalhador_id=${perfil.id}`)}
+      >
+        Contratar este Profissional
+      </button>
+    );
+  };
+
   if (isLoading) {
     return <div className="vitrine-container"><p>Carregando perfil...</p></div>;
   }
@@ -79,23 +102,6 @@ const PerfilVitrine = ( ) => {
     return <div className="vitrine-container"><p>Este trabalhador não foi encontrado ou não possui um perfil profissional completo.</p></div>;
   }
 
-  const isOwner = user && user.id === perfil.id;
-
-  const renderBotaoAcao = () => {
-    if (isOwner) {
-      return (
-        <button className="btn btn-primary" onClick={() => navigate("/perfil/editar")}>
-          Editar Meu Perfil
-        </button>
-      );
-    }
-    return (
-      <button className="btn btn-primary" onClick={() => alert("Lógica de contratação a ser implementada")}>
-        Contratar
-      </button>
-    );
-  };
-
   const dadosProfissionais = perfil.perfis_profissionais;
 
   return (
@@ -103,15 +109,14 @@ const PerfilVitrine = ( ) => {
       <button className="btn btn-secondary" onClick={handleGoBack}>← Voltar</button>
       <header className="vitrine-header">
         <img 
-          src={perfil.foto_perfil_url || FOTO_PADRAO_URL} 
+          src={perfil.foto_perfil_url || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face'} 
           alt={`Foto de ${perfil.apelido}`} 
-          // APLICANDO A CLASSE PADRÃO MAIOR
-          className="avatar-padrao"
+          className="avatar-padrao" // Usando a classe de avatar padrão
         />
         <h1>{perfil.apelido}</h1>
         <p className="vitrine-titulo">{dadosProfissionais.titulo_profissional || 'Trabalhador'}</p>
         <div className="vitrine-avaliacao">
-          ⭐ {dadosProfissionais.avaliacao_media || 'N/A'}
+          ⭐ {dadosProfissionais.avaliacao_media ? Number(dadosProfissionais.avaliacao_media ).toFixed(1) : 'N/A'}
         </div>
       </header>
 

@@ -4,7 +4,7 @@
     import { supabase } from '../services/supabaseClient';
     import FormularioEndereco from './FormularioEndereco';
 
-    const FormularioOrdemServico = ({ onSubmit, isSubmitting, defaultValues = {} }) => {
+    const FormularioOrdemServico = ({ onSubmit, isSubmitting, textoBotao, defaultValues = {} }) => {
       const { register, handleSubmit, control, watch, setValue, formState: { errors } } = useForm({
         defaultValues: {
           habilidade_requerida: defaultValues.habilidade_requerida || '',
@@ -108,7 +108,7 @@
 
           <div className="form-actions">
             <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Enviando...' : 'Criar Ordem de Serviço'}
+              {isSubmitting ? 'Enviando...' : (textoBotao || 'Criar Ordem de Serviço')}
             </button>
           </div>
         </form>

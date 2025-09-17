@@ -24,7 +24,7 @@
 
         // Se não houver um trabalhadorId, é uma oferta pública.
         // Usamos um UUID padrão ou um valor nulo para representar isso.
-        const targetTrabalhadorId = trabalhadorId || '00000000-0000-0000-0000-000000000000';
+        const targetTrabalhadorId = trabalhadorId || null;
         const statusInicial = trabalhadorId ? 'pendente' : 'oferta_publica';
 
         setIsSubmitting(true);
@@ -63,6 +63,7 @@
           <FormularioOrdemServico 
             onSubmit={handleCreateOS}
             isSubmitting={isSubmitting}
+            textoBotao={trabalhadorId ? 'Solicitar Serviço' : 'Criar Oferta Pública'}
           />
         </div>
       );
