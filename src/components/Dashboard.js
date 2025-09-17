@@ -1,3 +1,4 @@
+// src/Dashboard.js - VERSÃO ATUALIZADA COM BOTÕES PARA CONTRATANTE
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +19,6 @@ const Dashboard = () => {
   };
 
   const handleBuscar = (dadosBusca) => {
-    // Os resultados agora vêm diretamente do componente BuscaContratante
     setResultados(dadosBusca.resultados || []);
     setTermoBusca({ servico: dadosBusca.servico, localizacao: dadosBusca.localizacao });
     setTelaAtual('resultados');
@@ -57,6 +57,19 @@ const Dashboard = () => {
           <div className="contratante-dashboard">
             <h2>Encontre o profissional ideal</h2>
             <BuscaContratante onBuscar={handleBuscar} />
+            
+            {/* ================================================== */}
+            {/* ALTERAÇÃO 2: Botão "Criar Oferta de Serviço"        */}
+            {/* ================================================== */}
+            <div className="form-actions" style={{ marginTop: '20px', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
+              <p style={{ marginBottom: '10px', color: '#6b7280' }}>Ou, se preferir, descreva o que você precisa:</p>
+              <button 
+                className="btn btn-success" // Usando uma classe de sucesso para diferenciar
+                onClick={() => navigate('/nova-os')} // Navega para a página de criação de OS
+              >
+                Criar Oferta de Serviço
+              </button>
+            </div>
           </div>
         ) : (
           <div className="trabalhador-dashboard">
@@ -65,8 +78,8 @@ const Dashboard = () => {
               <div className="dashboard-card">
                 <h3>Meu Perfil</h3>
                 <p>Gerencie suas informações profissionais</p>
-                <button className="btn btn-primary" onClick={() => navigate(`/perfil/${user.id}`)}>
-                  Ver Perfil
+                <button className="btn btn-primary" onClick={() => navigate(`/perfil/editar`)}>
+                  Editar Perfil
                 </button>
               </div>
               
@@ -100,6 +113,18 @@ const Dashboard = () => {
           <div className="user-info">
             <span>Olá, {nomeUsuario}</span>
             <span className="user-type">({tipoUsuario})</span>
+            
+            {/* ================================================== */}
+            {/* ALTERAÇÃO 1: Botão "Perfil" para Contratante       */}
+            {/* ================================================== */}
+            <button 
+              className="btn btn-secondary" 
+              onClick={() => navigate('/perfil/editar')}
+              style={{ marginLeft: '10px' }}
+            >
+              Perfil
+            </button>
+
             <button onClick={handleLogout} className="btn btn-danger">
               Sair
             </button>
@@ -113,5 +138,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
-
