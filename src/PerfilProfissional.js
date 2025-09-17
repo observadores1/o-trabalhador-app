@@ -1,13 +1,13 @@
-    // src/PerfilProfissional.js - VERSÃO PÓS-REATORAÇÃO R2
+    // src/PerfilProfissional.js - VERSÃO PÓS-REATORAÇÃO R3
     import React, { useState, useEffect } from 'react';
     import { useNavigate } from 'react-router-dom';
     import { useForm, Controller } from 'react-hook-form';
     import { IMaskInput } from 'react-imask';
     import { supabase } from './services/supabaseClient';
     import { useAuth } from './contexts/AuthContext';
-    import imageCompression from 'browser-image-compression';
     import FormularioEndereco from './components/FormularioEndereco'; 
-    import SeletorDeHabilidades from './components/SeletorDeHabilidades'; // <-- Importação do novo componente
+    import SeletorDeHabilidades from './components/SeletorDeHabilidades';
+    import GerenciadorDeFoto from './components/GerenciadorDeFoto'; // <-- Importação do novo componente
     import './PerfilProfissional.css';
 
     const PerfilProfissional = () => {
@@ -15,7 +15,6 @@
       const navigate = useNavigate();
       const [isLoading, setIsLoading] = useState(true);
       const [isSaving, setIsSaving] = useState(false);
-      // O estado 'listaDeHabilidades' foi removido daqui.
 
       const { 
         register, 
@@ -36,8 +35,6 @@
           foto_perfil_url: null
         }
       });
-
-      // O useEffect que buscava as habilidades foi removido daqui.
 
       useEffect(() => {
         const carregarDados = async () => {
@@ -76,6 +73,8 @@
         if (!user) return;
         setIsSaving(true);
         try {
+          // A lógica de submit permanece a mesma, pois ela lê os dados do formulário,
+          // que foram atualizados pelo componente GerenciadorDeFoto.
           await supabase.from('perfis').update({
             apelido: data.apelido,
             telefone: data.telefone,
@@ -112,35 +111,7 @@
         }
       };
 
-      const handleFotoUpload = async (event) => {
-        if (!user) return;
-        const file = event.target.files;
-        if (!file) return;
-        setIsSaving(true);
-        const fotoAntigaUrl = watch('foto_perfil_url');
-        const options = { maxSizeMB: 1, maxWidthOrHeight: 800, useWebWorker: true };
-        try {
-          const compressedFile = await imageCompression(file, options);
-          const novoFilePath = `public/${user.id}-${Date.now()}`;
-          await supabase.storage.from("fotos-de-perfil").upload(novoFilePath, compressedFile);
-          if (fotoAntigaUrl) {
-            const nomeArquivoAntigo = fotoAntigaUrl.split('/').pop();
-            if (nomeArquivoAntigo) {
-              await supabase.storage.from('fotos-de-perfil').remove([`public/${nomeArquivoAntigo}`]);
-            }
-          }
-          const { data: { publicUrl } } = supabase.storage.from("fotos-de-perfil").getPublicUrl(novoFilePath);
-          setValue("foto_perfil_url", publicUrl, { shouldDirty: true });
-          alert("✅ Foto atualizada! Clique em 'Salvar Alterações' para confirmar.");
-        } catch (error) {
-          console.error("Erro no processo de atualização da foto:", error);
-          alert("❌ Erro ao atualizar a foto. Tente novamente.");
-        } finally {
-          setIsSaving(false);
-        }
-      };
-
-      // A função 'handleHabilidadeChange' foi removida daqui.
+      // A função 'handleFotoUpload' foi removida daqui.
 
       if (isLoading) return <div className="perfil-container"><p>Carregando...</p></div>;
 
@@ -186,23 +157,11 @@
 
             <div className="form-section">
               <h2>Foto do Perfil</h2>
-              {watch('foto_perfil_url') && (
-                <img 
-                  src={watch('foto_perfil_url')} 
-                  alt="Prévia da foto" 
-                  className="foto-preview"
-                />
-              )}
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleFotoUpload} 
-                id="foto-upload"
-                style={{ display: 'none' }}
+              {/* Substituição da lógica de foto pela chamada ao novo componente */}
+              <GerenciadorDeFoto
+                watch={watch}
+                setValue={setValue}
               />
-              <label htmlFor="foto-upload" className="btn btn-secondary">
-                {isSaving ? 'Enviando...' : 'Escolher Nova Foto'}
-              </label>
             </div>
 
             <div className="form-section">
@@ -219,7 +178,6 @@
 
             <div className="form-section">
               <h2>Minhas Habilidades</h2>
-              {/* Substituição da lógica de habilidades pela chamada ao novo componente */}
               <SeletorDeHabilidades
                 watch={watch}
                 setValue={setValue}
@@ -235,7 +193,7 @@
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary" disabled={isSaving || !isDirty}>
+              <button type="submit" className="btn btn-primary" disabled={isSaving}>
                 {isSaving ? 'Salvando...' : 'Salvar Alterações'}
               </button>
             </div>
