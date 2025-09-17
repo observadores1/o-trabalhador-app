@@ -1,10 +1,14 @@
+// src/PerfilVitrine.js - CORRIGIDO
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import './PerfilVitrine.css';
 
-const PerfilVitrine = () => {
+const FOTO_PADRAO_URL = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face';
+
+const PerfilVitrine = ( ) => {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -12,13 +16,6 @@ const PerfilVitrine = () => {
   const handleGoBack = () => {
     navigate(-1);
   };
-
-  // Função auxiliar para otimizar URLs de imagem
-  const getOptimizedUrl = (url) => {
-    if (!url) return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face'; // Retorna uma imagem padrão se não houver URL
-    return `${url}?width=200&height=200&resize=cover`;
-  };
-
 
   const [perfil, setPerfil] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,7 +31,6 @@ const PerfilVitrine = () => {
 
       setIsLoading(true);
       try {
-        // Query corrigida para fazer o JOIN explícito usando perfil_id
         const { data, error: fetchError } = await supabase
           .from('perfis')
           .select(`
@@ -107,9 +103,10 @@ const PerfilVitrine = () => {
       <button className="btn btn-secondary" onClick={handleGoBack}>← Voltar</button>
       <header className="vitrine-header">
         <img 
-          src={getOptimizedUrl(perfil.foto_perfil_url)} 
+          src={perfil.foto_perfil_url || FOTO_PADRAO_URL} 
           alt={`Foto de ${perfil.apelido}`} 
-          className="vitrine-foto"
+          // APLICANDO A CLASSE PADRÃO MAIOR
+          className="avatar-padrao"
         />
         <h1>{perfil.apelido}</h1>
         <p className="vitrine-titulo">{dadosProfissionais.titulo_profissional || 'Trabalhador'}</p>

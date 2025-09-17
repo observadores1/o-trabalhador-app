@@ -22,3 +22,46 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* =============================================== */
+/* ESTILO GLOBAL PARA AVATARES/FOTOS DE PERFIL     */
+/* =============================================== */
+
+/* Usado em listas e cards, como nos resultados de busca */
+.avatar-pequeno {
+  width: 80px;           /* Largura fixa de 80px */
+  height: 80px;          /* Altura fixa de 80px */
+  border-radius: 50%;    /* Deixa a imagem perfeitamente redonda */
+  object-fit: cover;     /* Garante que a imagem preencha o círculo sem distorcer */
+  border: 2px solid #e5e7eb; /* Uma borda sutil para dar acabamento */
+  background-color: #f0f0f0; /* Cor de fundo caso a imagem não carregue */
+}
+
+/* =============================================== */
+/* ESTILO GLOBAL PARA AVATARES/FOTOS DE PERFIL     */
+/* =============================================== */
+
+/* Para contextos maiores, como a página de perfil (vitrine) */
+.avatar-padrao {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  background-color: #f0f0f0;
+  margin: 0 auto 15px auto;
+  display: block;
+}
+
+/* Para contextos menores, como listas e cards de busca */
+.avatar-pequeno {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+  background-color: #f0f0f0;
+  margin: 0 auto 15px auto;
+  display: block;
+}

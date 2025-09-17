@@ -1,13 +1,12 @@
+// src/ResultadosBusca.js - CORRIGIDO
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import './ResultadosBusca.css'; // Supondo que você tenha um arquivo de estilo
+import './ResultadosBusca.css';
 
-const getOptimizedUrl = (url) => {
-  if (!url) return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face'; // Use a mesma URL de fallback
-  return `${url}?width=80&height=80&resize=cover`; 
-};
+const FOTO_PADRAO_URL = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face';
 
-const ResultadosBusca = ({ resultados, termoBusca, onVoltarBusca }) => {
+const ResultadosBusca = ({ resultados, termoBusca, onVoltarBusca } ) => {
   const navigate = useNavigate();
 
   const handleVerPerfil = (trabalhadorId) => {
@@ -35,17 +34,16 @@ const ResultadosBusca = ({ resultados, termoBusca, onVoltarBusca }) => {
         {resultados.map((trabalhador) => (
           <div key={trabalhador.id} className="trabalhador-card">
             <img 
-              src={getOptimizedUrl(trabalhador.foto_perfil_url)} 
-              alt={trabalhador.apelido} 
+              src={trabalhador.foto_perfil_url || FOTO_PADRAO_URL} 
+              alt={trabalhador.apelido}
+              // APLICANDO A CLASSE CORRETA PARA LISTAS
+              className="avatar-pequeno" 
             />
             <h3>{trabalhador.apelido}</h3>
             <p>{trabalhador.titulo_profissional || 'Trabalhador'}</p>
             
-            {/* ================================================== */}
-            {/* AQUI ESTÁ A CORREÇÃO QUE RESOLVE O ERRO 'toFixed' */}
-            {/* ================================================== */}
             <div className="avaliacao">
-              ⭐ {trabalhador.avaliacao_media ? Number(trabalhador.avaliacao_media ).toFixed(1) : 'N/A'}
+              ⭐ {trabalhador.avaliacao_media ? Number(trabalhador.avaliacao_media).toFixed(1) : 'N/A'}
             </div>
 
             <div className="habilidades-preview">

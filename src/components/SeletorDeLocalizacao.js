@@ -1,85 +1,99 @@
+// src/components/SeletorDeLocalizacao.js
+// VERSÃO CORRIGIDA PARA USAR O ESTILO DO PerfilProfissional.css
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const estadosBrasileiros = [
-    { sigla: 'AC', nome: 'Acre' }, { sigla: 'AL', nome: 'Alagoas' },
-    { sigla: 'AP', nome: 'Amapá' }, { sigla: 'AM', nome: 'Amazonas' },
-    { sigla: 'BA', nome: 'Bahia' }, { sigla: 'CE', nome: 'Ceará' },
-    { sigla: 'DF', nome: 'Distrito Federal' }, { sigla: 'ES', nome: 'Espírito Santo' },
-    { sigla: 'GO', nome: 'Goiás' }, { sigla: 'MA', nome: 'Maranhão' },
-    { sigla: 'MT', nome: 'Mato Grosso' }, { sigla: 'MS', nome: 'Mato Grosso do Sul' },
-    { sigla: 'MG', nome: 'Minas Gerais' }, { sigla: 'PA', nome: 'Pará' },
-    { sigla: 'PB', nome: 'Paraíba' }, { sigla: 'PR', nome: 'Paraná' },
-    { sigla: 'PE', nome: 'Pernambuco' }, { sigla: 'PI', nome: 'Piauí' },
-    { sigla: 'RJ', nome: 'Rio de Janeiro' }, { sigla: 'RN', nome: 'Rio Grande do Norte' },
-    { sigla: 'RS', nome: 'Rio Grande do Sul' }, { sigla: 'RO', nome: 'Rondônia' },
-    { sigla: 'RR', nome: 'Roraima' }, { sigla: 'SC', nome: 'Santa Catarina' },
-    { sigla: 'SP', nome: 'São Paulo' }, { sigla: 'SE', nome: 'Sergipe' },
-    { sigla: 'TO', nome: 'Tocantins' }
-];
+// Não precisamos importar nenhum CSS aqui, pois ele herdará do componente pai.
 
-const SeletorDeLocalizacao = ({ valorEstado, valorCidade, onEstadoChange, onCidadeChange }) => {
-  const [cidades, setCidades] = useState([]);
-  const [carregando, setCarregando] = useState(false);
+const SeletorDeLocalizacao = ({ onEstadoChange, onCidadeChange, estadoInicial, cidadeInicial }) => {
+    const [estados, setEstados] = useState([]);
+    const [cidades, setCidades] = useState([]);
+    const [estadoSelecionado, setEstadoSelecionado] = useState(estadoInicial || '');
+    const [cidadeSelecionada, setCidadeSelecionada] = useState(cidadeInicial || '');
+    const [carregandoCidades, setCarregandoCidades] = useState(false);
 
-  useEffect(() => {
-    if (valorEstado) {
-      setCarregando(true);
-      axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${valorEstado}/municipios` )
-        .then(response => {
-          const cidadesOrdenadas = response.data.sort((a, b) => a.nome.localeCompare(b.nome));
-          setCidades(cidadesOrdenadas);
-          setCarregando(false);
-        })
-        .catch(error => {
-          console.error("Erro ao buscar cidades:", error);
-          setCarregando(false);
-        });
-    } else {
-      setCidades([]);
-    }
-  }, [valorEstado]);
+    useEffect(() => {
+        axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome' )
+            .then(response => {
+                setEstados(response.data);
+            });
+    }, []);
 
-  return (
-    <>
-      <div className="form-group">
-        <label>Estado (UF)</label>
-        <select
-          value={valorEstado || ''}
-          onChange={e => onEstadoChange(e.target.value)}
-          className="form-input"
-        >
-          <option value="">-- Selecione um estado --</option>
-          {estadosBrasileiros.map(estado => (
-            <option key={estado.sigla} value={estado.sigla}>{estado.nome}</option>
-          ))}
-        </select>
-      </div>
+    useEffect(() => {
+        if (estadoInicial) {
+            setEstadoSelecionado(estadoInicial);
+        }
+    }, [estadoInicial]);
 
-      <div className="form-group">
-        <label>Cidade</label>
-        <select
-          value={valorCidade || ''}
-          onChange={e => onCidadeChange(e.target.value)}
-          disabled={!valorEstado || carregando}
-          className="form-input"
-        >
-          {carregando ? (
-            <option>Carregando...</option>
-          ) : cidades.length > 0 ? (
-            <>
-              <option value="">-- Selecione uma cidade --</option>
-              {cidades.map(cidade => (
-                <option key={cidade.id} value={cidade.nome}>{cidade.nome}</option>
-              ))}
-            </>
-          ) : (
-            <option>-- Selecione um estado primeiro --</option>
-          )}
-        </select>
-      </div>
-    </>
-  );
+    useEffect(() => {
+        if (estadoSelecionado) {
+            setCarregandoCidades(true);
+            axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado}/municipios` )
+                .then(response => {
+                    setCidades(response.data);
+                    if (cidadeInicial && response.data.some(c => c.nome === cidadeInicial)) {
+                        setCidadeSelecionada(cidadeInicial);
+                    }
+                    setCarregandoCidades(false);
+                });
+        } else {
+            setCidades([]);
+        }
+    }, [estadoSelecionado, cidadeInicial]);
+
+    const handleEstadoChange = (e) => {
+        const novoEstado = e.target.value;
+        setEstadoSelecionado(novoEstado);
+        setCidadeSelecionada('');
+        onEstadoChange(novoEstado);
+        onCidadeChange('');
+    };
+
+    const handleCidadeChange = (e) => {
+        const novaCidade = e.target.value;
+        setCidadeSelecionada(novaCidade);
+        onCidadeChange(novaCidade);
+    };
+
+    // A estrutura do JSX foi alterada para corresponder ao seu CSS.
+    return (
+        <div className="form-row"> {/* Usando sua classe .form-row para alinhamento */}
+            <div className="form-group"> {/* Usando sua classe .form-group */}
+                <label htmlFor="estado">Estado</label>
+                <select 
+                    id="estado" 
+                    value={estadoSelecionado} 
+                    onChange={handleEstadoChange}
+                    // A MÁGICA ACONTECE AQUI: Aplicamos a mesma classe do seu input
+                    className="form-group input" 
+                >
+                    <option value="">Selecione um estado</option>
+                    {estados.map(estado => (
+                        <option key={estado.sigla} value={estado.sigla}>{estado.nome}</option>
+                    ))}
+                </select>
+            </div>
+            <div className="form-group"> {/* Usando sua classe .form-group */}
+                <label htmlFor="cidade">Cidade</label>
+                <select 
+                    id="cidade" 
+                    value={cidadeSelecionada} 
+                    onChange={handleCidadeChange} 
+                    disabled={!estadoSelecionado || carregandoCidades}
+                    // E AQUI TAMBÉM: A mesma classe para garantir consistência
+                    className="form-group input"
+                >
+                    <option value="">
+                        {carregandoCidades ? 'Carregando...' : (estadoSelecionado ? 'Selecione uma cidade' : 'Selecione um estado primeiro')}
+                    </option>
+                    {cidades.map(cidade => (
+                        <option key={cidade.id} value={cidade.nome}>{cidade.nome}</option>
+                    ))}
+                </select>
+            </div>
+        </div>
+    );
 };
 
 export default SeletorDeLocalizacao;
