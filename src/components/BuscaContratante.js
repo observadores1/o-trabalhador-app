@@ -4,16 +4,73 @@ import { supabase } from '../services/supabaseClient';
 import SeletorDeLocalizacao from './SeletorDeLocalizacao';
 import '../botoes.css';
 
+// ===================================================================
+// 1. DEFINIÇÃO DOS SUB-COMPONENTES INTERNOS (Stateless)
+// ===================================================================
+
+const SecaoServico = ({ servico, setServico, listaDeHabilidades }) => (
+  <div className="form-group">
+    <label htmlFor="servico">Qual serviço você precisa?</label>
+    <select
+      id="servico"
+      value={servico}
+      onChange={(e) => setServico(e.target.value)}
+      className="form-input"
+      required
+    >
+      <option value="">-- Selecione um serviço --</option>
+      {listaDeHabilidades.map(h => (
+        <option key={h.nome} value={h.nome}>{h.nome}</option>
+      ))}
+    </select>
+  </div>
+);
+
+const SecaoLocalizacao = ({ estado, setEstado, cidade, setCidade, bairro, setBairro }) => {
+  const handleEstadoChange = (novoEstado) => {
+    setEstado(novoEstado);
+    setCidade(''); // Limpa a cidade quando o estado muda
+  };
+
+  const handleCidadeChange = (novaCidade) => {
+    setCidade(novaCidade);
+  };
+
+  return (
+    <>
+      <SeletorDeLocalizacao
+        valorEstado={estado}
+        valorCidade={cidade}
+        onEstadoChange={handleEstadoChange}
+        onCidadeChange={handleCidadeChange}
+      />
+      <div className="form-group">
+        <label htmlFor="bairro">Bairro (Opcional)</label>
+        <input
+          type="text"
+          id="bairro"
+          value={bairro}
+          onChange={(e) => setBairro(e.target.value)}
+          placeholder="Filtre por um bairro específico"
+          className="form-input"
+        />
+      </div>
+    </>
+  );
+};
+
+// ===================================================================
+// 2. COMPONENTE PRINCIPAL (Container) - Agora muito mais limpo
+// ===================================================================
+
 const BuscaContratante = ({ onBuscar }) => {
-  // Estados para controlar os valores de todos os campos do formulário
   const [servico, setServico] = useState('');
   const [estado, setEstado] = useState('');
   const [cidade, setCidade] = useState('');
-  const [bairro, setBairro] = useState(''); // <-- Estado para o bairro adicionado
+  const [bairro, setBairro] = useState('');
   const [buscando, setBuscando] = useState(false);
   const [listaDeHabilidades, setListaDeHabilidades] = useState([]);
 
-  // useEffect para buscar habilidades do Supabase
   useEffect(() => {
     const buscarHabilidades = async () => {
       const { data, error } = await supabase
@@ -28,7 +85,6 @@ const BuscaContratante = ({ onBuscar }) => {
     buscarHabilidades();
   }, []);
 
-  // Função chamada quando o formulário é enviado
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!servico) {
@@ -37,9 +93,7 @@ const BuscaContratante = ({ onBuscar }) => {
     }
     setBuscando(true);
     try {
-      // Chama a busca no backend passando TODOS os filtros, incluindo o bairro
       const resultados = await buscarTrabalhadoresSupabase(servico, cidade, estado, bairro);
-      // Notifica o componente pai (Dashboard) sobre os resultados e todos os termos de busca
       onBuscar({ resultados, servico, cidade, estado, bairro });
     } catch (error) {
       alert('Ocorreu um erro ao realizar a busca.');
@@ -48,54 +102,22 @@ const BuscaContratante = ({ onBuscar }) => {
     }
   };
 
-  // Funções para receber as mudanças do SeletorDeLocalizacao
-  const handleEstadoChange = (novoEstado) => {
-    setEstado(novoEstado);
-    setCidade(''); // Limpa a cidade quando o estado muda
-  };
-
-  const handleCidadeChange = (novaCidade) => {
-    setCidade(novaCidade);
-  };
-
   return (
     <form onSubmit={handleSubmit} className="busca-contratante-form">
-      <div className="form-group">
-        <label htmlFor="servico">Qual serviço você precisa?</label>
-        <select
-          id="servico"
-          value={servico}
-          onChange={(e) => setServico(e.target.value)}
-          className="form-input"
-          required
-        >
-          <option value="">-- Selecione um serviço --</option>
-          {listaDeHabilidades.map(h => (
-            <option key={h.nome} value={h.nome}>{h.nome}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Componente reutilizável para Estado e Cidade */}
-      <SeletorDeLocalizacao
-        valorEstado={estado}
-        valorCidade={cidade}
-        onEstadoChange={handleEstadoChange}
-        onCidadeChange={handleCidadeChange}
+      <SecaoServico
+        servico={servico}
+        setServico={setServico}
+        listaDeHabilidades={listaDeHabilidades}
       />
 
-      {/* Campo de Bairro (Opcional) adicionado de volta */}
-      <div className="form-group">
-        <label htmlFor="bairro">Bairro (Opcional)</label>
-        <input
-          type="text"
-          id="bairro"
-          value={bairro}
-          onChange={(e) => setBairro(e.target.value)}
-          placeholder="Filtre por um bairro específico"
-          className="form-input"
-        />
-      </div>
+      <SecaoLocalizacao
+        estado={estado}
+        setEstado={setEstado}
+        cidade={cidade}
+        setCidade={setCidade}
+        bairro={bairro}
+        setBairro={setBairro}
+      />
 
       <button type="submit" className="btn btn-primary" disabled={buscando}>
         {buscando ? 'Buscando...' : 'Buscar Trabalhadores'}
@@ -105,3 +127,5 @@ const BuscaContratante = ({ onBuscar }) => {
 };
 
 export default BuscaContratante;
+
+
