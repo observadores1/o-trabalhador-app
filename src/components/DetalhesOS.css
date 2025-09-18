@@ -1,0 +1,102 @@
+/* src/components/DetalhesOS.css - VERSÃO COMPLETA COM ESTILO PARA ENDEREÇO */
+
+.detalhes-os-container {
+  max-width: 1000px;
+  margin: 20px auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.detalhes-os-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.detalhes-os-header h1 {
+  color: #1e40af;
+  margin: 0;
+}
+
+.os-status-badge {
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  text-transform: capitalize;
+  color: white;
+}
+
+.status-pendente, .status-oferta_publica { background-color: #f59e0b; }
+.status-aceito, .status-em_andamento { background-color: #3b82f6; }
+.status-concluido { background-color: #10b981; }
+.status-cancelado { background-color: #ef4444; }
+
+.detalhes-os-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 30px;
+}
+
+.detalhes-os-section {
+  background: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.detalhes-os-section h2 {
+  color: #1f2937;
+  font-size: 1.3rem;
+  margin-top: 0;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.detalhes-os-section p {
+  margin: 10px 0;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+.detalhes-os-actions {
+  margin-top: 30px;
+  padding: 25px;
+  background: #f9fafb;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.error-message {
+  color: #dc2626;
+  font-weight: bold;
+  text-align: center;
+  padding: 20px;
+  background-color: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+}
+
+/* NOVO ESTILO PARA O BLOCO DE ENDEREÇO */
+.endereco-detalhes {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .detalhes-os-grid {
+    grid-template-columns: 1fr;
+  }
+  .detalhes-os-header {
+    flex-direction: column;
+    gap: 15px;
+  }
+}

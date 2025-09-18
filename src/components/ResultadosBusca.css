@@ -242,4 +242,20 @@
     justify-content: center;
   }
 }
+/* Adicione este estilo ao final de ResultadosBusca.css */
 
+.habilidades-preview {
+  display: flex;
+  flex-wrap: wrap; /* Permite que as tags quebrem para a próxima linha */
+  gap: 8px; /* Adiciona um espaço de 8px entre cada tag */
+  margin-top: 10px;
+}
+
+.habilidade-tag-preview {
+  background-color: #eef2ff; /* Um azul bem claro */
+  color: #4338ca; /* Um azul escuro para o texto */
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}

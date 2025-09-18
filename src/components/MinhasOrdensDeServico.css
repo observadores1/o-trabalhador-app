@@ -1,0 +1,99 @@
+/* src/MinhasOrdensDeServico.css */
+
+.os-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.os-container h1 {
+  color: #1e40af;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.os-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.os-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+  border-left: 5px solid #6b7280; /* Cor padrão para status */
+  padding: 20px;
+  transition: all 0.3s ease;
+}
+
+.os-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.os-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+}
+
+.os-card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #1f2937;
+}
+
+.os-status {
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+  color: white;
+}
+
+/* Cole este bloco em substituição ao bloco "Cores por status" existente */
+
+/* Cores por status */
+.status-pendente, .status-oferta_publica { 
+  border-left-color: #f59e0b; /* Laranja/Amarelo */
+}
+.status-pendente .os-status, .status-oferta_publica .os-status { 
+  background-color: #f59e0b; 
+}
+
+.status-aceita, .status-em_andamento { 
+  border-left-color: #3b82f6; /* Azul */
+}
+.status-aceita .os-status, .status-em_andamento .os-status { 
+  background-color: #3b82f6; 
+}
+
+.status-concluida { 
+  border-left-color: #10b981; /* Verde */
+}
+.status-concluida .os-status { 
+  background-color: #10b981; 
+}
+
+.status-cancelada { 
+  border-left-color: #ef4444; /* Vermelho */
+}
+.status-cancelada .os-status { 
+  background-color: #ef4444;}
+
+
+.os-card-body p {
+  margin: 5px 0;
+  color: #4b5563;
+}
+
+.os-card-actions {
+  margin-top: 20px;
+  text-align: right;
+}

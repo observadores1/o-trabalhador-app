@@ -1,122 +1,64 @@
+// src/ResultadosBusca.js - CORRIGIDO
+
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './ResultadosBusca.css';
 
-const ResultadosBusca = ({ resultados: propsResultados, termoBusca: propsTermoBusca, onVerPerfil, onVoltarBusca }) => {
-  const location = useLocation();
+const FOTO_PADRAO_URL = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face';
+
+const ResultadosBusca = ({ resultados, termoBusca, onVoltarBusca } ) => {
   const navigate = useNavigate();
-  
-  // Usar dados do state da navegação ou props (para compatibilidade)
-  const resultados = location.state?.resultados || propsResultados || [];
-  const termoBusca = location.state?.termoBusca || propsTermoBusca || { servico: '', localizacao: '' };
 
-  const renderEstrelas = (avaliacao) => {
-    const estrelas = [];
-    const avaliacaoInt = Math.floor(avaliacao);
-    const temMeiaEstrela = avaliacao % 1 !== 0;
-
-    for (let i = 0; i < 5; i++) {
-      if (i < avaliacaoInt) {
-        estrelas.push(<span key={i} className="estrela cheia">★</span>);
-      } else if (i === avaliacaoInt && temMeiaEstrela) {
-        estrelas.push(<span key={i} className="estrela meia">★</span>);
-      } else {
-        estrelas.push(<span key={i} className="estrela vazia">☆</span>);
-      }
-    }
-
-    return estrelas;
-  };
-
-  const handleVoltarBusca = () => {
-    if (onVoltarBusca) {
-      onVoltarBusca();
+  const handleVerPerfil = (trabalhadorId) => {
+    if (trabalhadorId) {
+      navigate(`/perfil/${trabalhadorId}`);
     } else {
-      navigate('/dashboard');
+      console.error("ID do trabalhador inválido para navegação.");
     }
   };
 
-  const handleVerPerfil = (trabalhador) => {
-    if (onVerPerfil) {
-      onVerPerfil(trabalhador);
-    } else {
-      // Navegar para o perfil do trabalhador
-      navigate('/perfil', { state: { trabalhador } });
-    }
-  };
+  if (!resultados || resultados.length === 0) {
+    return (
+      <div className="resultados-container">
+        <h2>Busca por "{termoBusca.servico}"</h2>
+        <p>Nenhum trabalhador encontrado.</p>
+        <button onClick={onVoltarBusca} className="btn btn-secondary">Fazer Nova Busca</button>
+      </div>
+    );
+  }
 
   return (
     <div className="resultados-container">
-      <div className="resultados-header">
-        <button className="voltar-btn" onClick={handleVoltarBusca}>
-          ← Voltar à Busca
-        </button>
-        <h2>Trabalhadores encontrados</h2>
-        <p>
-          {resultados.length} profissionais encontrados para "{termoBusca.servico}" 
-          {termoBusca.localizacao && ` em ${termoBusca.localizacao}`}
-        </p>
-      </div>
-
-      <div className="resultados-lista">
+      <h2>Trabalhadores Encontrados</h2>
+      <div className="lista-trabalhadores">
         {resultados.map((trabalhador) => (
           <div key={trabalhador.id} className="trabalhador-card">
-            <div className="card-foto">
-              <img 
-                src={trabalhador.foto} 
-                alt={`Foto de ${trabalhador.nome}`}
-                className="foto-trabalhador"
-              />
-            </div>
+            <img 
+              src={trabalhador.foto_perfil_url || FOTO_PADRAO_URL} 
+              alt={trabalhador.apelido}
+              // APLICANDO A CLASSE CORRETA PARA LISTAS
+              className="avatar-pequeno" 
+            />
+            <h3>{trabalhador.apelido}</h3>
+            <p>{trabalhador.titulo_profissional || 'Trabalhador'}</p>
             
-            <div className="card-info">
-              <h3 className="nome-trabalhador">{trabalhador.nome}</h3>
-              
-              <div className="avaliacao">
-                <div className="estrelas">
-                  {renderEstrelas(trabalhador.avaliacao)}
-                </div>
-                <span className="nota-avaliacao">
-                  {trabalhador.avaliacao.toFixed(1)}
-                </span>
-                <span className="total-avaliacoes">
-                  ({trabalhador.totalAvaliacoes} avaliações)
-                </span>
-              </div>
-              
-              <div className="habilidades">
-                {trabalhador.habilidades.map((habilidade, index) => (
-                  <span key={index} className="habilidade-tag">
-                    {habilidade}
-                  </span>
-                ))}
-              </div>
-              
-              <div className="card-footer">
-                <div className="preco-info">
-                  <span className="preco">A partir de R$ {trabalhador.precoMinimo}</span>
-                </div>
-                <button 
-                  className="ver-perfil-btn"
-                  onClick={() => handleVerPerfil(trabalhador)}
-                >
-                  Ver Perfil e Contratar
-                </button>
-              </div>
+            <div className="avaliacao">
+              ⭐ {trabalhador.avaliacao_media ? Number(trabalhador.avaliacao_media).toFixed(1) : 'N/A'}
             </div>
+
+            <div className="habilidades-preview">
+              {(trabalhador.habilidades || []).slice(0, 3).map(h => (
+    <span key={h} className="habilidade-tag-preview">{h}</span>
+  ))}
+            </div>
+
+            <button className="btn btn-primary" onClick={() => handleVerPerfil(trabalhador.id)}>Ver Perfil</button>
           </div>
         ))}
       </div>
-
-      {resultados.length === 0 && (
-        <div className="sem-resultados">
-          <h3>Nenhum trabalhador encontrado</h3>
-          <p>Tente buscar com outros termos ou em uma localização diferente.</p>
-        </div>
-      )}
+      <button onClick={onVoltarBusca} className="btn btn-secondary">Fazer Nova Busca</button>
     </div>
   );
 };
 
 export default ResultadosBusca;
-

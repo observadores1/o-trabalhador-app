@@ -1,0 +1,114 @@
+/* src/PaginaNovaOS.css */
+
+.pagina-os-container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+.pagina-os-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 25px;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 16px;
+}
+
+.pagina-os-header h1 {
+  color: #1e40af;
+  margin: 0 0 10px 0;
+}
+
+.pagina-os-header p {
+  color: #4b5563;
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.pagina-os-main {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+}
+
+/* Estilos para o formulário interno (reutiliza e estende) */
+.form-os .form-section {
+  margin-bottom: 30px;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.form-os .form-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.form-os .form-section h2 {
+  color: #1f2937;
+  font-size: 1.4rem;
+  margin-bottom: 20px;
+}
+
+.form-os .form-group {
+  margin-bottom: 20px;
+}
+
+.form-os .form-group label {
+  display: block;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-os input[type="text"],
+.form-os input[type="number"],
+.form-os input[type="datetime-local"],
+.formos select,
+.form-os textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-os input:focus,
+.form-os select:focus,
+.form-os textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+
+.form-os .form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.form-os .checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-os .checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: normal;
+}
+
+.form-os .error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 5px;
+}
+
+.form-os .form-actions {
+  text-align: center;
+  margin-top: 30px;
+}

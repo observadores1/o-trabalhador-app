@@ -1,0 +1,66 @@
+/* src/components/AvaliacaoEstrelas.css */
+
+.avaliacao-container {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.avaliacao-container h4 {
+  margin: 0;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.avaliacao-container p {
+  margin: 0;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.estrelas-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+}
+
+.estrela {
+  font-size: 2.5rem;
+  color: #ccc;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.estrela:hover {
+  transform: scale(1.1);
+}
+
+.estrela.preenchida {
+  color: #ffc107; /* Amarelo dourado para estrelas preenchidas */
+}
+
+.comentario-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+}
+
+/* Reutilizando o estilo de botão que você já tem, mas garantindo especificidades */
+.avaliacao-container .btn {
+  align-self: flex-start; /* Alinha o botão à esquerda */
+}
+
+.avaliacao-container .btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}

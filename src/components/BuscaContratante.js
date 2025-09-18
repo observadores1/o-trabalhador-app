@@ -1,91 +1,131 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { buscarTrabalhadoresSupabase } from '../services/buscaService';
-import './BuscaContratante.css';
+import { supabase } from '../services/supabaseClient';
+import SeletorDeLocalizacao from './SeletorDeLocalizacao';
+import '../botoes.css';
+
+// ===================================================================
+// 1. DEFINIÇÃO DOS SUB-COMPONENTES INTERNOS (Stateless)
+// ===================================================================
+
+const SecaoServico = ({ servico, setServico, listaDeHabilidades }) => (
+  <div className="form-group">
+    <label htmlFor="servico">Qual serviço você precisa?</label>
+    <select
+      id="servico"
+      value={servico}
+      onChange={(e) => setServico(e.target.value)}
+      className="form-input"
+      required
+    >
+      <option value="">-- Selecione um serviço --</option>
+      {listaDeHabilidades.map(h => (
+        <option key={h.nome} value={h.nome}>{h.nome}</option>
+      ))}
+    </select>
+  </div>
+);
+
+const SecaoLocalizacao = ({ estado, setEstado, cidade, setCidade, bairro, setBairro }) => {
+  const handleEstadoChange = (novoEstado) => {
+    setEstado(novoEstado);
+    setCidade(''); // Limpa a cidade quando o estado muda
+  };
+
+  const handleCidadeChange = (novaCidade) => {
+    setCidade(novaCidade);
+  };
+
+  return (
+    <>
+      <SeletorDeLocalizacao
+        valorEstado={estado}
+        valorCidade={cidade}
+        onEstadoChange={handleEstadoChange}
+        onCidadeChange={handleCidadeChange}
+      />
+      <div className="form-group">
+        <label htmlFor="bairro">Bairro (Opcional)</label>
+        <input
+          type="text"
+          id="bairro"
+          value={bairro}
+          onChange={(e) => setBairro(e.target.value)}
+          placeholder="Filtre por um bairro específico"
+          className="form-input"
+        />
+      </div>
+    </>
+  );
+};
+
+// ===================================================================
+// 2. COMPONENTE PRINCIPAL (Container) - Agora muito mais limpo
+// ===================================================================
 
 const BuscaContratante = ({ onBuscar }) => {
   const [servico, setServico] = useState('');
-  const [localizacao, setLocalizacao] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [estado, setEstado] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [buscando, setBuscando] = useState(false);
+  const [listaDeHabilidades, setListaDeHabilidades] = useState([]);
+
+  useEffect(() => {
+    const buscarHabilidades = async () => {
+      const { data, error } = await supabase
+        .from('habilidades')
+        .select('nome')
+        .order('nome', { ascending: true });
+
+      if (data) {
+        setListaDeHabilidades(data);
+      }
+    };
+    buscarHabilidades();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!servico.trim()) {
-      alert('Por favor, digite o tipo de serviço que você precisa.');
+    if (!servico) {
+      alert('Por favor, selecione um serviço.');
       return;
     }
-
-    setIsLoading(true);
-
+    setBuscando(true);
     try {
-      // Tenta buscar no Supabase primeiro
-      let resultados = await buscarTrabalhadoresSupabase(servico.trim(), localizacao.trim());
-      
-
-
-      // Se onBuscar foi passado como prop (uso no Dashboard), usar a função
-      if (onBuscar) {
-        onBuscar({ servico: servico.trim(), localizacao: localizacao.trim(), resultados });
-      } else {
-        // Caso contrário, usar navegação (uso standalone)
-        navigate('/resultados', { 
-          state: { 
-            resultados, 
-            termoBusca: { servico: servico.trim(), localizacao: localizacao.trim() } 
-          } 
-        });
-      }
+      const resultados = await buscarTrabalhadoresSupabase(servico, cidade, estado, bairro);
+      onBuscar({ resultados, servico, cidade, estado, bairro });
     } catch (error) {
-      console.error('Erro na busca:', error);
-      alert('Erro ao buscar trabalhadores. Tente novamente.');
+      alert('Ocorreu um erro ao realizar a busca.');
     } finally {
-      setIsLoading(false);
+      setBuscando(false);
     }
   };
 
   return (
-    <div className="busca-container">
-      <div className="busca-header">
-        <img src="https://raw.githubusercontent.com/observadores1/o-trabalhador-app/main/Logo%20o%20Trabalhador.jpeg" alt="Logo O Trabalhador" className="logo" />
-        <h1>O TRABALHADOR</h1>
-        <p>Encontre o profissional ideal para seu serviço</p>
-      </div>
-      
-      <form className="busca-form" onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="servico">Qual serviço você precisa?</label>
-          <input
-            type="text"
-            id="servico"
-            value={servico}
-            onChange={(e) => setServico(e.target.value)}
-            placeholder="Ex: Pintor, Eletricista, Encanador..."
-            className="form-input"
-            required
-          />
-        </div>
+    <form onSubmit={handleSubmit} className="busca-contratante-form">
+      <SecaoServico
+        servico={servico}
+        setServico={setServico}
+        listaDeHabilidades={listaDeHabilidades}
+      />
 
-        <div className="form-group">
-          <label htmlFor="localizacao">Onde é o serviço?</label>
-          <input
-            type="text"
-            id="localizacao"
-            value={localizacao}
-            onChange={(e) => setLocalizacao(e.target.value)}
-            placeholder="Ex: Centro, Copacabana, São Paulo..."
-            className="form-input"
-          />
-        </div>
+      <SecaoLocalizacao
+        estado={estado}
+        setEstado={setEstado}
+        cidade={cidade}
+        setCidade={setCidade}
+        bairro={bairro}
+        setBairro={setBairro}
+      />
 
-        <button type="submit" className="buscar-btn" disabled={isLoading}>
-          {isLoading ? 'Buscando...' : 'Buscar Trabalhadores'}
-        </button>
-      </form>
-    </div>
+      <button type="submit" className="btn btn-primary" disabled={buscando}>
+        {buscando ? 'Buscando...' : 'Buscar Trabalhadores'}
+      </button>
+    </form>
   );
 };
 
 export default BuscaContratante;
+
 
