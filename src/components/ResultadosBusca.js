@@ -47,7 +47,9 @@ const ResultadosBusca = ({ resultados, termoBusca, onVoltarBusca } ) => {
             </div>
 
             <div className="habilidades-preview">
-              {(trabalhador.habilidades || []).slice(0, 3).map(h => <span key={h}>{h}</span>)}
+              {(trabalhador.habilidades || []).slice(0, 3).map(h => (
+    <span key={h} className="habilidade-tag-preview">{h}</span>
+  ))}
             </div>
 
             <button className="btn btn-primary" onClick={() => handleVerPerfil(trabalhador.id)}>Ver Perfil</button>

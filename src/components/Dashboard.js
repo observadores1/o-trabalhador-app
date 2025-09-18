@@ -1,4 +1,4 @@
-// src/Dashboard.js - VERSÃO ATUALIZADA COM BOTÕES PARA CONTRATANTE
+// src/Dashboard.js - VERSÃO ATUALIZADA COM O BOTÃO "MINHAS ORDENS DE SERVIÇO"
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +9,7 @@ import './Dashboard.css';
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  // ... (resto dos estados permanece o mesmo)
   const [telaAtual, setTelaAtual] = useState('dashboard');
   const [resultados, setResultados] = useState([]);
   const [termoBusca, setTermoBusca] = useState({ servico: '', localizacao: '' });
@@ -58,20 +59,28 @@ const Dashboard = () => {
             <h2>Encontre o profissional ideal</h2>
             <BuscaContratante onBuscar={handleBuscar} />
             
-            {/* ================================================== */}
-            {/* ALTERAÇÃO 2: Botão "Criar Oferta de Serviço"        */}
-            {/* ================================================== */}
-            <div className="form-actions" style={{ marginTop: '20px', borderTop: '1px solid #e5e7eb', paddingTop: '20px' }}>
-              <p style={{ marginBottom: '10px', color: '#6b7280' }}>Ou, se preferir, descreva o que você precisa:</p>
+            <div className="form-actions" style={{ marginTop: '20px', borderTop: '1px solid #e5e7eb', paddingTop: '20px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
+              {/* Botão para criar uma oferta pública */}
               <button 
-                className="btn btn-success" // Usando uma classe de sucesso para diferenciar
-                onClick={() => navigate('/nova-os')} // Navega para a página de criação de OS
+                className="btn btn-success"
+                onClick={() => navigate('/nova-os')}
               >
                 Criar Oferta de Serviço
+              </button>
+
+              {/* ================================================== */}
+              {/* NOVO BOTÃO "MINHAS ORDENS DE SERVIÇO"              */}
+              {/* ================================================== */}
+              <button 
+                className="btn btn-primary"
+                onClick={() => navigate('/minhas-os')} // Navega para a futura página de gerenciamento
+              >
+                Minhas Ordens de Serviço
               </button>
             </div>
           </div>
         ) : (
+          // ... (o painel do trabalhador permanece o mesmo)
           <div className="trabalhador-dashboard">
             <h2>Bem-vindo ao seu painel</h2>
             <div className="dashboard-cards">
@@ -82,7 +91,6 @@ const Dashboard = () => {
                   Editar Perfil
                 </button>
               </div>
-              
               <div className="dashboard-card">
                 <h3>Oportunidades</h3>
                 <p>Veja trabalhos disponíveis na sua área</p>
@@ -90,7 +98,6 @@ const Dashboard = () => {
                   Ver Oportunidades
                 </button>
               </div>
-              
               <div className="dashboard-card">
                 <h3>Meus Trabalhos</h3>
                 <p>Acompanhe seus trabalhos em andamento</p>
@@ -105,6 +112,7 @@ const Dashboard = () => {
     );
   };
 
+  // O resto do componente (header, etc.) permanece o mesmo
   return (
     <div className="dashboard-container">
       <header className="dashboard-header">
@@ -113,10 +121,6 @@ const Dashboard = () => {
           <div className="user-info">
             <span>Olá, {nomeUsuario}</span>
             <span className="user-type">({tipoUsuario})</span>
-            
-            {/* ================================================== */}
-            {/* ALTERAÇÃO 1: Botão "Perfil" para Contratante       */}
-            {/* ================================================== */}
             <button 
               className="btn btn-secondary" 
               onClick={() => navigate('/perfil/editar')}
@@ -124,14 +128,12 @@ const Dashboard = () => {
             >
               Perfil
             </button>
-
             <button onClick={handleLogout} className="btn btn-danger">
               Sair
             </button>
           </div>
         </div>
       </header>
-
       {renderConteudo()}
     </div>
   );

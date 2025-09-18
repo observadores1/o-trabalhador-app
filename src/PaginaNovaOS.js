@@ -1,72 +1,71 @@
-    // src/PaginaNovaOS.js
-    import React, { useState } from 'react';
-    import { useLocation, useNavigate } from 'react-router-dom';
-    import { useAuth } from './contexts/AuthContext';
-    import { supabase } from './services/supabaseClient';
-    import FormularioOrdemServico from './components/FormularioOrdemServico';
-    import './PerfilProfissional.css'; // Reutilizando o estilo do formulário de perfil
+// src/PaginaNovaOS.js - VERSÃO COMPLETA E CORRIGIDA
 
-    const PaginaNovaOS = () => {
-      const { user } = useAuth();
-      const navigate = useNavigate();
-      const location = useLocation();
-      const [isSubmitting, setIsSubmitting] = useState(false);
+import React from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
+import { supabase } from './services/supabaseClient';
+import FormularioOrdemServico from './components/FormularioOrdemServico';
+import './PaginaNovaOS.css';
 
-      // Inteligência para pegar o ID do trabalhador da URL, se existir
-      const params = new URLSearchParams(location.search);
-      const trabalhadorId = params.get('trabalhador_id');
+const PaginaNovaOS = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  
+  const trabalhadorId = searchParams.get('trabalhador_id');
 
-      const handleCreateOS = async (formData) => {
-        if (!user) {
-          alert("Você precisa estar logado para criar uma ordem de serviço.");
-          return;
-        }
+  const handleCreateOS = async (formData) => {
+    if (!user) {
+      alert("Você precisa estar logado para criar uma ordem de serviço.");
+      return;
+    }
 
-        // Se não houver um trabalhadorId, é uma oferta pública.
-        // Usamos um UUID padrão ou um valor nulo para representar isso.
-        const targetTrabalhadorId = trabalhadorId || null;
-        const statusInicial = trabalhadorId ? 'pendente' : 'oferta_publica';
-
-        setIsSubmitting(true);
-        try {
-          const { error } = await supabase.from('ordens_de_servico').insert({
-            contratante_id: user.id,
-            trabalhador_id: targetTrabalhadorId,
-            descricao_servico: formData.descricao,
-            status: statusInicial,
-            valor_acordado: formData.valor_proposto || null,
-            data_inicio_prevista: formData.data_inicio,
-            data_conclusao: formData.data_termino_prevista, // Ajuste conforme nome da coluna
-            // Aqui você pode adicionar os outros campos da tabela
-            // ex: detalhes_adicionais: { necessita_transporte: formData.necessita_transporte, ... }
-          });
-
-          if (error) throw error;
-
-          alert('✅ Ordem de Serviço criada com sucesso!');
-          navigate('/dashboard'); // Ou para uma página de "Minhas Ordens de Serviço"
-
-        } catch (error) {
-          console.error("Erro ao criar Ordem de Serviço:", error);
-          alert("❌ Falha ao criar a Ordem de Serviço. Tente novamente.");
-        } finally {
-          setIsSubmitting(false);
-        }
-      };
-
-      return (
-        <div className="perfil-container">
-          <button onClick={() => navigate(-1)} className="btn btn-secondary">← Voltar</button>
-          <h1>{trabalhadorId ? 'Propor Serviço' : 'Criar Oferta de Serviço'}</h1>
-          <p>{trabalhadorId ? 'Preencha os detalhes abaixo para enviar uma proposta para o trabalhador selecionado.' : 'Descreva o serviço que você precisa. Sua oferta ficará visível para os trabalhadores da plataforma.'}</p>
-          
-          <FormularioOrdemServico 
-            onSubmit={handleCreateOS}
-            isSubmitting={isSubmitting}
-            textoBotao={trabalhadorId ? 'Solicitar Serviço' : 'Criar Oferta Pública'}
-          />
-        </div>
-      );
+    // Monta o objeto final para enviar ao Supabase, incluindo TODOS os campos
+    const osParaSalvar = {
+      contratante_id: user.id,
+      trabalhador_id: trabalhadorId || null,
+      habilidade: formData.habilidade,
+      titulo_servico: formData.titulo_servico,
+      descricao_servico: formData.descricao_servico,
+      data_inicio_prevista: formData.data_inicio_prevista,
+      data_conclusao: formData.data_conclusao,
+      valor_acordado: formData.valor_proposto || null,
+      observacoes: formData.observacoes,
+      endereco: formData.endereco, // Objeto de endereço completo
+      detalhes_adicionais: formData.detalhes_adicionais, // Objeto de detalhes completo
+      status: trabalhadorId ? 'pendente' : 'oferta_publica',
     };
 
-    export default PaginaNovaOS;
+    try {
+      const { error } = await supabase
+        .from('ordens_de_servico')
+        .insert([osParaSalvar]);
+
+      if (error) throw error;
+
+      alert('✅ Ordem de Serviço criada com sucesso!');
+      navigate('/minhas-os');
+
+    } catch (error) {
+      console.error('Erro ao criar Ordem de Serviço:', error);
+      alert(`❌ Erro ao criar Ordem de Serviço: ${error.message}`);
+    }
+  };
+
+  return (
+    <div className="pagina-os-container">
+      <header className="pagina-os-header">
+        <h1>{trabalhadorId ? 'Propor Serviço para Profissional' : 'Criar Nova Oferta de Serviço'}</h1>
+        <p>{trabalhadorId ? 'Preencha os detalhes abaixo para enviar uma proposta direta.' : 'Descreva o serviço que você precisa. Sua oferta ficará visível para os trabalhadores.'}</p>
+      </header>
+      <main className="pagina-os-main">
+        <FormularioOrdemServico 
+          trabalhadorId={trabalhadorId}
+          onOsCriada={handleCreateOS}
+        />
+      </main>
+    </div>
+  );
+};
+
+export default PaginaNovaOS;
