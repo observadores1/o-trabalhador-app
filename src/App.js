@@ -1,4 +1,4 @@
-// src/App.js - VERSÃO FINAL COM O CAMINHO DE IMPORTAÇÃO CORRETO
+// src/App.js - ATUALIZADO COM O CAMINHO CORRETO PARA EditarOS
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -12,13 +12,14 @@ import PerfilVitrine from './components/PerfilVitrine';
 import WhatsAppButton from './components/WhatsAppButton';
 import PaginaNovaOS from './PaginaNovaOS';
 import DetalhesOS from './components/DetalhesOS';
-// AQUI ESTÁ A CORREÇÃO: O caminho agora aponta para a pasta 'components'
 import MinhasOrdensDeServico from './components/MinhasOrdensDeServico'; 
+import EditarOS from './components/EditarOS'; // <<-- CAMINHO CORRIGIDO
 
 import './App.css';
 import './botoes.css';
 
 function AppLayout() {
+  // ... (o resto do App.js permanece o mesmo)
   const { session } = useAuth();
   return (
     <div className="App">
@@ -30,9 +31,12 @@ function AppLayout() {
         <Route path="/perfil/editar" element={<ProtectedRoute><PerfilProfissional /></ProtectedRoute>} />
         <Route path="/nova-os" element={<ProtectedRoute><PaginaNovaOS /></ProtectedRoute>} />
         <Route path="/minhas-os" element={<ProtectedRoute><MinhasOrdensDeServico /></ProtectedRoute>} />
+        <Route path="/os/:osId" element={<ProtectedRoute><DetalhesOS /></ProtectedRoute>} />
+        
+        <Route path="/os/:osId/editar" element={<ProtectedRoute><EditarOS /></ProtectedRoute>} />
+
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
-        <Route path="/os/:osId" element={<ProtectedRoute><DetalhesOS /></ProtectedRoute>} />
       </Routes>
       {session && <WhatsAppButton />}
     </div>

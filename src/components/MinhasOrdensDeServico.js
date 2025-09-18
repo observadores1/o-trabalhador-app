@@ -51,7 +51,7 @@ const MinhasOrdensDeServico = () => {
 
   return (
     <div className="os-container">
-      <button onClick={() => navigate('/dashboard')} className="btn btn-secondary">← Voltar ao Dashboard</button>
+      <button onClick={() => navigate('/dashboard')} className="btn btn-secondary">← Voltar ao Início</button>
       <h1>Minhas Ordens de Serviço</h1>
 
       {ordens.length === 0 ? (

@@ -1,15 +1,21 @@
-// src/components/FormularioOrdemServico.js - VERSÃO COMPLETA E CORRIGIDA
+// src/components/FormularioOrdemServico.js - VERSÃO UNIVERSAL (CRIAÇÃO E EDIÇÃO)
 
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '../services/supabaseClient';
 import SeletorDeLocalizacao from './SeletorDeLocalizacao';
 
-const FormularioOrdemServico = ({ trabalhadorId, onOsCriada }) => {
+// 1. O componente agora aceita novas props para o modo de edição
+const FormularioOrdemServico = ({ trabalhadorId, onFormSubmit, osIdParaEditar = null }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true); // Estado para o carregamento dos dados de edição
   const [listaDeHabilidades, setListaDeHabilidades] = useState([]);
 
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
+  // Verifica se estamos em modo de edição
+  const isEditMode = !!osIdParaEditar;
+
+  const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm({
+    // Os valores padrão continuam os mesmos, serão sobrescritos no modo de edição
     defaultValues: {
       habilidade: '',
       titulo_servico: '',
@@ -28,18 +34,54 @@ const FormularioOrdemServico = ({ trabalhadorId, onOsCriada }) => {
     }
   });
 
+  // 2. useEffect para buscar dados da OS no modo de edição
   useEffect(() => {
     const buscarHabilidades = async () => {
       const { data } = await supabase.from('habilidades').select('nome').order('nome');
       if (data) setListaDeHabilidades(data);
     };
-    buscarHabilidades();
-  }, []);
 
+    const carregarDadosOS = async () => {
+      if (isEditMode) {
+        const { data: osData, error } = await supabase
+          .from('ordens_de_servico')
+          .select('*')
+          .eq('id', osIdParaEditar)
+          .single();
+
+        if (error) {
+          console.error("Erro ao buscar dados da OS para edição:", error);
+          alert("Não foi possível carregar os dados para edição.");
+          setIsLoadingData(false);
+          return;
+        }
+
+        if (osData) {
+          // 3. Preenche o formulário com os dados existentes usando reset()
+          // O valor_acordado é mapeado para valor_proposto para reutilizar o campo
+          const dadosFormatados = {
+            ...osData,
+            valor_proposto: osData.valor_acordado,
+            // Formata as datas para o formato esperado pelo input datetime-local
+            data_inicio_prevista: osData.data_inicio_prevista ? new Date(osData.data_inicio_prevista).toISOString().slice(0, 16) : '',
+            data_conclusao: osData.data_conclusao ? new Date(osData.data_conclusao).toISOString().slice(0, 16) : '',
+          };
+          reset(dadosFormatados);
+        }
+      }
+      setIsLoadingData(false);
+    };
+
+    buscarHabilidades();
+    carregarDadosOS();
+  }, [isEditMode, osIdParaEditar, reset]);
+
+  // 4. A função onSubmit agora é genérica
   const onSubmit = async (formData) => {
     setIsSubmitting(true);
     try {
-      await onOsCriada(formData);
+      // Chama a função passada pelo componente pai (seja onOsCriada ou onOsEditada)
+      await onFormSubmit(formData);
     } catch (error) {
       console.error("Erro ao submeter o formulário:", error);
       alert("Houve um erro ao enviar sua ordem de serviço.");
@@ -48,8 +90,14 @@ const FormularioOrdemServico = ({ trabalhadorId, onOsCriada }) => {
     }
   };
 
+  // Exibe uma mensagem de carregamento enquanto busca os dados da OS
+  if (isLoadingData && isEditMode) {
+    return <div>Carregando dados da Ordem de Serviço...</div>;
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="form-os">
+      {/* O restante do formulário JSX permanece exatamente o mesmo */}
       <div className="form-section">
         <h2>Detalhes do Serviço</h2>
         <div className="form-group">
@@ -136,7 +184,8 @@ const FormularioOrdemServico = ({ trabalhadorId, onOsCriada }) => {
 
       <div className="form-actions">
         <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-          {isSubmitting ? 'Enviando...' : (trabalhadorId ? 'Propor Serviço' : 'Criar Oferta Pública')}
+          {/* 5. O texto do botão agora é dinâmico */}
+          {isSubmitting ? 'Enviando...' : (isEditMode ? 'Salvar Alterações' : (trabalhadorId ? 'Propor Serviço' : 'Criar Oferta Pública'))}
         </button>
       </div>
     </form>

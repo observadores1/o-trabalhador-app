@@ -1,99 +1,164 @@
-// src/components/DetalhesOS.js - VERSÃO FINAL (AGORA DE VERDADE) COM TODOS OS DETALHES
+// src/components/DetalhesOS.js - VERSÃO FINAL COM TEXTO DO BOTÃO AJUSTADO
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseClient';
+import AvaliacaoEstrelas from './AvaliacaoEstrelas';
 import './DetalhesOS.css';
 
 const DetalhesOS = () => {
   const { osId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  
   const [ordemDeServico, setOrdemDeServico] = useState(null);
   const [nomesEnvolvidos, setNomesEnvolvidos] = useState({ contratante: '', trabalhador: '' });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [exibirCampoCancelamento, setExibirCampoCancelamento] = useState(false);
+  const [motivoCancelamento, setMotivoCancelamento] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const carregarDetalhesOS = async () => {
-      if (!osId || !user) return;
-      setIsLoading(true);
-      try {
-        const { data, error: fetchError } = await supabase.from('ordens_de_servico').select(`*`).eq('id', osId).single();
-        if (fetchError) throw fetchError;
+  const carregarDetalhesOS = useCallback(async () => {
+    if (!osId || !user) return;
+    try {
+      const { data, error: fetchError } = await supabase.from('ordens_de_servico').select(`*`).eq('id', osId).single();
+      if (fetchError) throw fetchError;
 
-        if (data && (data.contratante_id === user.id || data.trabalhador_id === user.id)) {
-          setOrdemDeServico(data);
-          const idsParaBuscar = [data.contratante_id];
-          if (data.trabalhador_id) idsParaBuscar.push(data.trabalhador_id);
-          const { data: perfisData, error: perfisError } = await supabase.from('perfis').select('id, apelido').in('id', idsParaBuscar);
-          if (perfisError) throw perfisError;
-          const nomes = {};
-          perfisData.forEach(perfil => {
-            if (perfil.id === data.contratante_id) nomes.contratante = perfil.apelido;
-            if (perfil.id === data.trabalhador_id) nomes.trabalhador = perfil.apelido;
-          });
-          setNomesEnvolvidos(nomes);
-        } else {
-          throw new Error("Você não tem permissão para ver esta Ordem de Serviço.");
-        }
-      } catch (err) {
-        console.error("Erro ao carregar detalhes da OS:", err);
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
+      if (data && (data.contratante_id === user.id || data.trabalhador_id === user.id)) {
+        setOrdemDeServico(data);
+        const idsParaBuscar = [data.contratante_id];
+        if (data.trabalhador_id) idsParaBuscar.push(data.trabalhador_id);
+        const { data: perfisData, error: perfisError } = await supabase.from('perfis').select('id, apelido').in('id', idsParaBuscar);
+        if (perfisError) throw perfisError;
+        const nomes = {};
+        perfisData.forEach(perfil => {
+          if (perfil.id === data.contratante_id) nomes.contratante = perfil.apelido;
+          if (perfil.id === data.trabalhador_id) nomes.trabalhador = perfil.apelido;
+        });
+        setNomesEnvolvidos(nomes);
+      } else {
+        throw new Error("Você não tem permissão para ver esta Ordem de Serviço.");
       }
-    };
-    carregarDetalhesOS();
+    } catch (err) {
+      console.error("Erro ao carregar detalhes da OS:", err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   }, [osId, user]);
 
+  useEffect(() => {
+    setIsLoading(true);
+    carregarDetalhesOS();
+  }, [carregarDetalhesOS]);
+
+  const isContratante = user && ordemDeServico && user.id === ordemDeServico.contratante_id;
+  const isTrabalhador = user && ordemDeServico && user.id === ordemDeServico.trabalhador_id;
+  const status = ordemDeServico?.status;
+
+  const podeEditar = isContratante && (status === 'oferta_publica' || status === 'pendente');
+  const podeConcluir = (isContratante || isTrabalhador) && (status === 'aceita' || status === 'em_andamento');
+  const podeCancelar = (isContratante || isTrabalhador) && status !== 'concluida' && status !== 'cancelada';
+  const podeAvaliar = isContratante && status === 'concluida' && !ordemDeServico?.avaliacao_estrelas;
+
+  const handleEditarClick = () => navigate(`/os/${ordemDeServico.id}/editar`);
+
+  const handleConcluirClick = async () => {
+    if (!window.confirm('Tem certeza que deseja marcar este serviço como concluído?')) return;
+    setIsSubmitting(true);
+    const { error: rpcError } = await supabase.rpc('concluir_os', { os_id_param: osId });
+    if (rpcError) {
+      alert(`Erro ao concluir OS: ${rpcError.message}`);
+    } else {
+      await carregarDetalhesOS();
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleCancelarClick = async () => {
+    if (!motivoCancelamento.trim()) {
+      alert('Por favor, preencha a justificativa para o cancelamento.');
+      return;
+    }
+    if (!window.confirm('Tem certeza que deseja cancelar esta Ordem de Serviço? Esta ação não pode ser desfeita.')) return;
+    
+    setIsSubmitting(true);
+    const { error: rpcError } = await supabase.rpc('cancelar_os', { 
+      os_id_param: osId, 
+      motivo_param: motivoCancelamento 
+    });
+
+    if (rpcError) {
+      alert(`Erro ao cancelar OS: ${rpcError.message}`);
+    } else {
+      setExibirCampoCancelamento(false);
+      await carregarDetalhesOS();
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleAvaliar = async ({ estrelas, comentario }) => {
+    setIsSubmitting(true);
+    const { error: rpcError } = await supabase.rpc('avaliar_os', {
+      os_id_param: osId,
+      estrelas_param: estrelas,
+      comentario_param: comentario
+    });
+
+    if (rpcError) {
+      alert(`Erro ao enviar avaliação: ${rpcError.message}`);
+      setIsSubmitting(false);
+      return Promise.reject(rpcError);
+    } else {
+      alert('Avaliação enviada com sucesso!');
+      await carregarDetalhesOS();
+      setIsSubmitting(false);
+      return Promise.resolve();
+    }
+  };
+
   if (isLoading) return <div className="detalhes-os-container"><p>Carregando detalhes...</p></div>;
-  if (error) return <div className="detalhes-os-container"><p className="error-message">{error}</p><button onClick={() => navigate('/minhas-os')} className="btn btn-secondary">Voltar</button></div>;
+  if (error) return <div className="detalhes-os-container"><p className="error-message">{error}</p><button onClick={() => navigate('/dashboard')} className="btn btn-secondary">← Início</button></div>;
   if (!ordemDeServico) return <div className="detalhes-os-container"><p>Ordem de Serviço não encontrada.</p></div>;
 
   const detalhes = ordemDeServico.detalhes_adicionais || {};
 
   return (
     <div className="detalhes-os-container">
-      <button onClick={() => navigate(-1)} className="btn btn-secondary">← Voltar</button>
+      {/* --- A MUDANÇA FINAL ESTÁ AQUI --- */}
+      <button onClick={() => navigate('/dashboard')} className="btn btn-secondary">← Início</button>
       
       <header className="detalhes-os-header">
-        {/* O TÍTULO DO SERVIÇO AGORA APARECE AQUI */}
         <h1>{ordemDeServico.titulo_servico || 'Detalhes da Ordem de Serviço'}</h1>
-        <span className={`os-status-badge status-${ordemDeServico.status}`}>{ordemDeServico.status.replace('_', ' ')}</span>
+        <span className={`os-status-badge status-${status}`}>{status.replace(/_/g, ' ')}</span>
       </header>
+
+      {status === 'cancelada' && ordemDeServico.motivo_cancelamento && (
+        <div className="detalhes-os-section-cancelada">
+          <h2>Serviço Cancelado</h2>
+          <p><strong>Motivo:</strong> {ordemDeServico.motivo_cancelamento}</p>
+        </div>
+      )}
 
       <div className="detalhes-os-grid">
         <div className="detalhes-os-section">
           <h2>Serviço Solicitado</h2>
-          {/* A HABILIDADE PRINCIPAL AGORA APARECE AQUI */}
           <p><strong>Habilidade Principal:</strong> {ordemDeServico.habilidade}</p>
           <p><strong>Descrição:</strong> {ordemDeServico.descricao_servico}</p>
           <p><strong>Valor Acordado:</strong> R$ {ordemDeServico.valor_acordado || 'A combinar'}</p>
           <p><strong>Início Previsto:</strong> {new Date(ordemDeServico.data_inicio_prevista).toLocaleString()}</p>
           <p><strong>Término Previsto:</strong> {new Date(ordemDeServico.data_conclusao).toLocaleString()}</p>
-          
           {ordemDeServico.endereco && (
-            <>
-              <p><strong>Endereço do Serviço:</strong></p>
-              <div className="endereco-detalhes">
-                {`${ordemDeServico.endereco.rua} - ${ordemDeServico.endereco.numero}, `}   
-
-                {`${ordemDeServico.endereco.bairro}, `}   
-
-                {`${ordemDeServico.endereco.cidade} - ${ordemDeServico.endereco.estado}`}
-              </div>
-            </>
+            <><p><strong>Endereço do Serviço:</strong></p><div className="endereco-detalhes">{`${ordemDeServico.endereco.rua} - ${ordemDeServico.endereco.numero}, ${ordemDeServico.endereco.bairro}, ${ordemDeServico.endereco.cidade} - ${ordemDeServico.endereco.estado}`}</div></>
           )}
         </div>
-
         <div className="detalhes-os-section">
           <h2>Envolvidos</h2>
           <p><strong>Contratante:</strong> {nomesEnvolvidos.contratante}</p>
           <p><strong>Trabalhador:</strong> {nomesEnvolvidos.trabalhador || 'Aguardando aceite'}</p>
         </div>
-
         <div className="detalhes-os-section full-width">
           <h2>Detalhes Adicionais e Observações</h2>
           <ul>
@@ -101,21 +166,45 @@ const DetalhesOS = () => {
             {detalhes.necessario_ferramentas && <li>Necessário que o trabalhador traga ferramentas</li>}
             {detalhes.necessario_refeicao && <li>Refeição inclusa no local</li>}
             {detalhes.necessario_ajudante && <li>Será necessário um ajudante</li>}
-            {!detalhes.necessario_transporte && !detalhes.necessario_ferramentas && !detalhes.necessario_refeicao && !detalhes.necessario_ajudante && (
-              <li>Nenhum detalhe adicional informado.</li>
-            )}
+            {!detalhes.necessario_transporte && !detalhes.necessario_ferramentas && !detalhes.necessario_refeicao && !detalhes.necessario_ajudante && (<li>Nenhum detalhe adicional informado.</li>)}
           </ul>
-          {ordemDeServico.observacoes ? (
-            <p><strong>Observações:</strong> {ordemDeServico.observacoes}</p>
-          ) : (
-            <p><strong>Observações:</strong> Nenhuma observação fornecida.</p>
-          )}
+          {ordemDeServico.observacoes ? (<p><strong>Observações:</strong> {ordemDeServico.observacoes}</p>) : (<p><strong>Observações:</strong> Nenhuma observação fornecida.</p>)}
         </div>
       </div>
 
       <div className="detalhes-os-actions">
         <h2>Ações</h2>
-        <p>Em breve, os botões de ação (Cancelar, Concluir, Avaliar) aparecerão aqui com base no status da OS.</p>
+        <div className="botoes-container">
+          {podeEditar && <button onClick={handleEditarClick} className="btn btn-secondary" disabled={isSubmitting}>Editar</button>}
+          {podeConcluir && <button onClick={handleConcluirClick} className="btn btn-success" disabled={isSubmitting}>{isSubmitting ? 'Processando...' : 'Concluir Serviço'}</button>}
+          {podeCancelar && !exibirCampoCancelamento && <button onClick={() => setExibirCampoCancelamento(true)} className="btn btn-danger" disabled={isSubmitting}>Cancelar OS</button>}
+        </div>
+
+        {exibirCampoCancelamento && (
+          <div className="cancelamento-form">
+            <textarea
+              placeholder="Justificativa obrigatória para o cancelamento..."
+              value={motivoCancelamento}
+              onChange={(e) => setMotivoCancelamento(e.target.value)}
+            />
+            <div className="botoes-container">
+              <button onClick={handleCancelarClick} className="btn btn-danger" disabled={isSubmitting || !motivoCancelamento.trim()}>{isSubmitting ? 'Cancelando...' : 'Confirmar Cancelamento'}</button>
+              <button onClick={() => setExibirCampoCancelamento(false)} className="btn btn-secondary" disabled={isSubmitting}>Voltar</button>
+            </div>
+          </div>
+        )}
+
+        {podeAvaliar && <AvaliacaoEstrelas onAvaliar={handleAvaliar} />}
+        
+        {ordemDeServico.avaliacao_estrelas && (
+          <div className="avaliacao-realizada">
+            <h4>Avaliação Realizada</h4>
+            <div className="estrelas-wrapper">
+              {[...Array(5)].map((_, i) => <span key={i} className={`estrela ${i < ordemDeServico.avaliacao_estrelas ? 'preenchida' : ''}`}>★</span>)}
+            </div>
+            {ordemDeServico.avaliacao_texto && <p><strong>Comentário:</strong> {ordemDeServico.avaliacao_texto}</p>}
+          </div>
+        )}
       </div>
     </div>
   );
