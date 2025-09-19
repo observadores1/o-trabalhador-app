@@ -130,7 +130,7 @@ const FormularioOrdemServico = ({ trabalhadorId, onFormSubmit, osIdParaEditar = 
           </div>
           <div className="form-group">
             <label>Término Previsto</label>
-            <input type="datetime-local" {...register('data_conclusao', { required: 'Campo obrigatório' })} />
+            <input type="datetime-local" {...register('data_conclusao')} />
             {errors.data_conclusao && <span className="error-message">{errors.data_conclusao.message}</span>}
           </div>
         </div>

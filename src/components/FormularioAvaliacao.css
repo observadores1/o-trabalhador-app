@@ -1,0 +1,61 @@
+/* src/components/FormularioAvaliacao.css */
+
+.formulario-avaliacao {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #f9fafb;
+}
+
+.formulario-avaliacao h4 {
+  margin-top: 0;
+  text-align: center;
+  color: #1e40af;
+}
+
+.formulario-avaliacao p {
+  font-size: 0.9rem;
+  color: #6b7280;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.quesito-avaliacao {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.quesito-avaliacao label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.estrelas-container {
+  display: flex;
+  direction: rtl; /* Faz as estrelas preencherem da direita para a esquerda no hover */
+}
+
+.estrela-avaliacao {
+  font-size: 2rem;
+  color: #d1d5db; /* Cor da estrela vazia */
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.estrela-avaliacao:hover,
+.estrela-avaliacao:hover ~ .estrela-avaliacao,
+.estrela-avaliacao.preenchida {
+  color: #f59e0b; /* Cor da estrela preenchida/hover (amarelo/laranja) */
+}
+
+.formulario-avaliacao button {
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  font-size: 1.1rem;
+}

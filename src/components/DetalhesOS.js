@@ -1,4 +1,4 @@
-// src/components/DetalhesOS.js - VERSÃO FINAL COM TEXTO DO BOTÃO AJUSTADO
+// src/components/DetalhesOS.js - VERSÃO 100% COMPLETA E CORRIGIDA
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -26,12 +26,14 @@ const DetalhesOS = () => {
       const { data, error: fetchError } = await supabase.from('ordens_de_servico').select(`*`).eq('id', osId).single();
       if (fetchError) throw fetchError;
 
-      if (data && (data.contratante_id === user.id || data.trabalhador_id === user.id)) {
+      if (data && (data.contratante_id === user.id || data.trabalhador_id === user.id || data.status === 'oferta_publica')) {
         setOrdemDeServico(data);
         const idsParaBuscar = [data.contratante_id];
         if (data.trabalhador_id) idsParaBuscar.push(data.trabalhador_id);
+        
         const { data: perfisData, error: perfisError } = await supabase.from('perfis').select('id, apelido').in('id', idsParaBuscar);
         if (perfisError) throw perfisError;
+        
         const nomes = {};
         perfisData.forEach(perfil => {
           if (perfil.id === data.contratante_id) nomes.contratante = perfil.apelido;
@@ -56,14 +58,46 @@ const DetalhesOS = () => {
 
   const isContratante = user && ordemDeServico && user.id === ordemDeServico.contratante_id;
   const isTrabalhador = user && ordemDeServico && user.id === ordemDeServico.trabalhador_id;
+  const isVisitante = user && !isContratante && !isTrabalhador;
   const status = ordemDeServico?.status;
 
   const podeEditar = isContratante && (status === 'oferta_publica' || status === 'pendente');
   const podeConcluir = (isContratante || isTrabalhador) && (status === 'aceita' || status === 'em_andamento');
-  const podeCancelar = (isContratante || isTrabalhador) && status !== 'concluida' && status !== 'cancelada';
+  const podeCancelar = (isContratante && (status === 'oferta_publica' || status === 'pendente')) || ((isContratante || isTrabalhador) && (status === 'aceita' || status === 'em_andamento'));
   const podeAvaliar = isContratante && status === 'concluida' && !ordemDeServico?.avaliacao_estrelas;
+  const podeAceitarOfertaPublica = isVisitante && status === 'oferta_publica';
+  const podeResponderPropostaDireta = isTrabalhador && status === 'pendente';
 
   const handleEditarClick = () => navigate(`/os/${ordemDeServico.id}/editar`);
+
+  const handleAceitarClick = async () => {
+    if (!window.confirm('Tem certeza que deseja aceitar este serviço?')) return;
+    setIsSubmitting(true);
+    const { error: rpcError } = await supabase.rpc('aceitar_proposta', { 
+      os_id_param: osId,
+      trabalhador_id_param: user.id
+    });
+    if (rpcError) {
+      alert(`Erro ao aceitar a proposta: ${rpcError.message}`);
+      setIsSubmitting(false);
+    } else {
+      alert('Proposta aceita com sucesso! Você será redirecionado para a Sala de Trabalho.');
+      navigate(`/trabalho/${osId}`); 
+    }
+  };
+
+  const handleNegarClick = async () => {
+    if (!window.confirm('Tem certeza que deseja negar esta proposta? Ela será removida de suas oportunidades.')) return;
+    setIsSubmitting(true);
+    const { error: rpcError } = await supabase.rpc('negar_proposta', { os_id_param: osId });
+    if (rpcError) {
+      alert(`Erro ao negar a proposta: ${rpcError.message}`);
+      setIsSubmitting(false);
+    } else {
+      alert('Proposta negada.');
+      navigate('/oportunidades');
+    }
+  };
 
   const handleConcluirClick = async () => {
     if (!window.confirm('Tem certeza que deseja marcar este serviço como concluído?')) return;
@@ -127,8 +161,7 @@ const DetalhesOS = () => {
 
   return (
     <div className="detalhes-os-container">
-      {/* --- A MUDANÇA FINAL ESTÁ AQUI --- */}
-      <button onClick={() => navigate('/dashboard')} className="btn btn-secondary">← Início</button>
+      <button onClick={() => navigate(-1)} className="btn btn-secondary">← Voltar</button>
       
       <header className="detalhes-os-header">
         <h1>{ordemDeServico.titulo_servico || 'Detalhes da Ordem de Serviço'}</h1>
@@ -175,6 +208,15 @@ const DetalhesOS = () => {
       <div className="detalhes-os-actions">
         <h2>Ações</h2>
         <div className="botoes-container">
+          {podeAceitarOfertaPublica && <button onClick={handleAceitarClick} className="btn btn-success" disabled={isSubmitting}>{isSubmitting ? 'Processando...' : 'Aceitar Trabalho'}</button>}
+          
+          {podeResponderPropostaDireta && (
+            <>
+              <button onClick={handleAceitarClick} className="btn btn-success" disabled={isSubmitting}>{isSubmitting ? 'Aceitando...' : 'Aceitar Proposta'}</button>
+              <button onClick={handleNegarClick} className="btn btn-danger" disabled={isSubmitting}>{isSubmitting ? 'Negando...' : 'Negar Proposta'}</button>
+            </>
+          )}
+          
           {podeEditar && <button onClick={handleEditarClick} className="btn btn-secondary" disabled={isSubmitting}>Editar</button>}
           {podeConcluir && <button onClick={handleConcluirClick} className="btn btn-success" disabled={isSubmitting}>{isSubmitting ? 'Processando...' : 'Concluir Serviço'}</button>}
           {podeCancelar && !exibirCampoCancelamento && <button onClick={() => setExibirCampoCancelamento(true)} className="btn btn-danger" disabled={isSubmitting}>Cancelar OS</button>}

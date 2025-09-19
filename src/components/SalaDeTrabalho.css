@@ -1,0 +1,294 @@
+/* src/components/SalaDeTrabalho.css */
+
+.sala-trabalho-container {
+    padding: 15px;
+    max-width: 600px;
+    margin: 0 auto;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* --- LAYOUT DO CABEÇALHO CORRIGIDO --- */
+.sala-trabalho-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    width: 100%;
+}
+
+.btn-voltar {
+    border: 1px solid #ccc;
+    background-color: #f8f9fa;
+    color: #333;
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    margin-right: 10px;
+}
+
+.titulo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.sala-trabalho-header h1 {
+    font-size: 1.3rem;
+    color: #1e40af;
+    margin: 0 0 5px 0;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.header-spacer {
+    width: 85px; /* Ajuste para um valor próximo da largura do seu botão "Voltar" */
+    margin-left: 10px;
+}
+
+/* --- RESTANTE DOS ESTILOS --- */
+.sala-trabalho-main > section {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.info-participantes {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.perfil-card {
+    flex: 1;
+    text-align: center;
+}
+
+.perfil-card h2 {
+    font-size: 1rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.perfil-card p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.info-servico p {
+    margin: 8px 0;
+}
+
+.secao-chat h2, .secao-acoes-finais h2, .info-servico h2 {
+    font-size: 1.2rem;
+    margin-top: 0;
+    color: #333;
+}
+
+.placeholder-chat, .placeholder-acoes {
+    color: #999;
+    text-align: center;
+    padding: 20px;
+}
+
+/* --- ESTILOS DO CHAT --- */
+.secao-chat {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-box {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    min-height: 150px;
+    padding: 10px;
+    margin-bottom: 10px;
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 400px;
+}
+
+.chat-input-area {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input-area input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.chat-input-area button:disabled {
+    background-color: #a5b4fc;
+    cursor: not-allowed;
+}
+
+.chat-message {
+    padding: 8px 12px;
+    border-radius: 18px;
+    max-width: 80%;
+    word-wrap: break-word;
+    display: flex;
+    flex-direction: column;
+}
+
+.mensagem-conteudo {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.mensagem-timestamp {
+    font-size: 0.7rem;
+    color: #f1f5f9;
+    align-self: flex-end;
+    margin-top: 4px;
+}
+
+.outra-mensagem {
+    background-color: #e2e8f0;
+    color: #1e293b;
+    align-self: flex-start;
+    border-bottom-left-radius: 4px;
+}
+
+.outra-mensagem .mensagem-timestamp {
+    color: #64748b;
+}
+
+.minha-mensagem {
+    background-color: #2563eb;
+    color: #ffffff;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+}
+
+/* --- BADGES DE STATUS --- */
+.os-status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    color: white;
+}
+.status-pendente { background-color: #f97316; }
+.status-aceita, .status-em_andamento { background-color: #3b82f6; }
+.status-concluida { background-color: #10b981; }
+.status-cancelada { background-color: #ef4444; }
+/* Adicione ao final de src/components/SalaDeTrabalho.css */
+
+/* Container principal da página para acomodar o header */
+.sala-trabalho-page-container {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+}
+
+/* Container interno para o conteúdo, que mantém o padding e a largura máxima */
+.sala-trabalho-container-interno {
+  padding: 15px;
+  max-width: 600px;
+  margin: 20px auto;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Novo container para o título da OS, para ficar fora do header antigo */
+.sala-trabalho-titulo-container {
+  text-align: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+
+.sala-trabalho-titulo-container h2 {
+  font-size: 1.5rem;
+  color: #1e40af;
+  margin: 10px 0;
+}
+/* Adicione ao final de src/components/SalaDeTrabalho.css */
+
+.secao-acoes-finais .botoes-container {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.secao-acoes-finais .cancelamento-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #f9fafb;
+}
+
+.secao-acoes-finais .cancelamento-form textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  resize: vertical;
+}
+
+.status-final-info {
+  text-align: center;
+  padding: 20px;
+  background-color: #f3f4f6;
+  border-radius: 8px;
+  color: #4b5563;
+  font-style: italic;
+}
+/* Adicione ao final de src/components/SalaDeTrabalho.css */
+
+.conclusao-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 15px;
+  padding: 15px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #f9fafb;
+}
+
+.conclusao-form h3 {
+  text-align: center;
+  margin-top: 0;
+  color: #1e40af;
+}
+
+.conclusao-form textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  resize: vertical;
+}

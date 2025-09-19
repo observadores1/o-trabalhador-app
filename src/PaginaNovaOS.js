@@ -1,4 +1,4 @@
-// src/PaginaNovaOS.js - VERSÃO COMPLETA E CORRIGIDA
+// src/PaginaNovaOS.js - VERSÃO CORRIGIDA
 
 import React from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -20,7 +20,6 @@ const PaginaNovaOS = () => {
       return;
     }
 
-    // Monta o objeto final para enviar ao Supabase, incluindo TODOS os campos
     const osParaSalvar = {
       contratante_id: user.id,
       trabalhador_id: trabalhadorId || null,
@@ -28,19 +27,16 @@ const PaginaNovaOS = () => {
       titulo_servico: formData.titulo_servico,
       descricao_servico: formData.descricao_servico,
       data_inicio_prevista: formData.data_inicio_prevista,
-      data_conclusao: formData.data_conclusao,
+      data_conclusao: formData.data_conclusao || null, // Torna a data de conclusão opcional
       valor_acordado: formData.valor_proposto || null,
       observacoes: formData.observacoes,
-      endereco: formData.endereco, // Objeto de endereço completo
-      detalhes_adicionais: formData.detalhes_adicionais, // Objeto de detalhes completo
+      endereco: formData.endereco,
+      detalhes_adicionais: formData.detalhes_adicionais,
       status: trabalhadorId ? 'pendente' : 'oferta_publica',
     };
 
     try {
-      const { error } = await supabase
-        .from('ordens_de_servico')
-        .insert([osParaSalvar]);
-
+      const { error } = await supabase.from('ordens_de_servico').insert([osParaSalvar]);
       if (error) throw error;
 
       alert('✅ Ordem de Serviço criada com sucesso!');
@@ -54,6 +50,9 @@ const PaginaNovaOS = () => {
 
   return (
     <div className="pagina-os-container">
+      {/* BOTÃO VOLTAR ADICIONADO */}
+      <button onClick={() => navigate(-1)} className="btn-voltar-formulario">← Voltar</button>
+
       <header className="pagina-os-header">
         <h1>{trabalhadorId ? 'Propor Serviço para Profissional' : 'Criar Nova Oferta de Serviço'}</h1>
         <p>{trabalhadorId ? 'Preencha os detalhes abaixo para enviar uma proposta direta.' : 'Descreva o serviço que você precisa. Sua oferta ficará visível para os trabalhadores.'}</p>
@@ -61,7 +60,7 @@ const PaginaNovaOS = () => {
       <main className="pagina-os-main">
         <FormularioOrdemServico 
           trabalhadorId={trabalhadorId}
-          onOsCriada={handleCreateOS}
+          onFormSubmit={handleCreateOS} // <<-- CORREÇÃO CRÍTICA: Passando a prop com o nome correto
         />
       </main>
     </div>

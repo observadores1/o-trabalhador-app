@@ -1,23 +1,46 @@
-// src/Dashboard.js - VERSÃO ATUALIZADA COM O BOTÃO "MINHAS ORDENS DE SERVIÇO"
-import React, { useState } from 'react';
+// src/components/Dashboard.js - ATUALIZADO COM POP-UP DE AVALIAÇÃO PENDENTE
+
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../services/supabaseClient'; // Importando o Supabase
 import BuscaContratante from './BuscaContratante';
 import ResultadosBusca from './ResultadosBusca';
+import HeaderEstiloTop from './HeaderEstiloTop';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  // ... (resto dos estados permanece o mesmo)
   const [telaAtual, setTelaAtual] = useState('dashboard');
   const [resultados, setResultados] = useState([]);
   const [termoBusca, setTermoBusca] = useState({ servico: '', localizacao: '' });
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/login');
-  };
+  // --- NOVOS ESTADOS PARA AVALIAÇÃO PENDENTE ---
+  const [avaliacoesPendentes, setAvaliacoesPendentes] = useState([]);
+  const [isLoadingPendencias, setIsLoadingPendencias] = useState(true);
+
+  const tipoUsuario = user?.user_metadata?.tipo_usuario || 'trabalhador';
+
+  // --- NOVO EFEITO PARA VERIFICAR PENDÊNCIAS ---
+  useEffect(() => {
+    const verificarPendencias = async () => {
+      // Executa apenas se o usuário for um contratante
+      if (tipoUsuario === 'contratante') {
+        const { data, error } = await supabase.rpc('verificar_avaliacoes_pendentes');
+        
+        if (error) {
+          console.error("Erro ao verificar avaliações pendentes:", error);
+        } else if (data) {
+          setAvaliacoesPendentes(data);
+        }
+      }
+      setIsLoadingPendencias(false);
+    };
+
+    verificarPendencias();
+  }, [tipoUsuario]);
+
 
   const handleBuscar = (dadosBusca) => {
     setResultados(dadosBusca.resultados || []);
@@ -37,8 +60,27 @@ const Dashboard = () => {
     setTelaAtual('dashboard');
   };
 
-  const tipoUsuario = user?.user_metadata?.tipo_usuario || 'trabalhador';
-  const nomeUsuario = user?.user_metadata?.apelido || user?.email;
+  // --- NOVO COMPONENTE INTERNO PARA O POP-UP ---
+  const PopupAvaliacaoPendente = () => (
+    <div className="popup-overlay">
+      <div className="popup-container">
+        <h3>Avaliação Pendente</h3>
+        <p>Você precisa avaliar os seguintes serviços concluídos antes de criar uma nova oferta:</p>
+        <div className="lista-pendencias">
+          {avaliacoesPendentes.map(os => (
+            <button 
+              key={os.id} 
+              className="btn-pendencia"
+              onClick={() => navigate(`/trabalho/${os.id}`)}
+            >
+              Avaliar: "{os.titulo_servico}"
+            </button>
+          ))}
+        </div>
+        <p className="popup-info">Esta ação é necessária para manter a qualidade e a confiança em nossa comunidade.</p>
+      </div>
+    </div>
+  );
 
   const renderConteudo = () => {
     if (telaAtual === 'resultados') {
@@ -52,35 +94,34 @@ const Dashboard = () => {
       );
     }
 
+    const temPendencias = avaliacoesPendentes.length > 0;
+
     return (
       <main className="dashboard-main">
         {tipoUsuario === 'contratante' ? (
           <div className="contratante-dashboard">
             <h2>Encontre o profissional ideal</h2>
             <BuscaContratante onBuscar={handleBuscar} />
-            
             <div className="form-actions" style={{ marginTop: '20px', borderTop: '1px solid #e5e7eb', paddingTop: '20px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
-              {/* Botão para criar uma oferta pública */}
-              <button 
-                className="btn btn-success"
-                onClick={() => navigate('/nova-os')}
-              >
-                Criar Oferta de Serviço
-              </button>
+              
+              {/* --- LÓGICA DE BLOQUEIO DO BOTÃO --- */}
+              <div className="tooltip-container">
+                <button 
+                  className="btn btn-success" 
+                  onClick={() => !temPendencias && navigate('/nova-os')}
+                  disabled={temPendencias || isLoadingPendencias}
+                >
+                  Criar Oferta de Serviço
+                </button>
+                {temPendencias && <span className="tooltip-text">Você possui avaliações pendentes!</span>}
+              </div>
 
-              {/* ================================================== */}
-              {/* NOVO BOTÃO "MINHAS ORDENS DE SERVIÇO"              */}
-              {/* ================================================== */}
-              <button 
-                className="btn btn-primary"
-                onClick={() => navigate('/minhas-os')} // Navega para a futura página de gerenciamento
-              >
+              <button className="btn btn-primary" onClick={() => navigate('/minhas-os')}>
                 Minhas Ordens de Serviço
               </button>
             </div>
           </div>
         ) : (
-          // ... (o painel do trabalhador permanece o mesmo)
           <div className="trabalhador-dashboard">
             <h2>Bem-vindo ao seu painel</h2>
             <div className="dashboard-cards">
@@ -94,14 +135,14 @@ const Dashboard = () => {
               <div className="dashboard-card">
                 <h3>Oportunidades</h3>
                 <p>Veja trabalhos disponíveis na sua área</p>
-                <button className="btn btn-primary" disabled>
+                <button className="btn btn-primary" onClick={() => navigate('/oportunidades')}>
                   Ver Oportunidades
                 </button>
               </div>
               <div className="dashboard-card">
                 <h3>Meus Trabalhos</h3>
                 <p>Acompanhe seus trabalhos em andamento</p>
-                <button className="btn btn-primary" disabled>
+                <button className="btn btn-primary" onClick={() => navigate('/meus-trabalhos')}>
                   Ver Trabalhos
                 </button>
               </div>
@@ -112,28 +153,13 @@ const Dashboard = () => {
     );
   };
 
-  // O resto do componente (header, etc.) permanece o mesmo
   return (
     <div className="dashboard-container">
-      <header className="dashboard-header">
-        <div className="header-content">
-          <h1>O Trabalhador</h1>
-          <div className="user-info">
-            <span>Olá, {nomeUsuario}</span>
-            <span className="user-type">({tipoUsuario})</span>
-            <button 
-              className="btn btn-secondary" 
-              onClick={() => navigate('/perfil/editar')}
-              style={{ marginLeft: '10px' }}
-            >
-              Perfil
-            </button>
-            <button onClick={handleLogout} className="btn btn-danger">
-              Sair
-            </button>
-          </div>
-        </div>
-      </header>
+      <HeaderEstiloTop showUserActions={true} />
+      
+      {/* --- RENDERIZAÇÃO CONDICIONAL DO POP-UP --- */}
+      {avaliacoesPendentes.length > 0 && <PopupAvaliacaoPendente />}
+
       {renderConteudo()}
     </div>
   );

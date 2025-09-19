@@ -131,3 +131,109 @@
   }
 }
 
+/* Adicione ao final de src/components/Dashboard.css */
+
+/* --- ESTILOS PARA O POP-UP DE AVALIAÇÃO PENDENTE --- */
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-container {
+  background-color: white;
+  padding: 25px 30px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.popup-container h3 {
+  margin-top: 0;
+  color: #ef4444; /* Vermelho para chamar atenção */
+  font-size: 1.5rem;
+}
+
+.popup-container p {
+  color: #4b5563;
+  margin-bottom: 20px;
+}
+
+.lista-pendencias {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.btn-pendencia {
+  background-color: #f3f4f6;
+  border: 1px solid #d1d5db;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #1e40af;
+  transition: background-color 0.2s;
+}
+
+.btn-pendencia:hover {
+  background-color: #e5e7eb;
+}
+
+.popup-info {
+  font-size: 0.8rem;
+  font-style: italic;
+  color: #6b7280;
+}
+
+
+/* --- ESTILOS PARA O TOOLTIP DE BOTÃO DESABILITADO --- */
+
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-container .tooltip-text {
+  visibility: hidden;
+  width: 200px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* Posiciona o tooltip acima do botão */
+  left: 50%;
+  margin-left: -100px; /* Usa metade da largura para centralizar */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip-container .tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
