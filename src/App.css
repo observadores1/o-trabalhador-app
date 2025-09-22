@@ -65,3 +65,13 @@ code {
   margin: 0 auto 15px auto;
   display: block;
 }
+/* Adicionar ao final de App.css */
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content-wrap {
+  flex: 1;
+}

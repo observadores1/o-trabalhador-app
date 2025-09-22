@@ -1,0 +1,15 @@
+/* Estilos para o componente Footer */
+.app-footer {
+  background-color: #1f2937; /* Um cinza escuro */
+  color: #d1d5db; /* Um cinza claro para o texto */
+  text-align: center;
+  padding: 20px;
+  margin-top: auto; /* Empurra o rodapé para o final do contêiner flex */
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.9rem;
+}
+
+.app-footer p {
+  margin: 5px 0;
+}

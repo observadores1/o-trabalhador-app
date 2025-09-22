@@ -1,34 +1,28 @@
-// src/components/Dashboard.js - ATUALIZADO COM POP-UP DE AVALIAÇÃO PENDENTE
+// src/components/Dashboard.js - ATUALIZADO PARA NAVEGAR PARA A PÁGINA DE RESULTADOS
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../services/supabaseClient'; // Importando o Supabase
+import { supabase } from '../services/supabaseClient';
 import BuscaContratante from './BuscaContratante';
-import ResultadosBusca from './ResultadosBusca';
+// A importação de ResultadosBusca não é mais necessária aqui
 import HeaderEstiloTop from './HeaderEstiloTop';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [telaAtual, setTelaAtual] = useState('dashboard');
-  const [resultados, setResultados] = useState([]);
-  const [termoBusca, setTermoBusca] = useState({ servico: '', localizacao: '' });
-
-  // --- NOVOS ESTADOS PARA AVALIAÇÃO PENDENTE ---
+  
+  // Os estados de resultados e termo de busca não são mais necessários aqui
   const [avaliacoesPendentes, setAvaliacoesPendentes] = useState([]);
   const [isLoadingPendencias, setIsLoadingPendencias] = useState(true);
 
   const tipoUsuario = user?.user_metadata?.tipo_usuario || 'trabalhador';
 
-  // --- NOVO EFEITO PARA VERIFICAR PENDÊNCIAS ---
   useEffect(() => {
     const verificarPendencias = async () => {
-      // Executa apenas se o usuário for um contratante
       if (tipoUsuario === 'contratante') {
         const { data, error } = await supabase.rpc('verificar_avaliacoes_pendentes');
-        
         if (error) {
           console.error("Erro ao verificar avaliações pendentes:", error);
         } else if (data) {
@@ -37,30 +31,21 @@ const Dashboard = () => {
       }
       setIsLoadingPendencias(false);
     };
-
     verificarPendencias();
   }, [tipoUsuario]);
 
-
+  // --- FUNÇÃO handleBuscar ATUALIZADA ---
   const handleBuscar = (dadosBusca) => {
-    setResultados(dadosBusca.resultados || []);
-    setTermoBusca({ servico: dadosBusca.servico, localizacao: dadosBusca.localizacao });
-    setTelaAtual('resultados');
+    // Em vez de mudar o estado local, navegamos para a nova rota
+    // e passamos os resultados e o termo da busca no estado da navegação.
+    navigate('/resultados-busca', { 
+      state: { 
+        resultados: dadosBusca.resultados || [],
+        termoBusca: { servico: dadosBusca.servico, localizacao: dadosBusca.localizacao }
+      } 
+    });
   };
 
-  const handleVerPerfil = (trabalhador) => {
-    if (trabalhador && trabalhador.id) {
-      navigate(`/perfil/${trabalhador.id}`);
-    } else {
-      console.error("ID do trabalhador não encontrado para navegar.");
-    }
-  };
-
-  const handleVoltarBusca = () => {
-    setTelaAtual('dashboard');
-  };
-
-  // --- NOVO COMPONENTE INTERNO PARA O POP-UP ---
   const PopupAvaliacaoPendente = () => (
     <div className="popup-overlay">
       <div className="popup-container">
@@ -83,17 +68,7 @@ const Dashboard = () => {
   );
 
   const renderConteudo = () => {
-    if (telaAtual === 'resultados') {
-      return (
-        <ResultadosBusca 
-          resultados={resultados}
-          termoBusca={termoBusca}
-          onVerPerfil={handleVerPerfil}
-          onVoltarBusca={handleVoltarBusca}
-        />
-      );
-    }
-
+    // A lógica de renderizar ResultadosBusca foi removida daqui
     const temPendencias = avaliacoesPendentes.length > 0;
 
     return (
@@ -103,8 +78,6 @@ const Dashboard = () => {
             <h2>Encontre o profissional ideal</h2>
             <BuscaContratante onBuscar={handleBuscar} />
             <div className="form-actions" style={{ marginTop: '20px', borderTop: '1px solid #e5e7eb', paddingTop: '20px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
-              
-              {/* --- LÓGICA DE BLOQUEIO DO BOTÃO --- */}
               <div className="tooltip-container">
                 <button 
                   className="btn btn-success" 
@@ -115,7 +88,6 @@ const Dashboard = () => {
                 </button>
                 {temPendencias && <span className="tooltip-text">Você possui avaliações pendentes!</span>}
               </div>
-
               <button className="btn btn-primary" onClick={() => navigate('/minhas-os')}>
                 Minhas Ordens de Serviço
               </button>
@@ -156,10 +128,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <HeaderEstiloTop showUserActions={true} />
-      
-      {/* --- RENDERIZAÇÃO CONDICIONAL DO POP-UP --- */}
       {avaliacoesPendentes.length > 0 && <PopupAvaliacaoPendente />}
-
       {renderConteudo()}
     </div>
   );
