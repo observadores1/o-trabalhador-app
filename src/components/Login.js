@@ -1,6 +1,14 @@
+/**
+ * @file Login.js
+ * @description Componente de autenticação de usuário.
+ * @author Jeferson Gnoatto
+ * @date 2025-09-25
+ * Louvado seja Cristo, Louvado seja Deus
+ */
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import logo from '../assets/logo.png'; // <-- IMPORTAÇÃO DO LOGO
 import './Login.css';
 
 const Login = () => {
@@ -26,7 +34,7 @@ const Login = () => {
     setLoading(true);
     setError('');
 
-    const { data, error } = await signIn(email, password);
+    const { error } = await signIn(email, password);
     
     if (error) {
       setError(error.message);
@@ -40,8 +48,20 @@ const Login = () => {
   return (
     <div className="login-container">
       <div className="login-card">
-        <h2>Entrar no O Trabalhador</h2>
         
+        {/* ================== CORREÇÕES APLICADAS AQUI ================== */}
+        
+        {/* 1. Logo adicionado */}
+        <img src={logo} alt="Logo O Trabalhador" className="login-logo" />
+
+        {/* 2. Título em duas linhas */}
+        <h2>
+          Entrar no
+          <span className="app-name">O Trabalhador</span>
+        </h2>
+        
+        {/* ============================================================= */}
+
         {error && <div className="error-message">{error}</div>}
         
         <form onSubmit={handleSubmit} className="login-form">
@@ -88,4 +108,3 @@ const Login = () => {
 };
 
 export default Login;
-

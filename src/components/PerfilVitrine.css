@@ -9,7 +9,12 @@
   font-family: sans-serif;
   color: #333;
 }
-
+.vitrine-header-info h1 {
+  margin: 0; /* Zera margens existentes para ter controle total */
+  margin-bottom: 8px; /* ADICIONE ESTA LINHA para criar o espaço abaixo */
+  font-size: 1.8rem; /* Exemplo de outra propriedade */
+  color: #333; /* Exemplo de outra propriedade */
+}
 /* Mensagens de erro ou carregamento */
 .vitrine-container p {
   text-align: center;

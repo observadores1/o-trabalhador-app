@@ -1,10 +1,11 @@
-// src/MinhasOrdensDeServico.js
+// src/components/MinhasOrdensDeServico.js - ATUALIZADO COM HEADER REUTILIZÁVEL
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseClient';
-import './MinhasOrdensDeServico.css'; // Vamos criar este arquivo de estilo a seguir
+import HeaderEstiloTop from './HeaderEstiloTop'; // <-- IMPORTAÇÃO
+import './MinhasOrdensDeServico.css';
 
 const MinhasOrdensDeServico = () => {
   const { user } = useAuth();
@@ -15,25 +16,15 @@ const MinhasOrdensDeServico = () => {
   useEffect(() => {
     const carregarOrdens = async () => {
       if (!user) return;
-
       setIsLoading(true);
       try {
-        // Busca as ordens de serviço onde o usuário logado é o contratante
         const { data, error } = await supabase
           .from('ordens_de_servico')
-          .select(`
-            id,
-            created_at,
-            descricao_servico,
-            status,
-            trabalhador_id
-          `)
+          .select('id, created_at, titulo_servico, status, trabalhador_id')
           .eq('contratante_id', user.id)
           .order('created_at', { ascending: false });
-
         if (error) throw error;
         setOrdens(data || []);
-
       } catch (error) {
         console.error("Erro ao carregar ordens de serviço:", error);
         alert("Não foi possível carregar suas ordens de serviço.");
@@ -41,41 +32,51 @@ const MinhasOrdensDeServico = () => {
         setIsLoading(false);
       }
     };
-
     carregarOrdens();
   }, [user]);
 
-  if (isLoading) {
-    return <div className="os-container"><p>Carregando suas ordens de serviço...</p></div>;
-  }
+  const handleNavegarParaOS = (os) => {
+    if (os.status === 'em_andamento') {
+      navigate(`/trabalho/${os.id}`);
+    } else {
+      navigate(`/os/${os.id}`);
+    }
+  };
+
+  const renderListaOS = () => {
+    if (isLoading) return <p>Carregando suas ordens de serviço...</p>;
+    if (ordens.length === 0) return <p>Você ainda não criou nenhuma ordem de serviço.</p>;
+    return (
+      <div className="os-lista">
+        {ordens.map((os) => (
+          <div key={os.id} className={`os-card status-${os.status}`}>
+            <div className="os-card-header">
+              <h3>{os.titulo_servico}</h3>
+              <span className={`os-status-badge status-${os.status}`}>{os.status.replace(/_/g, ' ')}</span>
+            </div>
+            <div className="os-card-body">
+              <p><strong>Status do Trabalhador:</strong> {os.trabalhador_id ? 'Atribuído' : 'Aguardando Aceite'}</p>
+              <p><strong>Criada em:</strong> {new Date(os.created_at).toLocaleDateString()}</p>
+            </div>
+            <div className="os-card-actions">
+              <button className="btn btn-primary" onClick={() => handleNavegarParaOS(os)}>
+                {os.status === 'em_andamento' ? 'Acessar Sala' : 'Ver Detalhes'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
-    <div className="os-container">
-      <button onClick={() => navigate('/dashboard')} className="btn btn-secondary">← Voltar ao Início</button>
-      <h1>Minhas Ordens de Serviço</h1>
-
-      {ordens.length === 0 ? (
-        <p>Você ainda não criou nenhuma ordem de serviço.</p>
-      ) : (
-        <div className="os-lista">
-          {ordens.map((os) => (
-            <div key={os.id} className={`os-card status-${os.status}`}>
-              <div className="os-card-header">
-                <h3>{os.descricao_servico.substring(0, 50)}...</h3>
-                <span className="os-status">{os.status.replace('_', ' ')}</span>
-              </div>
-              <div className="os-card-body">
-                <p><strong>Status do Trabalhador:</strong> {os.trabalhador_id ? 'Atribuído' : 'Oferta Pública'}</p>
-                <p><strong>Criada em:</strong> {new Date(os.created_at).toLocaleDateString()}</p>
-              </div>
-              <div className="os-card-actions">
-                {/* Futuramente, os botões de ação (Cancelar, Avaliar) virão aqui */}
-                <button className="btn btn-primary" onClick={() => navigate(`/os/${os.id}`)}>Ver Detalhes</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="minhas-os-page-container">
+      {/* SUBSTITUIÇÃO DO HEADER ANTIGO */}
+      <HeaderEstiloTop showUserActions={false} />
+      <main className="os-container">
+        <h1>Minhas Ordens de Serviço</h1>
+        {renderListaOS()}
+      </main>
     </div>
   );
 };

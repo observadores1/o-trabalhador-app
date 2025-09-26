@@ -1,3 +1,8 @@
+/* Adicione esta regra no topo do seu PaginaNovaOS.css */
+.page-container .main-content .form-container {
+  font-family: inherit; /* Força a herança da fonte definida no body */
+}
+
 /* src/PaginaNovaOS.css */
 
 .pagina-os-container {

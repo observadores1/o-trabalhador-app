@@ -1,4 +1,4 @@
-/* src/botoes.css - Nosso Manual de Estilo de Botões */
+/* src/botoes.css - Nosso Manual de Estilo de Botões (v2) */
 
 /* --- Estilo Base do Botão --- */
 .btn {
@@ -11,47 +11,67 @@
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+  transition: background-color 0.2s ease-in-out, transform 0.1s ease, box-shadow 0.2s ease;
+  color: white; /* Cor do texto padrão para a maioria dos botões */
 }
 
-.btn:hover {
+.btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* --- Botão Primário (Ações Principais) --- */
+/* --- CORES POR FUNÇÃO --- */
+
+/* 1. Ações de Busca (Azul) */
 .btn-primary {
   background-color: #3498db; /* Azul Principal */
-  color: white;
 }
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background-color: #2980b9;
 }
 
-/* --- Botão Secundário (Ações Alternativas: Voltar) --- */
+/* 2. Ações Positivas (Verde) - Aceitar, Concluir, Salvar */
+.btn-success {
+  background-color: #2ecc71; /* Verde Esmeralda */
+}
+.btn-success:hover:not(:disabled) {
+  background-color: #27ae60;
+}
+
+/* 3. Ações de Alerta/Pendência (Laranja) */
+.btn-warning {
+  background-color: #f39c12; /* Laranja */
+}
+.btn-warning:hover:not(:disabled) {
+  background-color: #e67e22;
+}
+
+/* 4. Ações de Retorno (Cinza) - Voltar, Limpar Filtros */
 .btn-secondary {
   background-color: #ecf0f1; /* Cinza Claro */
-  color: #34495e;
+  color: #34495e; /* Texto escuro para contraste */
   border: 1px solid #bdc3c7;
 }
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background-color: #dadedf;
 }
 
-/* --- Botão de Perigo (Sair) --- */
+/* 5. Ações de Cancelamento (Vermelho) - Cancelar, Sair, Excluir */
 .btn-danger {
   background-color: #e74c3c; /* Vermelho */
-  color: white;
 }
-.btn-danger:hover {
+.btn-danger:hover:not(:disabled) {
   background-color: #c0392b;
 }
+
+
+/* --- ESTADOS ESPECIAIS --- */
 
 /* Botão Desabilitado */
 .btn:disabled {
   background-color: #bdc3c7;
+  color: #7f8c8d;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
-

@@ -1,99 +1,110 @@
-/* src/MinhasOrdensDeServico.css */
+/* src/components/MinhasOrdensDeServico.css - CORREÇÃO DEFINITIVA DO ESTILO DOS CARDS */
 
+/* Container para a página inteira */
+.minhas-os-page-container {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f3f4f6; 
+}
+
+/* Container do conteúdo principal */
 .os-container {
-  max-width: 900px;
+  max-width: 800px;
   margin: 20px auto;
   padding: 20px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .os-container h1 {
-  color: #1e40af;
-  margin-bottom: 30px;
   text-align: center;
+  margin-bottom: 20px;
+  color: #111827;
 }
 
 .os-lista {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
+/* --- ESTA É A CORREÇÃO --- */
+
+/* 1. Estilo base para TODOS os cards: fundo branco e borda cinza */
 .os-card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
-  border-left: 5px solid #6b7280; /* Cor padrão para status */
-  padding: 20px;
-  transition: all 0.3s ease;
+  background-color: #ffffff !important; /* Fundo branco, !important para garantir */
+  border: 1px solid #e5e7eb;          /* Borda cinza padrão */
+  border-left-width: 5px;               /* Borda esquerda mais espessa */
+  border-radius: 8px;
+  padding: 15px 20px;
+  transition: box-shadow 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
 }
 
 .os-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
 }
+
+/* 2. Modificadores que alteram APENAS a cor da borda esquerda */
+.os-card.status-oferta_publica,
+.os-card.status-pendente {
+  border-left-color: #f97316; /* Laranja */
+}
+
+.os-card.status-em_andamento {
+  border-left-color: #3b82f6; /* Azul */
+}
+
+.os-card.status-concluida {
+  border-left-color: #10b981; /* Verde */
+}
+
+.os-card.status-cancelada {
+  border-left-color: #ef4444; /* Vermelho */
+}
+
+/* --- FIM DA CORREÇÃO --- */
 
 .os-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 15px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .os-card-header h3 {
   margin: 0;
   font-size: 1.2rem;
   color: #1f2937;
-}
-
-.os-status {
   font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  text-transform: capitalize;
-  color: white;
 }
 
-/* Cole este bloco em substituição ao bloco "Cores por status" existente */
-
-/* Cores por status */
-.status-pendente, .status-oferta_publica { 
-  border-left-color: #f59e0b; /* Laranja/Amarelo */
+.os-card-body {
+  color: #4b5563;
+  font-size: 0.9rem;
 }
-.status-pendente .os-status, .status-oferta_publica .os-status { 
-  background-color: #f59e0b; 
-}
-
-.status-aceita, .status-em_andamento { 
-  border-left-color: #3b82f6; /* Azul */
-}
-.status-aceita .os-status, .status-em_andamento .os-status { 
-  background-color: #3b82f6; 
-}
-
-.status-concluida { 
-  border-left-color: #10b981; /* Verde */
-}
-.status-concluida .os-status { 
-  background-color: #10b981; 
-}
-
-.status-cancelada { 
-  border-left-color: #ef4444; /* Vermelho */
-}
-.status-cancelada .os-status { 
-  background-color: #ef4444;}
-
 
 .os-card-body p {
-  margin: 5px 0;
-  color: #4b5563;
+  margin: 4px 0;
 }
 
 .os-card-actions {
-  margin-top: 20px;
+  margin-top: 15px;
   text-align: right;
 }
+
+/* Estilos para o badge de status (sem alteração) */
+.os-status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    color: white;
+}
+.status-oferta_publica, .status-pendente { background-color: #f97316; }
+.status-em_andamento { background-color: #3b82f6; }
+.status-concluida { background-color: #10b981; }
+.status-cancelada { background-color: #ef4444; }

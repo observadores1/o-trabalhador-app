@@ -1,0 +1,47 @@
+/* src/components/HeaderEstiloTop.css */
+
+.header-estilo-top {
+  background-color: #1d4ed8; /* Azul do tema */
+  color: white;
+  padding: 10px 25px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px; /* Limita a largura em telas grandes */
+  margin: 0 auto;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.logo-img {
+  height: 35px; /* Ajuste o tamanho do logo conforme necessário */
+  width: 35px;
+}
+
+.logo-container h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-info span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}

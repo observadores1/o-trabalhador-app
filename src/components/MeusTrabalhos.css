@@ -1,0 +1,122 @@
+/* src/components/MeusTrabalhos.css - Criado por Jeferson Gnoatto */
+/* TAREFA 2 de 4: ESTILO PADRONIZADO E CORRIGIDO PARA OS STATUS DAS OS */
+
+.meus-trabalhos-header-interno {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.meus-trabalhos-header-interno h1 {
+  margin-bottom: 0.5rem;
+}
+
+/* --- ESTILOS PADRONIZADOS PARA OS CARDS DE OS --- */
+
+.os-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* 1. Estilo base para TODOS os cards */
+.os-card {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb;
+  border-left-width: 5px;
+  border-radius: 8px;
+  padding: 15px 20px;
+  transition: box-shadow 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.os-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* 2. Modificadores que alteram a cor da BORDA esquerda */
+.os-card.status-oferta_publica {
+  border-left-color: #f97316; /* Laranja */
+}
+
+.os-card.status-pendente {
+  border-left-color: #facc15; /* Amarelo */
+}
+
+.os-card.status-em_andamento {
+  border-left-color: #3b82f6; /* Azul */
+}
+
+.os-card.status-concluido {
+  border-left-color: #10b981; /* Verde */
+}
+
+.os-card.status-cancelado,
+.os-card.status-recusada {
+  border-left-color: #ef4444; /* Vermelho */
+}
+
+
+/* --- ESTILOS PADRONIZADOS PARA AS ETIQUETAS (BADGES) DE STATUS --- */
+
+.os-status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    color: white;
+}
+
+.os-status-badge.status-oferta_publica { 
+  background-color: #f97316; /* Laranja */
+}
+
+.os-status-badge.status-pendente { 
+  background-color: #facc15; /* Amarelo */
+  color: #422006; /* Texto mais escuro para contraste */
+}
+
+.os-status-badge.status-em_andamento { 
+  background-color: #3b82f6; /* Azul */
+}
+
+.os-status-badge.status-concluido { 
+  background-color: #10b981; /* Verde */
+}
+
+.os-status-badge.status-cancelado,
+.os-status-badge.status-recusada { 
+  background-color: #ef4444; /* Vermelho */
+}
+
+/* --- ESTILOS GERAIS DO CARD (REPLICADOS DE 'MinhasOrdensDeServico.css') --- */
+
+.os-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.os-card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.os-card-body {
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.os-card-body p {
+  margin: 4px 0;
+}
+
+.os-card-actions {
+  margin-top: 15px;
+  text-align: right;
+}

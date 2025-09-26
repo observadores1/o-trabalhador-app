@@ -52,7 +52,7 @@ const Register = () => {
       tipo_usuario: formData.tipoUsuario
     };
 
-    const { data, error } = await signUp(formData.email, formData.password, userData);
+    const { error } = await signUp(formData.email, formData.password, userData);
     
     if (error) {
       setError(error.message);

@@ -100,3 +100,11 @@
     gap: 15px;
   }
 }
+/* Adicione ao final de DetalhesOS.css */
+
+.botoes-container {
+  display: flex;
+  flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas pequenas */
+  gap: 10px;       /* <<-- ESTA É A MÁGICA! Adiciona um espaço de 10px entre os botões */
+  margin-top: 15px;
+}
