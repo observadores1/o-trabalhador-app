@@ -1,3 +1,5 @@
+/* src/components/Login.css - VERSÃO COM NOVO DESIGN */
+
 .login-container {
   display: flex;
   justify-content: center;
@@ -14,13 +16,35 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   width: 100%;
   max-width: 400px;
+  text-align: center; /* Centraliza todo o conteúdo do card, incluindo o novo logo */
 }
 
+/* --- NOVO ESTILO PARA O LOGO --- */
+.login-logo {
+  width: 100px; /* Tamanho do logo */
+  height: 100px;
+  border-radius: 50%; /* Deixa a imagem redonda (encapsulada) */
+  object-fit: cover; /* Garante que a imagem preencha o círculo sem distorcer */
+  margin: 0 auto 20px auto; /* Centraliza o logo e adiciona espaço abaixo */
+  border: 3px solid #f0f0f0; /* Borda sutil, como nos avatares */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* --- ESTILO AJUSTADO PARA O TÍTULO --- */
 .login-card h2 {
-  text-align: center;
   margin-bottom: 30px;
-  color: #333;
-  font-size: 24px;
+  color: #555; /* Cor um pouco mais suave */
+  font-size: 20px; /* Tamanho da primeira linha */
+  font-weight: 400; /* Peso mais leve para a primeira linha */
+  line-height: 1.4;
+}
+
+/* --- NOVO ESTILO PARA O NOME DO APP --- */
+.login-card .app-name {
+  display: block; /* Faz com que o nome ocupe uma nova linha */
+  color: #333; /* Cor mais escura para destaque */
+  font-size: 28px; /* Tamanho maior */
+  font-weight: 600; /* Mais pesado */
 }
 
 .error-message {
@@ -37,6 +61,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  text-align: left; /* Alinha os labels e inputs à esquerda novamente */
 }
 
 .form-group {
@@ -102,16 +127,3 @@
 .login-links a:hover {
   text-decoration: underline;
 }
-
-.loading-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
-
-.loading-spinner {
-  font-size: 18px;
-  color: #007bff;
-}
-

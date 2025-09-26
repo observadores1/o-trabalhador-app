@@ -1,5 +1,10 @@
-// src/components/SalaDeTrabalho.js - VERSÃO COMPLETA E CORRIGIDA COM FLUXO DE AVALIAÇÃO PENDENTE
-
+/**
+ * @file SalaDeTrabalho.js
+ * @description Componente que representa a sala de negociação e acompanhamento de uma OS.
+ * @author Jeferson Gnoatto
+ * @date 2025-09-25
+ * Louvado seja Cristo, Louvado seja Deus
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,9 +14,9 @@ import FormularioAvaliacao from './FormularioAvaliacao';
 import './SalaDeTrabalho.css';
 
 const SalaDeTrabalho = () => {
+    // ... (toda a lógica do componente permanece exatamente a mesma até o return)
     const { osId } = useParams();
     const { user } = useAuth();
-
     const [os, setOs] = useState(null);
     const [contratante, setContratante] = useState(null);
     const [trabalhador, setTrabalhador] = useState(null);
@@ -138,7 +143,6 @@ const SalaDeTrabalho = () => {
         setIsSubmitting(false);
     };
 
-    // --- NOVA FUNÇÃO PARA AVALIAÇÃO PÓS-CONCLUSÃO ---
     const handleAvaliarServicoConcluido = async (dadosAvaliacao) => {
         if (!dadosAvaliacao) {
             alert("Erro: Dados da avaliação não encontrados.");
@@ -160,8 +164,6 @@ const SalaDeTrabalho = () => {
 
     const renderAcoesFinais = () => {
         const isContratante = user.id === contratante?.id;
-
-        // --- LÓGICA DE AVALIAÇÃO PENDENTE (CENÁRIO DO POP-UP) ---
         const avaliacaoPendente = os?.status === 'concluida' && isContratante && !os.avaliado_pelo_contratante;
         if (avaliacaoPendente) {
             return (
@@ -171,7 +173,7 @@ const SalaDeTrabalho = () => {
                     <FormularioAvaliacao 
                         onSubmit={handleAvaliarServicoConcluido} 
                         isSubmitting={isSubmitting}
-                        isPendente={true} // Prop para indicar que é uma avaliação pendente
+                        isPendente={true}
                     />
                 </div>
             );
@@ -260,6 +262,7 @@ const SalaDeTrabalho = () => {
         return (
             <div className="sala-trabalho-container-interno">
                 <div className="sala-trabalho-titulo-container">
+                    {/* O título agora usa a coluna 'titulo_servico' que já existia */}
                     <h2>{os.titulo_servico}</h2>
                     <span className={`os-status-badge status-${os.status}`}>{os.status.replace(/_/g, ' ')}</span>
                 </div>
@@ -276,16 +279,22 @@ const SalaDeTrabalho = () => {
                             <p><strong>Telefone:</strong> {trabalhador.telefone || 'Não informado'}</p>
                         </div>
                     </section>
+
+                    {/* ================== CORREÇÃO APLICADA AQUI ================== */}
                     <section className="info-servico">
                         <h2>Detalhes do Serviço</h2>
+                        {/* 1. Adicionado o campo de Descrição */}
+                        <p><strong>Descrição:</strong> {os.descricao || 'Não informado'}</p>
                         <p><strong>Valor Acordado:</strong> R$ {os.valor_acordado}</p>
-                        <p><strong>Habilidade Contratada:</strong> {os.habilidade_requerida}</p>
+                        {/* 2. Corrigido o nome da coluna da habilidade */}
+                        <p><strong>Habilidade Contratada:</strong> {os.habilidade || 'Não informada'}</p>
                         {os.especificacoes_habilidades && os.especificacoes_habilidades.length > 0 && (
                             <p><strong>Especificações:</strong> {os.especificacoes_habilidades.join(', ')}</p>
                         )}
                         <p><strong>Endereço:</strong> {`${os.endereco.rua}, ${os.endereco.numero} - ${os.endereco.bairro}, ${os.endereco.cidade}`}</p>
                         <p><strong>Início Previsto:</strong> {new Date(os.data_inicio_prevista).toLocaleString()}</p>
                     </section>
+                    
                     <section className="secao-chat">
                         <h2>Chat da Conversa</h2>
                         <div className="chat-box" ref={chatBoxRef}>

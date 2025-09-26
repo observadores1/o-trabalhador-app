@@ -1,120 +1,122 @@
-/* src/components/MeusTrabalhos.css */
+/* src/components/MeusTrabalhos.css - Criado por Jeferson Gnoatto */
+/* TAREFA 2 de 4: ESTILO PADRONIZADO E CORRIGIDO PARA OS STATUS DAS OS */
 
-.meus-trabalhos-container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #f9fafb;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.meus-trabalhos-header-interno {
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
-.meus-trabalhos-header {
-    text-align: center;
-    margin-bottom: 25px;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 15px;
+.meus-trabalhos-header-interno h1 {
+  margin-bottom: 0.5rem;
 }
 
-.meus-trabalhos-header h1 {
-    font-size: 2rem;
-    color: #1e40af;
+/* --- ESTILOS PADRONIZADOS PARA OS CARDS DE OS --- */
+
+.os-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.meus-trabalhos-header p {
-    font-size: 1rem;
-    color: #6b7280;
+/* 1. Estilo base para TODOS os cards */
+.os-card {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb;
+  border-left-width: 5px;
+  border-radius: 8px;
+  padding: 15px 20px;
+  transition: box-shadow 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
 }
 
-.trabalhos-list {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+.os-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
-.trabalho-card {
-    background-color: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
-    padding: 15px;
-    transition: box-shadow 0.2s ease-in-out;
+/* 2. Modificadores que alteram a cor da BORDA esquerda */
+.os-card.status-oferta_publica {
+  border-left-color: #f97316; /* Laranja */
 }
 
-.trabalho-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+.os-card.status-pendente {
+  border-left-color: #facc15; /* Amarelo */
 }
 
-.trabalho-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+.os-card.status-em_andamento {
+  border-left-color: #3b82f6; /* Azul */
 }
 
-.trabalho-card-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: #374151;
+.os-card.status-concluido {
+  border-left-color: #10b981; /* Verde */
 }
 
-.trabalho-card-body p {
-    margin: 5px 0;
-    color: #4b5563;
+.os-card.status-cancelado,
+.os-card.status-recusada {
+  border-left-color: #ef4444; /* Vermelho */
 }
 
-.trabalho-card-footer {
-    margin-top: 15px;
-    text-align: right;
-}
 
-/* Reutilizando os estilos de badge que já temos */
+/* --- ESTILOS PADRONIZADOS PARA AS ETIQUETAS (BADGES) DE STATUS --- */
+
 .os-status-badge {
     display: inline-block;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
     font-weight: 600;
     text-transform: capitalize;
     color: white;
 }
-.status-pendente { background-color: #f97316; }
-.status-em_andamento { background-color: #3b82f6; }
-.status-concluida { background-color: #10b981; }
-.status-cancelada { background-color: #ef4444; }
-/* Adicione ao final de src/components/MeusTrabalhos.css */
 
-/* Importando o estilo do cabeçalho do dashboard para consistência */
-@import url('./Dashboard.css');
-
-.meus-trabalhos-main {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #f9fafb;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.os-status-badge.status-oferta_publica { 
+  background-color: #f97316; /* Laranja */
 }
 
-.meus-trabalhos-header-interno {
-    text-align: center;
-    margin-bottom: 25px;
-    border-bottom: 1px solid #e5e7eb;
-    padding-bottom: 15px;
+.os-status-badge.status-pendente { 
+  background-color: #facc15; /* Amarelo */
+  color: #422006; /* Texto mais escuro para contraste */
 }
 
-.meus-trabalhos-header-interno h1 {
-    font-size: 2rem;
-    color: #1e40af;
+.os-status-badge.status-em_andamento { 
+  background-color: #3b82f6; /* Azul */
 }
 
-.meus-trabalhos-header-interno p {
-    font-size: 1rem;
-    color: #6b7280;
+.os-status-badge.status-concluido { 
+  background-color: #10b981; /* Verde */
 }
 
-/* Remove o padding do container principal para o header azul ocupar a tela toda */
-.meus-trabalhos-container {
-    padding: 0;
-    margin: 0;
-    max-width: 100%;
+.os-status-badge.status-cancelado,
+.os-status-badge.status-recusada { 
+  background-color: #ef4444; /* Vermelho */
+}
+
+/* --- ESTILOS GERAIS DO CARD (REPLICADOS DE 'MinhasOrdensDeServico.css') --- */
+
+.os-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.os-card-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.os-card-body {
+  color: #4b5563;
+  font-size: 0.9rem;
+}
+
+.os-card-body p {
+  margin: 4px 0;
+}
+
+.os-card-actions {
+  margin-top: 15px;
+  text-align: right;
 }

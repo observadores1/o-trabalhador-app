@@ -1,67 +1,87 @@
-// src/PaginaNovaOS.js - VERSÃO CORRIGIDA
-
+/**
+ * @file PaginaNovaOS.js
+ * @description Página para criação de novas Ordens de Serviço (Ofertas Públicas ou Propostas Diretas).
+ * @author Jeferson Gnoatto
+ * @date 2025-09-25
+ * Louvado seja Cristo, Louvado seja Deus
+ */
 import React from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { supabase } from './services/supabaseClient';
 import FormularioOrdemServico from './components/FormularioOrdemServico';
+import HeaderEstiloTop from './components/HeaderEstiloTop';
 import './PaginaNovaOS.css';
 
 const PaginaNovaOS = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
-  
-  const trabalhadorId = searchParams.get('trabalhador_id');
 
-  const handleCreateOS = async (formData) => {
+  const queryParams = new URLSearchParams(location.search);
+  const trabalhadorId = queryParams.get('trabalhador_id');
+
+  const handleFormSubmit = async (formData) => {
     if (!user) {
       alert("Você precisa estar logado para criar uma ordem de serviço.");
       return;
     }
 
-    const osParaSalvar = {
+    const dadosParaSalvar = {
       contratante_id: user.id,
+      status: trabalhadorId ? 'pendente' : 'oferta_publica',
       trabalhador_id: trabalhadorId || null,
       habilidade: formData.habilidade,
       titulo_servico: formData.titulo_servico,
-      descricao_servico: formData.descricao_servico,
+      descricao: formData.descricao_servico,
       data_inicio_prevista: formData.data_inicio_prevista,
-      data_conclusao: formData.data_conclusao || null, // Torna a data de conclusão opcional
+      data_conclusao: formData.data_conclusao || null,
       valor_acordado: formData.valor_proposto || null,
+      endereco: {
+        rua: formData.endereco.rua,
+        numero: formData.endereco.numero,
+        bairro: formData.endereco.bairro,
+        cidade: formData.endereco.cidade,
+        estado: formData.endereco.estado,
+      },
       observacoes: formData.observacoes,
-      endereco: formData.endereco,
       detalhes_adicionais: formData.detalhes_adicionais,
-      status: trabalhadorId ? 'pendente' : 'oferta_publica',
     };
 
-    try {
-      const { error } = await supabase.from('ordens_de_servico').insert([osParaSalvar]);
-      if (error) throw error;
+    const { error } = await supabase.from('ordens_de_servico').insert([dadosParaSalvar]);
 
-      alert('✅ Ordem de Serviço criada com sucesso!');
-      navigate('/minhas-os');
-
-    } catch (error) {
+    if (error) {
       console.error('Erro ao criar Ordem de Serviço:', error);
-      alert(`❌ Erro ao criar Ordem de Serviço: ${error.message}`);
+      alert(`Erro ao criar a oferta: ${error.message}`);
+      throw error;
+    } else {
+      alert('Ordem de Serviço criada com sucesso!');
+      navigate('/minhas-os');
     }
   };
 
   return (
-    <div className="pagina-os-container">
-      {/* BOTÃO VOLTAR ADICIONADO */}
-      <button onClick={() => navigate(-1)} className="btn-voltar-formulario">← Voltar</button>
-
-      <header className="pagina-os-header">
-        <h1>{trabalhadorId ? 'Propor Serviço para Profissional' : 'Criar Nova Oferta de Serviço'}</h1>
-        <p>{trabalhadorId ? 'Preencha os detalhes abaixo para enviar uma proposta direta.' : 'Descreva o serviço que você precisa. Sua oferta ficará visível para os trabalhadores.'}</p>
-      </header>
-      <main className="pagina-os-main">
-        <FormularioOrdemServico 
-          trabalhadorId={trabalhadorId}
-          onFormSubmit={handleCreateOS} // <<-- CORREÇÃO CRÍTICA: Passando a prop com o nome correto
-        />
+    <div className="page-container">
+      <HeaderEstiloTop showUserActions={false} />
+      <main className="main-content">
+        {/* ================== CORREÇÃO DA CLASSE APLICADA AQUI ================== */}
+        <div className="pagina-os-main"> {/* Usando a classe correta do seu CSS */}
+          <div className="pagina-os-header"> {/* Replicando a estrutura do seu CSS */}
+            <h1>
+              {trabalhadorId ? 'Propor Serviço para Profissional' : 'Criar Nova Oferta de Serviço'}
+            </h1>
+            <p>
+              {trabalhadorId 
+                ? 'Preencha os detalhes abaixo. O profissional será notificado e poderá aceitar ou recusar sua proposta.'
+                : 'Descreva o serviço que você precisa. Sua oferta ficará visível para os trabalhadores da plataforma.'
+              }
+            </p>
+          </div>
+          <FormularioOrdemServico 
+            trabalhadorId={trabalhadorId}
+            onFormSubmit={handleFormSubmit} 
+          />
+        </div>
       </main>
     </div>
   );

@@ -183,3 +183,49 @@ h2 {
 .btn-limpar-filtros {
   background-color: #6b7280; /* Cinza */
 }
+/* ================================================== */
+/*  ESTILOS PARA HARMONIZAÇÃO DOS FILTROS (NOVO)      */
+/* ================================================== */
+
+.filtros-container {
+  display: grid;
+  grid-template-columns: 1fr; /* Uma coluna em telas pequenas */
+  gap: 1.5rem; /* Aumenta o espaçamento */
+}
+
+.filtro-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* Espaço entre o label e o campo */
+}
+
+.filtro-item label {
+  font-weight: 600; /* Deixa o texto do label em negrito */
+  font-size: 0.9rem;
+  color: #374151; /* Um cinza escuro, mais suave que preto */
+}
+
+/* A classe mágica que vai padronizar tudo! */
+.form-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db; /* Borda cinza claro */
+  border-radius: 8px; /* Bordas arredondadas */
+  background-color: #fff;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6; /* Borda azul ao focar */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); /* Sombra azul suave ao focar */
+}
+
+/* Media query para telas maiores, como a do seu print */
+@media (min-width: 768px) {
+  .filtros-container {
+    grid-template-columns: repeat(3, 1fr); /* Três colunas em telas maiores */
+    align-items: end; /* Alinha os itens na parte de baixo */
+  }
+}

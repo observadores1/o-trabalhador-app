@@ -1,10 +1,12 @@
-// src/components/SeletorDeLocalizacao.js
-// VERSÃO CORRIGIDA PARA USAR O ESTILO DO PerfilProfissional.css
-
+/**
+ * @file SeletorDeLocalizacao.js
+ * @description Componente para selecionar Estado e Cidade usando a API do IBGE.
+ * @author Jeferson Gnoatto
+ * @date 2025-09-25
+ * Louvado seja Cristo, Louvado seja Deus
+ */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
-// Não precisamos importar nenhum CSS aqui, pois ele herdará do componente pai.
 
 const SeletorDeLocalizacao = ({ onEstadoChange, onCidadeChange, estadoInicial, cidadeInicial }) => {
     const [estados, setEstados] = useState([]);
@@ -14,7 +16,7 @@ const SeletorDeLocalizacao = ({ onEstadoChange, onCidadeChange, estadoInicial, c
     const [carregandoCidades, setCarregandoCidades] = useState(false);
 
     useEffect(() => {
-        axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome' )
+        axios.get('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome'  )
             .then(response => {
                 setEstados(response.data);
             });
@@ -29,7 +31,7 @@ const SeletorDeLocalizacao = ({ onEstadoChange, onCidadeChange, estadoInicial, c
     useEffect(() => {
         if (estadoSelecionado) {
             setCarregandoCidades(true);
-            axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado}/municipios` )
+            axios.get(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado}/municipios`  )
                 .then(response => {
                     setCidades(response.data);
                     if (cidadeInicial && response.data.some(c => c.nome === cidadeInicial)) {
@@ -56,17 +58,18 @@ const SeletorDeLocalizacao = ({ onEstadoChange, onCidadeChange, estadoInicial, c
         onCidadeChange(novaCidade);
     };
 
-    // A estrutura do JSX foi alterada para corresponder ao seu CSS.
+    // A estrutura do JSX foi alterada para se adequar ao CSS de Oportunidades.
     return (
-        <div className="form-row"> {/* Usando sua classe .form-row para alinhamento */}
-            <div className="form-group"> {/* Usando sua classe .form-group */}
+        // Usamos um Fragment <> pois o grid já está no componente pai.
+        <>
+            <div className="filtro-item">
                 <label htmlFor="estado">Estado</label>
                 <select 
                     id="estado" 
                     value={estadoSelecionado} 
                     onChange={handleEstadoChange}
-                    // A MÁGICA ACONTECE AQUI: Aplicamos a mesma classe do seu input
-                    className="form-group input" 
+                    // A MÁGICA ACONTECE AQUI: Aplicamos a classe padrão
+                    className="form-input" 
                 >
                     <option value="">Selecione um estado</option>
                     {estados.map(estado => (
@@ -74,7 +77,7 @@ const SeletorDeLocalizacao = ({ onEstadoChange, onCidadeChange, estadoInicial, c
                     ))}
                 </select>
             </div>
-            <div className="form-group"> {/* Usando sua classe .form-group */}
+            <div className="filtro-item">
                 <label htmlFor="cidade">Cidade</label>
                 <select 
                     id="cidade" 
@@ -82,7 +85,7 @@ const SeletorDeLocalizacao = ({ onEstadoChange, onCidadeChange, estadoInicial, c
                     onChange={handleCidadeChange} 
                     disabled={!estadoSelecionado || carregandoCidades}
                     // E AQUI TAMBÉM: A mesma classe para garantir consistência
-                    className="form-group input"
+                    className="form-input"
                 >
                     <option value="">
                         {carregandoCidades ? 'Carregando...' : (estadoSelecionado ? 'Selecione uma cidade' : 'Selecione um estado primeiro')}
@@ -92,7 +95,7 @@ const SeletorDeLocalizacao = ({ onEstadoChange, onCidadeChange, estadoInicial, c
                     ))}
                 </select>
             </div>
-        </div>
+        </>
     );
 };
 

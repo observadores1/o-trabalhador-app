@@ -73,7 +73,7 @@ const BuscaContratante = ({ onBuscar }) => {
 
   useEffect(() => {
     const buscarHabilidades = async () => {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('habilidades')
         .select('nome')
         .order('nome', { ascending: true });

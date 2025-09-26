@@ -1,88 +1,128 @@
-// src/components/MeusTrabalhos.js - ATUALIZADO COM HEADER REUTILIZÁVEL
-
+/**
+ * @file MeusTrabalhos.js
+ * @description Componente que exibe a lista de trabalhos de um profissional.
+ * @author Jeferson Gnoatto
+ * @date 2025-09-25
+ * Louvado seja Cristo, Louvado seja Deus
+ */
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../services/supabaseClient';
-import { useAuth } from '../contexts/AuthContext';
-import HeaderEstiloTop from './HeaderEstiloTop'; // <-- IMPORTAÇÃO
+import { supabase } from '../supabaseCliente.js';
+import { Link } from 'react-router-dom';
+import HeaderEstiloTop from './HeaderEstiloTop';
 import './MeusTrabalhos.css';
 
 const MeusTrabalhos = () => {
-    const { user } = useAuth(); // signOut não é mais necessário aqui
-    const navigate = useNavigate();
+    // ... (toda a lógica do componente permanece exatamente a mesma)
     const [trabalhos, setTrabalhos] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [userId, setUserId] = useState(null);
 
     useEffect(() => {
-        const carregarTrabalhos = async () => {
-            if (!user) return;
-            setIsLoading(true);
-            try {
-                const { data, error: fetchError } = await supabase
-                    .from('ordens_de_servico')
-                    .select('*')
-                    .eq('trabalhador_id', user.id)
-                    .order('status', { ascending: false })
-                    .order('created_at', { ascending: false });
-                if (fetchError) throw fetchError;
-                setTrabalhos(data);
-            } catch (err) {
-                console.error("Erro ao carregar trabalhos:", err);
-                setError("Não foi possível carregar seus trabalhos.");
-            } finally {
-                setIsLoading(false);
+        const fetchSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                setUserId(session.user.id);
+            } else {
+                console.log("Nenhuma sessão encontrada.");
+                setLoading(false);
             }
         };
-        carregarTrabalhos();
-    }, [user]);
+        fetchSession();
+    }, []);
 
-    const handleNavegarParaOS = (os) => {
-        if (os.status === 'em_andamento') {
-            navigate(`/trabalho/${os.id}`);
-        } else {
-            navigate(`/os/${os.id}`);
+    useEffect(() => {
+        if (userId) {
+            const fetchTrabalhos = async () => {
+                setLoading(true);
+                const { data, error } = await supabase
+                    .from('ordens_de_servico')
+                    .select(`*`)
+                    .eq('trabalhador_id', userId);
+
+                if (error) {
+                    console.error('Erro ao buscar trabalhos:', error);
+                } else {
+                    setTrabalhos(data);
+                }
+                setLoading(false);
+            };
+            fetchTrabalhos();
+        }
+    }, [userId]);
+
+    const getStatusClass = (status) => {
+        const statusNormalizado = (status || '').toLowerCase().replace(/\s+/g, '_');
+        switch (statusNormalizado) {
+            case 'em_andamento':
+                return 'status-em_andamento';
+            case 'oferta_publica':
+                return 'status-oferta_publica';
+            case 'pendente':
+                return 'status-pendente';
+            case 'concluido':
+            case 'concluída':
+                return 'status-concluido';
+            case 'cancelado':
+            case 'cancelada':
+            case 'recusado':
+            case 'recusada':
+                return 'status-cancelado';
+            default:
+                return '';
         }
     };
 
-    const renderConteudo = () => {
-        if (isLoading) return <p>Carregando seus trabalhos...</p>;
-        if (error) return <p className="error-message">{error}</p>;
+    if (loading) {
         return (
-            <div className="trabalhos-list">
-                {trabalhos.map(os => (
-                    <div key={os.id} className={`trabalho-card status-${os.status}`}>
-                        <div className="trabalho-card-header">
-                            <h3>{os.titulo_servico}</h3>
-                            <span className={`os-status-badge status-${os.status}`}>{os.status.replace(/_/g, ' ')}</span>
-                        </div>
-                        <div className="trabalho-card-body">
-                            <p><strong>Data do Aceite:</strong> {os.data_aceite ? new Date(os.data_aceite).toLocaleDateString() : 'N/A'}</p>
-                            <p><strong>Valor Acordado:</strong> R$ {os.valor_acordado}</p>
-                        </div>
-                        <div className="trabalho-card-footer">
-                            <button onClick={() => handleNavegarParaOS(os)} className="btn btn-primary">
-                                {os.status === 'em_andamento' ? 'Acessar Sala' : 'Ver Detalhes'}
-                            </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+            <>
+                {/* CORREÇÃO APLICADA AQUI */}
+                <HeaderEstiloTop showUserActions={false} />
+                <div className="meus-trabalhos-container">Carregando trabalhos...</div>
+            </>
         );
-    };
+    }
 
     return (
-        <div className="meus-trabalhos-container">
-            {/* SUBSTITUIÇÃO DO HEADER ANTIGO */}
+        <>
+            {/* CORREÇÃO APLICADA AQUI */}
             <HeaderEstiloTop showUserActions={false} />
-            <main className="meus-trabalhos-main">
+            <div className="meus-trabalhos-container">
                 <div className="meus-trabalhos-header-interno">
                     <h1>Meus Trabalhos</h1>
-                    <p>Acompanhe aqui os serviços que você aceitou.</p>
                 </div>
-                {renderConteudo()}
-            </main>
-        </div>
+                {trabalhos.length > 0 ? (
+                    <div className="os-lista">
+                        {trabalhos.map((trabalho) => {
+                            const isEmAndamento = (trabalho.status || '').toLowerCase().includes('andamento');
+                            const linkDestino = isEmAndamento 
+                                ? `/trabalho/${trabalho.id}` 
+                                : `/os/${trabalho.id}`;
+                            
+                            return (
+                                <div key={trabalho.id} className={`os-card ${getStatusClass(trabalho.status)}`}>
+                                    <div className="os-card-header">
+                                        <h3>{trabalho.habilidade || 'Serviço sem Título'}</h3>
+                                        <span className={`os-status-badge ${getStatusClass(trabalho.status)}`}>
+                                            {trabalho.status || 'Indefinido'}
+                                        </span>
+                                    </div>
+                                    <div className="os-card-body">
+                                        <p>{trabalho.descricao || 'Sem descrição detalhada.'}</p>
+                                    </div>
+                                    <div className="os-card-actions">
+                                        <Link to={linkDestino} className="btn btn-primary">
+                                            {isEmAndamento ? 'Acessar Sala' : 'Ver Detalhes'}
+                                        </Link>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                ) : (
+                    <p>Nenhum trabalho encontrado.</p>
+                )}
+            </div>
+        </>
     );
 };
 

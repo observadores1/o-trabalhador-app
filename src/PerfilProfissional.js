@@ -1,23 +1,18 @@
-/**
- * @file PerfilProfissional.js
- * @description Página para o usuário trabalhador editar seu perfil completo.
- * @author Jeferson Gnoatto
- * @date 2025-09-19
- * Louvado seja Cristo, Louvado seja Deus
- */
+// src/PerfilProfissional.js - Criado por Jeferson Gnoatto
+// VERSÃO FINAL CORRIGIDA COM BASE NA EVIDÊNCIA VISUAL DO SUPABASE
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { IMaskInput } from 'react-imask';
 import { supabase } from './services/supabaseClient';
 import { useAuth } from './contexts/AuthContext';
-import FormularioEndereco from './components/FormularioEndereco'; 
+import FormularioEndereco from './components/FormularioEndereco';
 import SeletorDeHabilidades from './components/SeletorDeHabilidades';
 import GerenciadorDeFoto from './components/GerenciadorDeFoto';
 import HeaderEstiloTop from './components/HeaderEstiloTop';
 import './PerfilProfissional.css';
 
-// Seus sub-componentes, 100% preservados
 const SecaoInfoPessoais = ({ register, control, errors }) => (
     <div className="form-section">
       <h2>Informações Pessoais</h2>
@@ -44,7 +39,7 @@ const SecaoInfoPessoais = ({ register, control, errors }) => (
       </div>
     </div>
   );
-  
+
   const SecaoPerfilProfissional = ({ register }) => (
     <div className="form-section">
       <h2>Perfil Profissional</h2>
@@ -58,7 +53,7 @@ const SecaoInfoPessoais = ({ register, control, errors }) => (
       </div>
     </div>
   );
-  
+
   const SecaoDisponibilidade = ({ register }) => (
     <div className="form-section">
       <h2>Disponibilidade</h2>
@@ -69,20 +64,19 @@ const SecaoInfoPessoais = ({ register, control, errors }) => (
     </div>
   );
 
-// Componente Principal
 const PerfilProfissional = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  const { 
-    register, 
-    handleSubmit, 
-    watch, 
-    setValue, 
-    control, 
-    formState: { errors } 
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    control,
+    formState: { errors }
   } = useForm({
     defaultValues: {
       apelido: '',
@@ -96,7 +90,6 @@ const PerfilProfissional = () => {
     }
   });
 
-  // Lógica de carregamento preservada
   useEffect(() => {
     const carregarDados = async () => {
       if (!user) { setIsLoading(false); return; }
@@ -117,8 +110,11 @@ const PerfilProfissional = () => {
           const profissionalData = perfilData.perfis_profissionais || {};
           setValue('titulo_profissional', profissionalData.titulo_profissional || '');
           setValue('biografia', profissionalData.biografia || '');
-          const { data: habilidadesData } = await supabase.from('habilidades_do_usuario').select('habilidades(nome)').eq('perfil_id', profissionalData.perfil_id || user.id);
-          setValue('habilidades', habilidadesData ? habilidadesData.map(h => h.habilidades.nome) : []);
+          
+          // CORREÇÃO DE CARREGAMENTO: Ler diretamente da tabela, pois a função RPC não existe.
+          const habilidades = profissionalData.habilidades || [];
+          setValue('habilidades', habilidades);
+
           setValue('disponivel_para_servicos', profissionalData.disponivel_para_servicos ?? true);
         }
       } catch (e) {
@@ -131,14 +127,11 @@ const PerfilProfissional = () => {
     carregarDados();
   }, [user, setValue]);
 
-  // onSubmit drasticamente simplificado para usar a função RPC
   const onSubmit = async (data) => {
     if (!user) return;
     setIsSaving(true);
     try {
-      // 1. ATUALIZAÇÃO DA TABELA 'perfis' (dados não profissionais)
-      // Isso continua separado pois pertence a uma tabela diferente.
-      const { error: perfilError } = await supabase.from('perfis').update({
+      await supabase.from('perfis').update({
         apelido: data.apelido,
         telefone: data.telefone,
         endereco: data.endereco,
@@ -146,21 +139,24 @@ const PerfilProfissional = () => {
         atualizado_em: new Date().toISOString()
       }).eq('id', user.id);
 
-      if (perfilError) throw perfilError;
+      await supabase.from('perfis_profissionais').upsert({
+        perfil_id: user.id,
+        titulo_profissional: data.titulo_profissional,
+        biografia: data.biografia,
+        disponivel_para_servicos: data.disponivel_para_servicos,
+        habilidades: data.habilidades || [] // Salva as habilidades na coluna correta
+      }, { onConflict: 'perfil_id' });
 
-      // 2. CHAMADA DA FUNÇÃO RPC PARA ATUALIZAR O RESTO DE UMA VEZ
-      const { error: rpcError } = await supabase.rpc('atualizar_perfil_profissional_e_habilidades', {
-        p_perfil_id: user.id,
-        p_titulo: data.titulo_profissional,
-        p_biografia: data.biografia,
-        p_disponivel: data.disponivel_para_servicos,
-        p_habilidades_nomes: data.habilidades || []
+      // CORREÇÃO DE SALVAMENTO: Chamar a função com o único parâmetro correto.
+      const { error: syncError } = await supabase.rpc('sincronizar_habilidades', {
+        p_perfil_profissional_id: user.id
       });
 
-      if (rpcError) throw rpcError;
+      if (syncError) throw syncError;
 
       alert('✅ Perfil atualizado com sucesso!');
       navigate(`/perfil/${user.id}`);
+
     } catch (error) {
       console.error('Erro ao salvar no Supabase:', error);
       alert(`❌ Erro ao salvar. Tente novamente. Detalhes: ${error.message}`);
@@ -171,7 +167,6 @@ const PerfilProfissional = () => {
 
   if (isLoading) return <div className="perfil-container"><p>Carregando...</p></div>;
 
-  // JSX com o "Estilo Top"
   return (
     <div className="page-container">
       <HeaderEstiloTop showUserActions={false} />
@@ -179,38 +174,21 @@ const PerfilProfissional = () => {
         <div className="perfil-container">
           <h1>Editar Meu Perfil</h1>
           <form onSubmit={handleSubmit(onSubmit)} className="perfil-form">
-            
             <SecaoInfoPessoais register={register} control={control} errors={errors} />
-
             <div className="form-section">
               <h2>Endereço</h2>
-              <FormularioEndereco 
-                register={register} 
-                watch={watch} 
-                setValue={setValue} 
-              />
+              <FormularioEndereco register={register} watch={watch} setValue={setValue} />
             </div>
-
             <div className="form-section">
               <h2>Foto do Perfil</h2>
-              <GerenciadorDeFoto
-                watch={watch}
-                setValue={setValue}
-              />
+              <GerenciadorDeFoto watch={watch} setValue={setValue} />
             </div>
-
             <SecaoPerfilProfissional register={register} />
-
             <div className="form-section">
               <h2>Minhas Habilidades</h2>
-              <SeletorDeHabilidades
-                watch={watch}
-                setValue={setValue}
-              />
+              <SeletorDeHabilidades watch={watch} setValue={setValue} />
             </div>
-
             <SecaoDisponibilidade register={register} />
-
             <div className="form-actions">
               <button type="submit" className="btn btn-primary" disabled={isSaving}>
                 {isSaving ? 'Salvando...' : 'Salvar Alterações'}
