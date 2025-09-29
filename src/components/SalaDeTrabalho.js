@@ -1,22 +1,28 @@
-/**
- * @file SalaDeTrabalho.js
- * @description Componente que representa a sala de negociação e acompanhamento de uma OS.
- * @author Jeferson Gnoatto
- * @date 2025-09-25
- * Louvado seja Cristo, Louvado seja Deus
- */
+// src/components/SalaDeTrabalho.js - VERSÃO FINAL, COMPLETA E ESTÁVEL
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseClient';
 import HeaderEstiloTop from './HeaderEstiloTop';
 import FormularioAvaliacao from './FormularioAvaliacao';
 import './SalaDeTrabalho.css';
 
+const EstrelasDisplay = ({ nota }) => {
+  const notaNumerica = Number(nota);
+  if (!notaNumerica || notaNumerica === 0) return <span className="estrelas-display">N/A</span>;
+  return (
+    <div className="estrelas-display">
+      {[...Array(5)].map((_, i) => (
+        <span key={i} className={i < notaNumerica ? 'preenchida' : ''}>★</span>
+      ))}
+    </div>
+  );
+};
+
 const SalaDeTrabalho = () => {
-    // ... (toda a lógica do componente permanece exatamente a mesma até o return)
     const { osId } = useParams();
-    const { user } = useAuth();
+    const { user, refreshPendencias } = useAuth();
+    const navigate = useNavigate();
     const [os, setOs] = useState(null);
     const [contratante, setContratante] = useState(null);
     const [trabalhador, setTrabalhador] = useState(null);
@@ -26,9 +32,9 @@ const SalaDeTrabalho = () => {
     const [novaMensagem, setNovaMensagem] = useState('');
     const chatBoxRef = useRef(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showConcludeForm, setShowConcludeForm] = useState(false);
     const [showCancelForm, setShowCancelForm] = useState(false);
     const [motivoCancelamento, setMotivoCancelamento] = useState('');
-    const [showConcludeForm, setShowConcludeForm] = useState(false);
     const [comentarioConclusao, setComentarioConclusao] = useState('');
 
     const carregarDadosTrabalho = useCallback(async (showLoading = true) => {
@@ -37,18 +43,19 @@ const SalaDeTrabalho = () => {
         try {
             const { data: osData, error: osError } = await supabase.from('ordens_de_servico').select('*').eq('id', osId).single();
             if (osError) throw osError;
-            if (!osData) throw new Error("Ordem de Serviço não encontrada.");
             if (user.id !== osData.contratante_id && user.id !== osData.trabalhador_id) {
                 throw new Error("Você não tem permissão para acessar esta sala de trabalho.");
             }
             setOs(osData);
-            if (!contratante || !trabalhador) {
-                const idsParaBuscar = [osData.contratante_id, osData.trabalhador_id];
+
+            const idsParaBuscar = [osData.contratante_id, osData.trabalhador_id].filter(Boolean);
+            if (idsParaBuscar.length > 0) {
                 const { data: perfisData, error: perfisError } = await supabase.from('perfis_completos').select('*').in('id', idsParaBuscar);
                 if (perfisError) throw perfisError;
                 setContratante(perfisData.find(p => p.id === osData.contratante_id));
                 setTrabalhador(perfisData.find(p => p.id === osData.trabalhador_id));
             }
+            
             const { data: mensagensData, error: mensagensError } = await supabase.from('mensagens').select('*').eq('ordem_de_servico_id', osId).order('created_at', { ascending: true });
             if (mensagensError) throw mensagensError;
             setMensagens(mensagensData);
@@ -58,23 +65,21 @@ const SalaDeTrabalho = () => {
         } finally {
             if (showLoading) setIsLoading(false);
         }
-    }, [osId, user, contratante, trabalhador]);
+    }, [osId, user]);
 
     useEffect(() => { carregarDadosTrabalho(); }, [carregarDadosTrabalho]);
 
     useEffect(() => {
-        if (!osId) return;
+        if (!osId || os?.status === 'concluida' || os?.status === 'cancelada') return;
         const channel = supabase.channel(`sala_trabalho_${osId}`)
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens', filter: `ordem_de_servico_id=eq.${osId}` },
                 (payload) => { setMensagens((prevMensagens) => [...prevMensagens, payload.new]); })
             .subscribe();
         return () => { supabase.removeChannel(channel); };
-    }, [osId]);
+    }, [osId, os?.status]);
 
     useEffect(() => {
-        if (chatBoxRef.current) {
-            chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
-        }
+        if (chatBoxRef.current) { chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight; }
     }, [mensagens]);
 
     const handleEnviarMensagem = async (e) => {
@@ -89,40 +94,26 @@ const SalaDeTrabalho = () => {
         }
     };
 
-    const handleConcluirServico = async (dadosAvaliacao = null) => {
-        if (!comentarioConclusao.trim()) {
-            alert("O comentário de conclusão é obrigatório.");
-            return;
-        }
+    const handleFinalizacao = async (dadosAvaliacao = null) => {
         setIsSubmitting(true);
-        let rpcError = null;
-        if (user.id === contratante.id) {
-            if (!dadosAvaliacao) {
-                alert("Erro: Dados da avaliação não encontrados.");
-                setIsSubmitting(false);
-                return;
-            }
-            const { error } = await supabase.rpc('concluir_e_avaliar_servico', {
+        try {
+            const { error: rpcError } = await supabase.rpc('finalizar_servico', {
                 os_id_param: osId,
-                comentario_param: comentarioConclusao,
-                avaliacoes: dadosAvaliacao
+                comentario_final: comentarioConclusao,
+                avaliacao_estrelas_param: dadosAvaliacao
             });
-            rpcError = error;
-        } else {
-            const { error } = await supabase.rpc('concluir_servico_pelo_trabalhador', {
-                os_id_param: osId,
-                comentario_param: comentarioConclusao
-            });
-            rpcError = error;
-        }
-        if (rpcError) {
-            alert(`Erro ao concluir o serviço: ${rpcError.message}`);
-        } else {
-            alert("Serviço concluído com sucesso!");
+            if (rpcError) throw rpcError;
+
+            alert("Operação realizada com sucesso!");
             setShowConcludeForm(false);
             await carregarDadosTrabalho(false);
+            await refreshPendencias(user);
+        } catch (err) {
+            console.error("Erro detalhado ao finalizar o serviço:", err);
+            alert(`Ocorreu um erro: ${err.message}`);
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsSubmitting(false);
     };
 
     const handleCancelarServico = async () => {
@@ -143,38 +134,46 @@ const SalaDeTrabalho = () => {
         setIsSubmitting(false);
     };
 
-    const handleAvaliarServicoConcluido = async (dadosAvaliacao) => {
-        if (!dadosAvaliacao) {
-            alert("Erro: Dados da avaliação não encontrados.");
-            return;
-        }
-        setIsSubmitting(true);
-        const { error } = await supabase.rpc('avaliar_servico_concluido', {
-            os_id_param: osId,
-            avaliacoes: dadosAvaliacao
-        });
-        if (error) {
-            alert(`Erro ao enviar avaliação: ${error.message}`);
-        } else {
-            alert("Avaliação enviada com sucesso! Obrigado por sua contribuição.");
-            await carregarDadosTrabalho(false);
-        }
-        setIsSubmitting(false);
-    };
-
     const renderAcoesFinais = () => {
         const isContratante = user.id === contratante?.id;
-        const avaliacaoPendente = os?.status === 'concluida' && isContratante && !os.avaliado_pelo_contratante;
-        if (avaliacaoPendente) {
+
+        if (os?.status === 'concluida' && os.avaliado_pelo_contratante) {
+            return (
+                <div className="extrato-final">
+                    <h4>Serviço Finalizado</h4>
+                    {os.comentario_encerramento_trabalhador && <p><strong>Relatório do Prestador de Serviços:</strong> {os.comentario_encerramento_trabalhador}</p>}
+                    {os.avaliacao_texto && <p><strong>Comentário da Avaliação:</strong> {os.avaliacao_texto}</p>}
+                    {os.avaliacao_estrelas && (
+                        <>
+                            <h4 style={{marginTop: '1rem'}}>Avaliação Detalhada</h4>
+                            <div className="avaliacao-grid">
+                                {Object.entries(os.avaliacao_estrelas).map(([quesito, nota]) => (
+                                    <div className="quesito-display" key={quesito}><span>{quesito.replace(/_/g, ' ')}:</span> <EstrelasDisplay nota={nota} /></div>
+                                ))}
+                            </div>
+                        </>
+                    )}
+                    <button onClick={() => navigate('/dashboard')} className="btn btn-primary" style={{marginTop: '20px'}}>Voltar ao Início</button>
+                </div>
+            );
+        }
+
+        if (os?.status === 'cancelada') {
+            return (
+                <div>
+                    <p className="status-final-info">Serviço cancelado. Motivo: {os.motivo_cancelamento}</p>
+                    <button onClick={() => navigate('/dashboard')} className="btn btn-primary" style={{marginTop: '20px'}}>Voltar ao Início</button>
+                </div>
+            );
+        }
+
+        if (os?.status === 'concluida' && isContratante && !os.avaliado_pelo_contratante) {
             return (
                 <div className="conclusao-form">
                     <h3>Avaliação Pendente</h3>
-                    <p>Este serviço foi concluído pelo trabalhador. Por favor, deixe sua avaliação para finalizar o processo e poder criar novas ofertas.</p>
-                    <FormularioAvaliacao 
-                        onSubmit={handleAvaliarServicoConcluido} 
-                        isSubmitting={isSubmitting}
-                        isPendente={true}
-                    />
+                    <p>O prestador de serviços concluiu o serviço. Por favor, deixe seu comentário e avaliação para finalizar.</p>
+                    <textarea placeholder="Deixe seu comentário sobre o serviço..." value={comentarioConclusao} onChange={(e) => setComentarioConclusao(e.target.value)} disabled={isSubmitting} />
+                    <FormularioAvaliacao onSubmit={handleFinalizacao} isSubmitting={isSubmitting} comentarioConclusao={comentarioConclusao} isPendente={true} />
                 </div>
             );
         }
@@ -182,28 +181,22 @@ const SalaDeTrabalho = () => {
         if (showConcludeForm) {
             return (
                 <div className="conclusao-form">
-                    <h3>Concluir Serviço</h3>
+                    <h3>{isContratante ? 'Concluir e Avaliar Serviço' : 'Concluir Serviço'}</h3>
                     <textarea
-                        placeholder="Descreva brevemente o que foi feito para concluir o serviço. Este comentário será visível para a outra parte."
+                        placeholder={isContratante ? "Deixe o comentário da sua avaliação..." : "Deixe seu relatório de conclusão ou orientações para o contratante."}
                         value={comentarioConclusao}
                         onChange={(e) => setComentarioConclusao(e.target.value)}
                         disabled={isSubmitting}
                     />
                     {isContratante && (
-                        <FormularioAvaliacao 
-                            onSubmit={(dadosAvaliacao) => handleConcluirServico(dadosAvaliacao)} 
-                            isSubmitting={isSubmitting}
-                            comentarioConclusao={comentarioConclusao}
-                        />
+                        <FormularioAvaliacao onSubmit={handleFinalizacao} isSubmitting={isSubmitting} comentarioConclusao={comentarioConclusao} />
                     )}
                     {!isContratante && (
                         <div className="botoes-container">
-                            <button onClick={() => handleConcluirServico()} className="btn btn-success" disabled={isSubmitting || !comentarioConclusao.trim()}>
+                            <button onClick={() => handleFinalizacao()} className="btn btn-success" disabled={isSubmitting || !comentarioConclusao.trim()}>
                                 {isSubmitting ? 'Confirmando...' : 'Confirmar Conclusão'}
                             </button>
-                            <button onClick={() => setShowConcludeForm(false)} className="btn btn-secondary" disabled={isSubmitting}>
-                                Voltar
-                            </button>
+                            <button onClick={() => setShowConcludeForm(false)} className="btn btn-secondary" disabled={isSubmitting}>Voltar</button>
                         </div>
                     )}
                 </div>
@@ -234,21 +227,19 @@ const SalaDeTrabalho = () => {
         if (os?.status === 'em_andamento') {
             return (
                 <div className="botoes-container">
-                    <button onClick={() => setShowConcludeForm(true)} className="btn btn-success" disabled={isSubmitting}>
-                        Concluir Serviço
-                    </button>
-                    <button onClick={() => setShowCancelForm(true)} className="btn btn-danger" disabled={isSubmitting}>
-                        Cancelar Serviço
-                    </button>
+                    <button onClick={() => setShowConcludeForm(true)} className="btn btn-success" disabled={isSubmitting}>Concluir Serviço</button>
+                    <button onClick={() => setShowCancelForm(true)} className="btn btn-danger" disabled={isSubmitting}>Cancelar Serviço</button>
                 </div>
             );
         }
 
-        if (os?.status === 'concluida') {
-            return <p className="status-final-info">Serviço concluído em {new Date(os.data_conclusao_efetiva).toLocaleString()}.</p>;
-        }
-        if (os?.status === 'cancelada') {
-            return <p className="status-final-info">Serviço cancelado. Motivo: {os.motivo_cancelamento}</p>;
+        if (os?.status === 'concluida' && !isContratante) {
+            return (
+                <div>
+                    <p>Você concluiu este serviço. Aguardando avaliação do contratante.</p>
+                    <button onClick={() => navigate('/dashboard')} className="btn btn-primary" style={{marginTop: '20px'}}>Voltar ao Início</button>
+                </div>
+            );
         }
 
         return null;
@@ -259,10 +250,12 @@ const SalaDeTrabalho = () => {
         if (error) return <div className="sala-trabalho-container-interno"><p className="error-message">{error}</p></div>;
         if (!os || !contratante || !trabalhador) return <div className="sala-trabalho-container-interno"><p>Não foi possível carregar os dados.</p></div>;
 
+        const isFinalizado = os.status === 'concluida' || os.status === 'cancelada';
+        const detalhes = os.detalhes_adicionais || {};
+
         return (
             <div className="sala-trabalho-container-interno">
                 <div className="sala-trabalho-titulo-container">
-                    {/* O título agora usa a coluna 'titulo_servico' que já existia */}
                     <h2>{os.titulo_servico}</h2>
                     <span className={`os-status-badge status-${os.status}`}>{os.status.replace(/_/g, ' ')}</span>
                 </div>
@@ -274,45 +267,47 @@ const SalaDeTrabalho = () => {
                             <p><strong>Telefone:</strong> {contratante.telefone || 'Não informado'}</p>
                         </div>
                         <div className="perfil-card">
-                            <h2>Trabalhador</h2>
+                            <h2>Prestador de Serviços</h2>
                             <p>{trabalhador.apelido}</p>
                             <p><strong>Telefone:</strong> {trabalhador.telefone || 'Não informado'}</p>
                         </div>
                     </section>
-
-                    {/* ================== CORREÇÃO APLICADA AQUI ================== */}
                     <section className="info-servico">
                         <h2>Detalhes do Serviço</h2>
-                        {/* 1. Adicionado o campo de Descrição */}
-                        <p><strong>Descrição:</strong> {os.descricao || 'Não informado'}</p>
+                        <p><strong>Descrição:</strong> {os.descricao_servico || 'Não informado'}</p>
                         <p><strong>Valor Acordado:</strong> R$ {os.valor_acordado}</p>
-                        {/* 2. Corrigido o nome da coluna da habilidade */}
-                        <p><strong>Habilidade Contratada:</strong> {os.habilidade || 'Não informada'}</p>
-                        {os.especificacoes_habilidades && os.especificacoes_habilidades.length > 0 && (
-                            <p><strong>Especificações:</strong> {os.especificacoes_habilidades.join(', ')}</p>
+                        <p><strong>Habilidade Contratada:</strong> {os.habilidade_requerida || 'Não informada'}</p>
+                        {os.endereco && (
+                            <p><strong>Endereço:</strong> {`${os.endereco.rua}, ${os.endereco.numero} - ${os.endereco.bairro}, ${os.endereco.cidade}`}</p>
                         )}
-                        <p><strong>Endereço:</strong> {`${os.endereco.rua}, ${os.endereco.numero} - ${os.endereco.bairro}, ${os.endereco.cidade}`}</p>
-                        <p><strong>Início Previsto:</strong> {new Date(os.data_inicio_prevista).toLocaleString()}</p>
+                        <div className="detalhes-adicionais-sala">
+                            <h4>Detalhes Adicionais e Observações</h4>
+                            <ul>
+                                {detalhes.necessario_transporte && <li>Necessário transporte até o local</li>}
+                                {detalhes.necessario_ferramentas && <li>Necessário que o prestador traga ferramentas</li>}
+                                {detalhes.necessario_refeicao && <li>Refeição inclusa no local</li>}
+                                {detalhes.necessario_ajudante && <li>Será necessário um ajudante</li>}
+                                {(!detalhes.necessario_transporte && !detalhes.necessario_ferramentas && !detalhes.necessario_refeicao && !detalhes.necessario_ajudante) && (<li>Nenhum detalhe adicional informado.</li>)}
+                            </ul>
+                            {os.observacoes ? (<p><strong>Observações:</strong> {os.observacoes}</p>) : (<p><strong>Observações:</strong> Nenhuma observação fornecida.</p>)}
+                        </div>
                     </section>
-                    
                     <section className="secao-chat">
                         <h2>Chat da Conversa</h2>
                         <div className="chat-box" ref={chatBoxRef}>
-                            {mensagens.length === 0 ? (
-                                <p className="placeholder-chat">Nenhuma mensagem ainda. Seja o primeiro a dizer olá!</p>
-                            ) : (
-                                mensagens.map(msg => (
-                                    <div key={msg.id} className={`chat-message ${msg.remetente_id === user.id ? 'minha-mensagem' : 'outra-mensagem'}`}>
-                                        <p className="mensagem-conteudo">{msg.conteudo}</p>
-                                        <span className="mensagem-timestamp">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                    </div>
-                                ))
-                            )}
+                            {mensagens.map(msg => (
+                                <div key={msg.id} className={`chat-message ${msg.remetente_id === user.id ? 'minha-mensagem' : 'outra-mensagem'}`}>
+                                    <p className="mensagem-conteudo">{msg.conteudo}</p>
+                                    <span className="mensagem-timestamp">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
+                            ))}
                         </div>
-                        <form className="chat-input-area" onSubmit={handleEnviarMensagem}>
-                            <input type="text" placeholder="Digite sua mensagem..." value={novaMensagem} onChange={(e) => setNovaMensagem(e.target.value)} />
-                            <button type="submit" className="btn btn-primary" disabled={!novaMensagem.trim()}>Enviar</button>
-                        </form>
+                        {!isFinalizado && (
+                            <form className="chat-input-area" onSubmit={handleEnviarMensagem}>
+                                <input type="text" placeholder="Digite sua mensagem..." value={novaMensagem} onChange={(e) => setNovaMensagem(e.target.value)} />
+                                <button type="submit" className="btn btn-primary" disabled={!novaMensagem.trim()}>Enviar</button>
+                            </form>
+                        )}
                     </section>
                     <section className="secao-acoes-finais">
                         <h2>Ações Finais</h2>

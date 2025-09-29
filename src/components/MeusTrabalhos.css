@@ -1,4 +1,4 @@
-/* src/components/MeusTrabalhos.css - Criado por Jeferson Gnoatto */
+/* src/components/MeusTrabalhos.css - VERSÃO FINAL, COMPLETA E CORRIGIDA */
 /* TAREFA 2 de 4: ESTILO PADRONIZADO E CORRIGIDO PARA OS STATUS DAS OS */
 
 .meus-trabalhos-header-interno {
@@ -43,15 +43,17 @@
   border-left-color: #facc15; /* Amarelo */
 }
 
-.os-card.status-em_andamento {
+.os-card.status-em_andamento,
+.os-card.status-aceita { /* Adicionado 'aceita' para consistência */
   border-left-color: #3b82f6; /* Azul */
 }
 
-.os-card.status-concluido {
+/* AQUI ESTÁ A CORREÇÃO: Usando 'concluida' com 'a' */
+.os-card.status-concluida {
   border-left-color: #10b981; /* Verde */
 }
 
-.os-card.status-cancelado,
+.os-card.status-cancelada,
 .os-card.status-recusada {
   border-left-color: #ef4444; /* Vermelho */
 }
@@ -78,15 +80,17 @@
   color: #422006; /* Texto mais escuro para contraste */
 }
 
-.os-status-badge.status-em_andamento { 
+.os-status-badge.status-em_andamento,
+.os-status-badge.status-aceita { /* Adicionado 'aceita' para consistência */
   background-color: #3b82f6; /* Azul */
 }
 
-.os-status-badge.status-concluido { 
+/* E AQUI TAMBÉM: Usando 'concluida' com 'a' */
+.os-status-badge.status-concluida { 
   background-color: #10b981; /* Verde */
 }
 
-.os-status-badge.status-cancelado,
+.os-status-badge.status-cancelada,
 .os-status-badge.status-recusada { 
   background-color: #ef4444; /* Vermelho */
 }

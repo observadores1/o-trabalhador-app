@@ -108,3 +108,9 @@
 .status-em_andamento { background-color: #3b82f6; }
 .status-concluida { background-color: #10b981; }
 .status-cancelada { background-color: #ef4444; }
+/* Adicione esta regra ao final do seu arquivo CSS */
+
+.os-card .os-status-badge.status-concluida {
+  background-color: #10b981; /* Verde */
+  color: white;
+}

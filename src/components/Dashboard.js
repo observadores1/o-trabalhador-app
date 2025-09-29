@@ -1,43 +1,18 @@
-// src/components/Dashboard.js - ATUALIZADO PARA NAVEGAR PARA A PÁGINA DE RESULTADOS
-
-import React, { useState, useEffect } from 'react';
+// src/components/Dashboard.js - VERSÃO FINAL, COMPLETA E ESTÁVEL
+import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../services/supabaseClient';
 import BuscaContratante from './BuscaContratante';
-// A importação de ResultadosBusca não é mais necessária aqui
 import HeaderEstiloTop from './HeaderEstiloTop';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, avaliacoesPendentes, loading } = useAuth();
   const navigate = useNavigate();
-  
-  // Os estados de resultados e termo de busca não são mais necessários aqui
-  const [avaliacoesPendentes, setAvaliacoesPendentes] = useState([]);
-  const [isLoadingPendencias, setIsLoadingPendencias] = useState(true);
 
   const tipoUsuario = user?.user_metadata?.tipo_usuario || 'trabalhador';
 
-  useEffect(() => {
-    const verificarPendencias = async () => {
-      if (tipoUsuario === 'contratante') {
-        const { data, error } = await supabase.rpc('verificar_avaliacoes_pendentes');
-        if (error) {
-          console.error("Erro ao verificar avaliações pendentes:", error);
-        } else if (data) {
-          setAvaliacoesPendentes(data);
-        }
-      }
-      setIsLoadingPendencias(false);
-    };
-    verificarPendencias();
-  }, [tipoUsuario]);
-
-  // --- FUNÇÃO handleBuscar ATUALIZADA ---
   const handleBuscar = (dadosBusca) => {
-    // Em vez de mudar o estado local, navegamos para a nova rota
-    // e passamos os resultados e o termo da busca no estado da navegação.
     navigate('/resultados-busca', { 
       state: { 
         resultados: dadosBusca.resultados || [],
@@ -67,11 +42,23 @@ const Dashboard = () => {
     </div>
   );
 
-  const renderConteudo = () => {
-    // A lógica de renderizar ResultadosBusca foi removida daqui
-    const temPendencias = avaliacoesPendentes.length > 0;
-
+  if (loading) {
     return (
+      <div className="dashboard-container">
+        <HeaderEstiloTop showUserActions={true} />
+        <div className="loading-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const temPendencias = avaliacoesPendentes.length > 0;
+
+  return (
+    <div className="dashboard-container">
+      <HeaderEstiloTop showUserActions={true} />
+      {temPendencias && <PopupAvaliacaoPendente />}
       <main className="dashboard-main">
         {tipoUsuario === 'contratante' ? (
           <div className="contratante-dashboard">
@@ -82,7 +69,7 @@ const Dashboard = () => {
                 <button 
                   className="btn btn-success" 
                   onClick={() => !temPendencias && navigate('/nova-os')}
-                  disabled={temPendencias || isLoadingPendencias}
+                  disabled={temPendencias}
                 >
                   Criar Oferta de Serviço
                 </button>
@@ -122,14 +109,6 @@ const Dashboard = () => {
           </div>
         )}
       </main>
-    );
-  };
-
-  return (
-    <div className="dashboard-container">
-      <HeaderEstiloTop showUserActions={true} />
-      {avaliacoesPendentes.length > 0 && <PopupAvaliacaoPendente />}
-      {renderConteudo()}
     </div>
   );
 };

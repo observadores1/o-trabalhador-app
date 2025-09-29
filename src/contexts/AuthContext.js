@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+// src/contexts/AuthContext.js - VERSÃO FINAL, ESTÁVEL E CORRIGIDA
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient';
 
 const AuthContext = createContext();
@@ -14,41 +15,49 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [avaliacoesPendentes, setAvaliacoesPendentes] = useState([]);
+
+  const refreshPendencias = useCallback(async (currentUser) => {
+    if (currentUser && currentUser.user_metadata?.tipo_usuario === 'contratante') {
+      const { data, error } = await supabase.rpc('verificar_avaliacoes_pendentes');
+      if (error) {
+        console.error("Erro ao verificar avaliações pendentes:", error);
+        setAvaliacoesPendentes([]);
+      } else {
+        setAvaliacoesPendentes(data || []);
+      }
+    } else {
+      setAvaliacoesPendentes([]);
+    }
+  }, []);
 
   useEffect(() => {
-    // ESTE É O CÓDIGO CORRETO E REAL, DA EVELYN
-    // Verificar se há uma sessão ativa
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
+    const handleAuthChange = async (session) => {
+      setLoading(true);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+
+      if (currentUser) {
+        await refreshPendencias(currentUser);
+      } else {
+        setAvaliacoesPendentes([]);
+      }
       setLoading(false);
     };
 
-    getSession();
+    supabase.auth.getSession().then(({ data: { session } }) => handleAuthChange(session));
 
-    // Escutar mudanças na autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-      }
-    );
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      handleAuthChange(session);
+    });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [refreshPendencias]);
 
   const signUp = async (email, password, userData) => {
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: userData,
-        },
-      });
-
+      const { data, error } = await supabase.auth.signUp({ email, password, options: { data: userData } });
       if (error) throw error;
-
       return { data, error: null };
     } catch (error) {
       return { data: null, error };
@@ -57,11 +66,7 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       return { data, error: null };
     } catch (error) {
@@ -88,7 +93,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Mantemos a session para compatibilidade, mas agora ela é derivada do 'user' real
   const value = {
     user,
     session: user ? { user } : null,
@@ -96,7 +100,9 @@ export const AuthProvider = ({ children }) => {
     signUp,
     signIn,
     signOut,
-    resetPassword
+    resetPassword,
+    avaliacoesPendentes,
+    refreshPendencias,
   };
 
   return (

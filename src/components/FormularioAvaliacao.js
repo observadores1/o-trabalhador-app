@@ -1,4 +1,4 @@
-// src/components/FormularioAvaliacao.js - VERSÃO FINAL INTELIGENTE
+// src/components/FormularioAvaliacao.js - VERSÃO FINAL CORRIGIDA
 
 import React, { useState } from 'react';
 import './FormularioAvaliacao.css';
@@ -19,7 +19,6 @@ const Star = ({ filled, onClick, onMouseEnter }) => (
   </span>
 );
 
-// Adicionamos a prop 'isPendente' para diferenciar os cenários
 const FormularioAvaliacao = ({ onSubmit, isSubmitting, comentarioConclusao, isPendente = false }) => {
   const [notas, setNotas] = useState(
     QUESITOS.reduce((acc, quesito) => ({ ...acc, [quesito.id]: 0 }), {})
@@ -38,15 +37,10 @@ const FormularioAvaliacao = ({ onSubmit, isSubmitting, comentarioConclusao, isPe
     onSubmit(notas);
   };
 
-  // Lógica para habilitar o botão:
-  // Se for pendente, o botão está sempre habilitado (a menos que esteja enviando).
-  // Se não for pendente, depende do comentário de conclusão.
   const isButtonDisabled = isSubmitting || (!isPendente && !comentarioConclusao?.trim());
 
   return (
     <div className="formulario-avaliacao-container">
-      {/* O título e parágrafo são renderizados pelo componente pai agora */}
-      
       {QUESITOS.map((quesito) => (
         <div key={quesito.id} className="quesito-avaliacao">
           <label>{quesito.label}</label>

@@ -1,82 +1,49 @@
-/**
- * @file MeusTrabalhos.js
- * @description Componente que exibe a lista de trabalhos de um profissional.
- * @author Jeferson Gnoatto
- * @date 2025-09-25
- * Louvado seja Cristo, Louvado seja Deus
- */
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseCliente.js';
+// src/components/MeusTrabalhos.js - VERSÃO FINAL, COMPLETA E CORRIGIDA
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../contexts/AuthContext'; // Usando o AuthContext para obter o usuário
+import { supabase } from '../services/supabaseClient';
 import { Link } from 'react-router-dom';
 import HeaderEstiloTop from './HeaderEstiloTop';
 import './MeusTrabalhos.css';
 
 const MeusTrabalhos = () => {
-    // ... (toda a lógica do componente permanece exatamente a mesma)
+    const { user, loading: authLoading } = useAuth(); // Obtendo o usuário e o estado de loading do contexto
     const [trabalhos, setTrabalhos] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [userId, setUserId] = useState(null);
 
-    useEffect(() => {
-        const fetchSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                setUserId(session.user.id);
+    const fetchTrabalhos = useCallback(async () => {
+        if (user) {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('ordens_de_servico')
+                .select(`*`)
+                .eq('trabalhador_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Erro ao buscar trabalhos:', error);
             } else {
-                console.log("Nenhuma sessão encontrada.");
-                setLoading(false);
+                setTrabalhos(data);
             }
-        };
-        fetchSession();
-    }, []);
+            setLoading(false);
+        }
+    }, [user]);
 
     useEffect(() => {
-        if (userId) {
-            const fetchTrabalhos = async () => {
-                setLoading(true);
-                const { data, error } = await supabase
-                    .from('ordens_de_servico')
-                    .select(`*`)
-                    .eq('trabalhador_id', userId);
-
-                if (error) {
-                    console.error('Erro ao buscar trabalhos:', error);
-                } else {
-                    setTrabalhos(data);
-                }
-                setLoading(false);
-            };
+        // Apenas executa a busca se a autenticação não estiver carregando e o usuário existir
+        if (!authLoading && user) {
             fetchTrabalhos();
+        } else if (!authLoading && !user) {
+            // Se não há usuário, não há o que carregar
+            setLoading(false);
         }
-    }, [userId]);
+    }, [user, authLoading, fetchTrabalhos]);
 
-    const getStatusClass = (status) => {
-        const statusNormalizado = (status || '').toLowerCase().replace(/\s+/g, '_');
-        switch (statusNormalizado) {
-            case 'em_andamento':
-                return 'status-em_andamento';
-            case 'oferta_publica':
-                return 'status-oferta_publica';
-            case 'pendente':
-                return 'status-pendente';
-            case 'concluido':
-            case 'concluída':
-                return 'status-concluido';
-            case 'cancelado':
-            case 'cancelada':
-            case 'recusado':
-            case 'recusada':
-                return 'status-cancelado';
-            default:
-                return '';
-        }
-    };
-
-    if (loading) {
+    // O estado de carregamento agora considera tanto o auth quanto a busca local
+    if (loading || authLoading) {
         return (
             <>
-                {/* CORREÇÃO APLICADA AQUI */}
-                <HeaderEstiloTop showUserActions={false} />
+                <HeaderEstiloTop showUserActions={true} />
                 <div className="meus-trabalhos-container">Carregando trabalhos...</div>
             </>
         );
@@ -84,8 +51,7 @@ const MeusTrabalhos = () => {
 
     return (
         <>
-            {/* CORREÇÃO APLICADA AQUI */}
-            <HeaderEstiloTop showUserActions={false} />
+            <HeaderEstiloTop showUserActions={true} />
             <div className="meus-trabalhos-container">
                 <div className="meus-trabalhos-header-interno">
                     <h1>Meus Trabalhos</h1>
@@ -93,21 +59,23 @@ const MeusTrabalhos = () => {
                 {trabalhos.length > 0 ? (
                     <div className="os-lista">
                         {trabalhos.map((trabalho) => {
-                            const isEmAndamento = (trabalho.status || '').toLowerCase().includes('andamento');
+                            const status = (trabalho.status || 'indefinido').toLowerCase().replace(/\s+/g, '_');
+                            const isEmAndamento = status === 'em_andamento' || status === 'aceita';
                             const linkDestino = isEmAndamento 
                                 ? `/trabalho/${trabalho.id}` 
                                 : `/os/${trabalho.id}`;
                             
                             return (
-                                <div key={trabalho.id} className={`os-card ${getStatusClass(trabalho.status)}`}>
+                                // Usando o status direto do banco para gerar a classe
+                                <div key={trabalho.id} className={`os-card status-${status}`}>
                                     <div className="os-card-header">
-                                        <h3>{trabalho.habilidade || 'Serviço sem Título'}</h3>
-                                        <span className={`os-status-badge ${getStatusClass(trabalho.status)}`}>
-                                            {trabalho.status || 'Indefinido'}
+                                        <h3>{trabalho.titulo_servico || 'Serviço sem Título'}</h3>
+                                        <span className={`os-status-badge status-${status}`}>
+                                            {status.replace(/_/g, ' ')}
                                         </span>
                                     </div>
                                     <div className="os-card-body">
-                                        <p>{trabalho.descricao || 'Sem descrição detalhada.'}</p>
+                                        <p>{trabalho.descricao_servico || 'Sem descrição detalhada.'}</p>
                                     </div>
                                     <div className="os-card-actions">
                                         <Link to={linkDestino} className="btn btn-primary">

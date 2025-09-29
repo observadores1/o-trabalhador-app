@@ -33,7 +33,11 @@ const PaginaNovaOS = () => {
       trabalhador_id: trabalhadorId || null,
       habilidade: formData.habilidade,
       titulo_servico: formData.titulo_servico,
-      descricao: formData.descricao_servico,
+      
+      // ================== CORREÇÃO APLICADA AQUI ==================
+      descricao_servico: formData.descricao_servico, // O nome da coluna foi corrigido
+      // =============================================================
+
       data_inicio_prevista: formData.data_inicio_prevista,
       data_conclusao: formData.data_conclusao || null,
       valor_acordado: formData.valor_proposto || null,
@@ -48,6 +52,8 @@ const PaginaNovaOS = () => {
       detalhes_adicionais: formData.detalhes_adicionais,
     };
 
+    // A sintaxe .insert([dadosParaSalvar]) é válida, mas .insert(dadosParaSalvar) é mais comum para um único objeto.
+    // Ambas funcionam. Vamos manter a sua.
     const { error } = await supabase.from('ordens_de_servico').insert([dadosParaSalvar]);
 
     if (error) {
@@ -64,9 +70,8 @@ const PaginaNovaOS = () => {
     <div className="page-container">
       <HeaderEstiloTop showUserActions={false} />
       <main className="main-content">
-        {/* ================== CORREÇÃO DA CLASSE APLICADA AQUI ================== */}
-        <div className="pagina-os-main"> {/* Usando a classe correta do seu CSS */}
-          <div className="pagina-os-header"> {/* Replicando a estrutura do seu CSS */}
+        <div className="pagina-os-main">
+          <div className="pagina-os-header">
             <h1>
               {trabalhadorId ? 'Propor Serviço para Profissional' : 'Criar Nova Oferta de Serviço'}
             </h1>
