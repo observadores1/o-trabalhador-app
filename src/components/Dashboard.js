@@ -1,9 +1,10 @@
-// src/components/Dashboard.js - VERSÃO FINAL, COMPLETA E ESTÁVEL
+// src/pages/Dashboard.js - SEU CÓDIGO + CÂMERAS DE RASTREAMENTO
+
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import BuscaContratante from './BuscaContratante';
-import HeaderEstiloTop from './HeaderEstiloTop';
+import BuscaContratante from '../components/BuscaContratante';
+import HeaderEstiloTop from '../components/HeaderEstiloTop';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -12,13 +13,33 @@ const Dashboard = () => {
 
   const tipoUsuario = user?.user_metadata?.tipo_usuario || 'trabalhador';
 
-  const handleBuscar = (dadosBusca) => {
-    navigate('/resultados-busca', { 
-      state: { 
-        resultados: dadosBusca.resultados || [],
-        termoBusca: { servico: dadosBusca.servico, localizacao: dadosBusca.localizacao }
-      } 
-    });
+  const handleBuscar = (filtros) => {
+    if (!filtros.habilidade) {
+      alert('Por favor, selecione uma habilidade para realizar a busca.');
+      return;
+    }
+
+    // ================== CÂMERA DE SEGURANÇA #2 ==================
+    console.log('[CÂMERA 2 - Dashboard] Filtros recebidos do formulário:', filtros);
+    // ==========================================================
+
+    const params = new URLSearchParams();
+    params.append('habilidade', filtros.habilidade);
+
+    if (filtros.cidade) {
+      params.append('cidade', filtros.cidade);
+    }
+    if (filtros.estado) {
+      params.append('estado', filtros.estado);
+    }
+
+    const urlDeBusca = `/resultados-busca?${params.toString()}`;
+
+    // ================== CÂMERA DE SEGURANÇA #3 ==================
+    console.log('[CÂMERA 3 - Dashboard] Navegando para a URL:', urlDeBusca);
+    // ==========================================================
+
+    navigate(urlDeBusca);
   };
 
   const PopupAvaliacaoPendente = () => (

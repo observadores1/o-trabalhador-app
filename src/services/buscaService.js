@@ -1,39 +1,47 @@
+// src/services/buscaService.js - VERSÃO FINAL SEM COMENTÁRIOS PROBLEMÁTICOS
+
 import { supabase } from './supabaseClient';
 
-export const buscarTrabalhadoresSupabase = async (habilidade, cidade, estado, bairro) => { // <-- Bairro adicionado aqui
-  if (!habilidade || !habilidade.trim()) {
-    return [];
+export const buscarPerfis = async (filtros) => {
+  if (!filtros.habilidade) {
+    return { data: [], error: { message: "A habilidade é um filtro obrigatório." } };
   }
 
-  try {
-    const params = {
-      habilidade_texto: habilidade.toLowerCase().trim()
-    };
+  let query = supabase
+    .from('view_busca_trabalhadores')
+    .select(`
+      id, 
+      apelido, 
+      titulo_profissional, 
+      foto_perfil_url,
+      avaliacao_media, 
+      bairro, 
+      cidade, 
+      estado, 
+      habilidades_texto
+    `);
 
-    if (cidade && cidade.trim()) {
-      params.cidade_texto = cidade.toLowerCase().trim();
-    }
-    if (estado && estado.trim()) {
-      params.estado_texto = estado.toLowerCase().trim();
-    }
-    if (bairro && bairro.trim()) { // <-- Lógica para adicionar o bairro
-      params.bairro_texto = bairro.toLowerCase().trim();
-    }
+  query = query.ilike('habilidades_texto', `%${filtros.habilidade}%`);
 
-    console.log('Chamando RPC com os parâmetros:', params);
-    
-    const { data, error } = await supabase.rpc('buscar_perfis_por_habilidade_v2', params);
-
-    if (error) {
-      console.error('Erro ao chamar a função RPC de busca:', error);
-      throw error;
-    }
-
-    console.log('Trabalhadores encontrados via RPC:', data);
-    return data || [];
-
-  } catch (error) {
-    console.error('Erro inesperado na busca de trabalhadores:', error);
-    return [];
+  if (filtros.estado) {
+    query = query.ilike('estado', `%${filtros.estado}%`);
   }
+  if (filtros.cidade) {
+    query = query.ilike('cidade', `%${filtros.cidade}%`);
+  }
+  if (filtros.bairro) {
+    query = query.ilike('bairro', `%${filtros.bairro}%`);
+  }
+
+  query = query.eq('disponivel_para_servicos', true);
+  query = query.eq('tipo_usuario', 'trabalhador');
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Erro na busca final:', error);
+    return { data: null, error };
+  }
+
+  return { data, error: null };
 };

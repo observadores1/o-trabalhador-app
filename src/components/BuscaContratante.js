@@ -1,131 +1,97 @@
+// src/components/BuscaContratante.js - SEU CÓDIGO + CÂMERA DE RASTREAMENTO
+
 import React, { useState, useEffect } from 'react';
-import { buscarTrabalhadoresSupabase } from '../services/buscaService';
 import { supabase } from '../services/supabaseClient';
 import SeletorDeLocalizacao from './SeletorDeLocalizacao';
-import '../botoes.css';
-
-// ===================================================================
-// 1. DEFINIÇÃO DOS SUB-COMPONENTES INTERNOS (Stateless)
-// ===================================================================
-
-const SecaoServico = ({ servico, setServico, listaDeHabilidades }) => (
-  <div className="form-group">
-    <label htmlFor="servico">Qual serviço você precisa?</label>
-    <select
-      id="servico"
-      value={servico}
-      onChange={(e) => setServico(e.target.value)}
-      className="form-input"
-      required
-    >
-      <option value="">-- Selecione um serviço --</option>
-      {listaDeHabilidades.map(h => (
-        <option key={h.nome} value={h.nome}>{h.nome}</option>
-      ))}
-    </select>
-  </div>
-);
-
-const SecaoLocalizacao = ({ estado, setEstado, cidade, setCidade, bairro, setBairro }) => {
-  const handleEstadoChange = (novoEstado) => {
-    setEstado(novoEstado);
-    setCidade(''); // Limpa a cidade quando o estado muda
-  };
-
-  const handleCidadeChange = (novaCidade) => {
-    setCidade(novaCidade);
-  };
-
-  return (
-    <>
-      <SeletorDeLocalizacao
-        valorEstado={estado}
-        valorCidade={cidade}
-        onEstadoChange={handleEstadoChange}
-        onCidadeChange={handleCidadeChange}
-      />
-      <div className="form-group">
-        <label htmlFor="bairro">Bairro (Opcional)</label>
-        <input
-          type="text"
-          id="bairro"
-          value={bairro}
-          onChange={(e) => setBairro(e.target.value)}
-          placeholder="Filtre por um bairro específico"
-          className="form-input"
-        />
-      </div>
-    </>
-  );
-};
-
-// ===================================================================
-// 2. COMPONENTE PRINCIPAL (Container) - Agora muito mais limpo
-// ===================================================================
 
 const BuscaContratante = ({ onBuscar }) => {
-  const [servico, setServico] = useState('');
-  const [estado, setEstado] = useState('');
-  const [cidade, setCidade] = useState('');
-  const [bairro, setBairro] = useState('');
-  const [buscando, setBuscando] = useState(false);
-  const [listaDeHabilidades, setListaDeHabilidades] = useState([]);
+  const [habilidades, setHabilidades] = useState([]);
+  const [habilidadeSelecionada, setHabilidadeSelecionada] = useState('');
+  const [localizacao, setLocalizacao] = useState({ estado: '', cidade: '' });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const buscarHabilidades = async () => {
-      const { data } = await supabase
-        .from('habilidades')
-        .select('nome')
-        .order('nome', { ascending: true });
-
-      if (data) {
-        setListaDeHabilidades(data);
+    const carregarHabilidades = async () => {
+      const { data, error } = await supabase.from('habilidades').select('nome').order('nome', { ascending: true });
+      if (error) {
+        console.error("Erro ao carregar habilidades:", error);
+      } else {
+        setHabilidades(data.map(h => h.nome));
       }
     };
-    buscarHabilidades();
+    carregarHabilidades();
   }, []);
+
+  const handleLocalizacaoChange = (novaLocalizacao) => {
+    setLocalizacao(novaLocalizacao);
+  };
+
+  const handleEstadoChange = (estado) => {
+    setLocalizacao({ estado: estado, cidade: '' });
+  };
+
+  const handleCidadeChange = (cidade) => {
+    setLocalizacao(prevState => ({ ...prevState, cidade: cidade }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!servico) {
-      alert('Por favor, selecione um serviço.');
+    setError('');
+
+    if (!habilidadeSelecionada) {
+      setError('Por favor, selecione uma habilidade.');
       return;
     }
-    setBuscando(true);
-    try {
-      const resultados = await buscarTrabalhadoresSupabase(servico, cidade, estado, bairro);
-      onBuscar({ resultados, servico, cidade, estado, bairro });
-    } catch (error) {
-      alert('Ocorreu um erro ao realizar a busca.');
-    } finally {
-      setBuscando(false);
-    }
+
+    setIsLoading(true);
+
+    const filtrosParaEnviar = {
+      habilidade: habilidadeSelecionada,
+      cidade: localizacao.cidade,
+      estado: localizacao.estado,
+    };
+
+    // ================== CÂMERA DE SEGURANÇA #1 ==================
+    console.log('[CÂMERA 1 - BuscaContratante] Filtros que saíram do formulário:', filtrosParaEnviar);
+    // ==========================================================
+
+    onBuscar(filtrosParaEnviar);
+
+    setIsLoading(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="busca-contratante-form">
-      <SecaoServico
-        servico={servico}
-        setServico={setServico}
-        listaDeHabilidades={listaDeHabilidades}
-      />
+    <div className="busca-contratante-container">
+      <form onSubmit={handleSubmit} className="busca-form">
+        <div className="form-group">
+          <label htmlFor="habilidade-select">Qual serviço você precisa?</label>
+          <select
+            id="habilidade-select"
+            value={habilidadeSelecionada}
+            onChange={(e) => setHabilidadeSelecionada(e.target.value)}
+            required
+          >
+            <option value="">Selecione uma habilidade</option>
+            {habilidades.map((h) => (
+              <option key={h} value={h}>{h}</option>
+            ))}
+          </select>
+        </div>
 
-      <SecaoLocalizacao
-        estado={estado}
-        setEstado={setEstado}
-        cidade={cidade}
-        setCidade={setCidade}
-        bairro={bairro}
-        setBairro={setBairro}
-      />
+        <SeletorDeLocalizacao 
+          onLocalizacaoChange={handleLocalizacaoChange}
+          onEstadoChange={handleEstadoChange}
+          onCidadeChange={handleCidadeChange}
+        />
 
-      <button type="submit" className="btn btn-primary" disabled={buscando}>
-        {buscando ? 'Buscando...' : 'Buscar Trabalhadores'}
-      </button>
-    </form>
+        <button type="submit" className="btn btn-primary" disabled={isLoading}>
+          {isLoading ? 'Buscando...' : 'Buscar Trabalhadores'}
+        </button>
+        {error && <p className="error-message" style={{ marginTop: '10px' }}>{error}</p>}
+      </form>
+    </div>
   );
 };
 
 export default BuscaContratante;
-
-
