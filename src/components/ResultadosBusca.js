@@ -1,20 +1,21 @@
-// src/pages/ResultadosBusca.js - SEU CÓDIGO + CÂMERAS DE RASTREAMENTO
+// src/pages/ResultadosBusca.js - VERSÃO FINAL CORRIGIDA (SEM AVISOS)
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import HeaderEstiloTop from '../components/HeaderEstiloTop';
 import { buscarPerfis } from '../services/buscaService';
+import { supabase } from '../services/supabaseClient';
 import './ResultadosBusca.css';
 
 const FOTO_PADRAO_URL = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face';
 
-const ResultadosBusca = (  ) => {
+const ResultadosBusca = ( ) => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const [resultados, setResultados] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // Agora será usado
+  const [error, setError] = useState(null);         // Agora será usado
   const [termoBusca, setTermoBusca] = useState({});
 
   useEffect(() => {
@@ -24,11 +25,6 @@ const ResultadosBusca = (  ) => {
       cidade: params.get('cidade'),
       estado: params.get('estado'),
     };
-
-    // ================== CÂMERA DE SEGURANÇA #4 ==================
-    console.log('[CÂMERA 4 - ResultadosBusca] Filtros lidos da URL:', filtros);
-    // ==========================================================
-
     setTermoBusca(filtros);
 
     if (!filtros.habilidade) {
@@ -40,23 +36,42 @@ const ResultadosBusca = (  ) => {
     const executarBusca = async () => {
       setIsLoading(true);
       setError(null);
-      
-      // ================== CÂMERA DE SEGURANÇA #5 ==================
-      console.log('[CÂMERA 5 - ResultadosBusca] Executando busca com os filtros:', filtros);
-      // ==========================================================
 
-      const { data, error: buscaError } = await buscarPerfis(filtros);
-
-      // ================== CÂMERA DE SEGURANÇA #6 (A VERDADE) ==================
-      console.log('%c[CÂMERA 6 - ResultadosBusca] Resposta do Supabase (Dados):', 'color: lightgreen; font-weight: bold;', data);
-      console.error('[CÂMERA 6 - ResultadosBusca] Resposta do Supabase (Erro):', buscaError);
-      // =====================================================================
+      const { data: perfis, error: buscaError } = await buscarPerfis(filtros);
 
       if (buscaError) {
         setError(buscaError.message);
-      } else {
-        setResultados(data || []);
+        setIsLoading(false);
+        return;
       }
+
+      if (!perfis || perfis.length === 0) {
+        setResultados([]);
+        setIsLoading(false);
+        return;
+      }
+
+      const trabalhadorIds = perfis.map(p => p.id);
+
+      const { data: estatisticas, error: statsError } = await supabase
+        .from('view_estatisticas_trabalhadores')
+        .select('trabalhador_id, media_geral_estrelas, total_avaliacoes')
+        .in('trabalhador_id', trabalhadorIds);
+
+      if (statsError) {
+        console.error("Erro ao buscar estatísticas:", statsError);
+      }
+
+      const resultadosCombinados = perfis.map(perfil => {
+        const stats = estatisticas?.find(s => s.trabalhador_id === perfil.id);
+        return {
+          ...perfil,
+          avaliacao_media: stats?.media_geral_estrelas || null,
+          total_avaliacoes: stats?.total_avaliacoes || 0,
+        };
+      });
+
+      setResultados(resultadosCombinados);
       setIsLoading(false);
     };
 
@@ -64,13 +79,12 @@ const ResultadosBusca = (  ) => {
   }, [location.search]);
 
   const handleVerPerfil = (trabalhadorId) => {
-    if (trabalhadorId) {
-      navigate(`/perfil/${trabalhadorId}`);
-    }
+    if (trabalhadorId) navigate(`/perfil/${trabalhadorId}`);
   };
 
   const onVoltarBusca = () => navigate('/dashboard');
 
+  // ================== LÓGICA DE RENDERIZAÇÃO CORRIGIDA ==================
   const renderConteudo = () => {
     if (isLoading) {
       return <p>Buscando trabalhadores...</p>;
@@ -107,20 +121,27 @@ const ResultadosBusca = (  ) => {
                 alt={trabalhador.apelido}
                 className="avatar-pequeno" 
               />
-              <h3>{trabalhador.apelido}</h3>
-              <p>{trabalhador.titulo_profissional || 'Trabalhador'}</p>
-              
-              <div className="avaliacao">
-                ⭐ {trabalhador.avaliacao_media ? Number(trabalhador.avaliacao_media).toFixed(1) : 'N/A'}
+              <div className="trabalhador-info">
+                <h3>{trabalhador.apelido}</h3>
+                <p>{trabalhador.titulo_profissional || 'Trabalhador'}</p>
+                
+                <div className="avaliacao">
+                  <span>⭐ {trabalhador.avaliacao_media ? Number(trabalhador.avaliacao_media).toFixed(1) : 'N/A'}</span>
+                  <span>
+                    ({trabalhador.total_avaliacoes} {trabalhador.total_avaliacoes === 1 ? 'avaliação' : 'avaliações'})
+                  </span>
+                </div>
+
+                <div className="habilidades-preview">
+                  {(trabalhador.habilidades || []).slice(0, 3).map(h => (
+                    <span key={h} className="habilidade-tag-preview">{h}</span>
+                  ))}
+                </div>
               </div>
 
-              <div className="habilidades-preview">
-                {(trabalhador.habilidades || []).slice(0, 3).map(h => (
-                  <span key={h} className="habilidade-tag-preview">{h}</span>
-                ))}
-              </div>
-
-              <button className="btn btn-primary" onClick={() => handleVerPerfil(trabalhador.id)}>Ver Perfil</button>
+              <button className="btn btn-primary" onClick={() => handleVerPerfil(trabalhador.id)}>
+                Ver Perfil
+              </button>
             </div>
           ))}
         </div>
@@ -128,6 +149,7 @@ const ResultadosBusca = (  ) => {
       </>
     );
   };
+  // ========================================================================
 
   return (
     <div className="resultados-page-container">

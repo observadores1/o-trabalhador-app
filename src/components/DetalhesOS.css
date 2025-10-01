@@ -108,3 +108,26 @@
   gap: 10px;       /* <<-- ESTA É A MÁGICA! Adiciona um espaço de 10px entre os botões */
   margin-top: 15px;
 }
+/* === ESTILOS ADICIONADOS PARA CORRIGIR O FORMULÁRIO DE CANCELAMENTO === */
+
+.detalhes-os-actions .cancelamento-form {
+  width: 100%;
+  max-width: 600px; /* Limita a largura máxima */
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.detalhes-os-actions .input-justificativa {
+  width: 100%;
+  min-height: 100px; /* Garante uma altura mínima para o campo */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: inherit; /* Usa a mesma fonte do resto do site */
+  font-size: 1rem;
+  margin-bottom: 15px; /* Espaço antes dos botões */
+  box-sizing: border-box; /* Garante que o padding não aumente a largura total */
+}
+
+/* ======================================================================== */

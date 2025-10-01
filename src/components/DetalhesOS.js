@@ -1,12 +1,12 @@
+// src/pages/DetalhesOS.js - VERSÃO COM CORREÇÃO DE ESTILO NO FORMULÁRIO
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseClient';
-import HeaderEstiloTop from './HeaderEstiloTop'; // Mantendo seu import original
+import HeaderEstiloTop from './HeaderEstiloTop';
 import EstrelasDisplay from './EstrelasDisplay';
 import './DetalhesOS.css';
-
-
 
 const formatarDataParaExibicao = (dataString) => {
   if (!dataString) return 'Não informada';
@@ -197,14 +197,12 @@ const DetalhesOS = () => {
                 {ordemDeServico.avaliacao_texto && <p><strong>Comentário da Avaliação:</strong> {ordemDeServico.avaliacao_texto}</p>}
                 {ordemDeServico.avaliacao_estrelas && (
                   <div className="avaliacao-grid">
-                    {/* #################### A ÚNICA MUDANÇA ESTÁ AQUI #################### */}
                     {Object.entries(ordemDeServico.avaliacao_estrelas).map(([quesito, nota]) => (
                       <div className="quesito-display" key={quesito}>
                         <span>{quesito.replace(/_/g, ' ')}:</span>
-                        <EstrelasDisplay nota={parseInt(nota, 10)} /> {/* Garantindo que a nota seja um número inteiro */}
+                        <EstrelasDisplay nota={parseInt(nota, 10)} />
                       </div>
                     ))}
-                    {/* ################################################################### */}
                   </div>
                 )}
               </div>
@@ -250,11 +248,14 @@ const DetalhesOS = () => {
             {renderAcoes()}
             {exibirCampoCancelamento && (
               <div className="cancelamento-form">
+                {/* ================== MUDANÇA DE ESTILO AQUI ================== */}
                 <textarea
+                  className="input-justificativa" /* Adicionando uma classe para estilização */
                   placeholder="Justificativa obrigatória para o cancelamento..."
                   value={motivoCancelamento}
                   onChange={(e) => setMotivoCancelamento(e.target.value)}
                 />
+                {/* ============================================================= */}
                 <div className="botoes-container">
                   <button onClick={handleCancelarClick} className="btn btn-danger" disabled={isSubmitting || !motivoCancelamento.trim()}>Confirmar Cancelamento</button>
                   <button onClick={() => setExibirCampoCancelamento(false)} className="btn btn-secondary" disabled={isSubmitting}>Voltar</button>
@@ -268,7 +269,6 @@ const DetalhesOS = () => {
   };
 
   return (
-    // Mantendo a estrutura JSX correta que você já tinha
     <div className="page-container">
       <HeaderEstiloTop showUserActions={false} />
       {renderConteudo()}
