@@ -1,0 +1,16 @@
+/* src/components/EstrelasDisplay.css */
+
+.estrelas-display {
+  display: inline-block;
+  font-size: 1.2rem;
+  color: #ccc; /* Cor das estrelas vazias */
+}
+
+.estrelas-display .preenchida {
+  color: #ffc107; /* Cor das estrelas preenchidas (amarelo/dourado) */
+}
+
+.estrelas-display-vazio {
+  font-style: italic;
+  color: #888;
+}

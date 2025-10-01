@@ -1,15 +1,15 @@
 /**
  * @file EditarOS.js
- * @description Página para editar uma Ordem de Serviço existente.
- * @author Jeferson Gnoatto
- * @date 2025-09-19
+ * @description Página para editar uma Ordem de Serviço existente. (VERSÃO COM CORREÇÃO DE FUSO HORÁRIO)
+ * @author Jeferson Gnoatto & Manus AI
+ * @date 2025-09-27
  * Louvado seja Cristo, Louvado seja Deus
  */
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import FormularioOrdemServico from './FormularioOrdemServico';
-import HeaderEstiloTop from './HeaderEstiloTop'; // Importa o Estilo Top
+import HeaderEstiloTop from './HeaderEstiloTop';
 // import './EditarOS.css'; // Se você tiver estilos específicos
 
 const EditarOS = () => {
@@ -17,15 +17,24 @@ const EditarOS = () => {
   const navigate = useNavigate();
 
   const handleUpdateOS = async (formData) => {
-    // Validação para garantir que a data de término não seja vazia
+    // ================== CORREÇÃO DE FUSO HORÁRIO APLICADA AQUI ==================
+    // Garante que a data de início seja convertida para o formato ISO com fuso horário UTC.
+    const dataInicioISO = formData.data_inicio_prevista 
+      ? new Date(formData.data_inicio_prevista).toISOString() 
+      : null;
+
+    // Garante que a data de conclusão seja nula se estiver vazia.
     const dataConclusaoFinal = formData.data_conclusao || null;
+    // ==========================================================================
 
     const osParaAtualizar = {
       habilidade: formData.habilidade,
       titulo_servico: formData.titulo_servico,
       descricao_servico: formData.descricao_servico,
-      data_inicio_prevista: formData.data_inicio_prevista,
-      data_conclusao: dataConclusaoFinal, // Usa a data formatada ou null
+      
+      data_inicio_prevista: dataInicioISO, // Usa a data convertida
+      
+      data_conclusao: dataConclusaoFinal,
       valor_acordado: formData.valor_proposto || null,
       observacoes: formData.observacoes,
       endereco: formData.endereco,
@@ -50,7 +59,7 @@ const EditarOS = () => {
   };
 
   return (
-    <div className="page-container"> {/* Container geral para o Estilo Top */}
+    <div className="page-container">
       <HeaderEstiloTop showUserActions={false} />
       <main className="main-content">
         <div className="pagina-os-header">
@@ -59,7 +68,7 @@ const EditarOS = () => {
         </div>
         <div className="pagina-os-main">
           <FormularioOrdemServico 
-            osIdParaEditar={osId} // Passa o ID para o formulário saber que está em modo de edição
+            osIdParaEditar={osId}
             onFormSubmit={handleUpdateOS}
           />
         </div>

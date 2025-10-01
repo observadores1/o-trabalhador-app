@@ -37,7 +37,9 @@
 
 .estrelas-container {
   display: flex;
-  direction: rtl; /* Faz as estrelas preencherem da direita para a esquerda no hover */
+  flex-direction: row; /* GARANTE A ORDEM CORRETA DA ESQUERDA PARA A DIREITA */
+  justify-content: flex-start; /* Alinha as estrelas no início */
+  cursor: pointer;
 }
 
 .estrela-avaliacao {

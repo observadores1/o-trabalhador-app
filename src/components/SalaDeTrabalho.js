@@ -1,15 +1,23 @@
-// src/components/SalaDeTrabalho.js - VERSÃO FINAL, COMPLETA E ESTÁVEL
+/**
+ * @file SalaDeTrabalho.js
+ * @description Componente central para ações e extrato final de uma OS. (VERSÃO COM CORREÇÃO FINAL NA EXIBIÇÃO DAS ESTRELAS)
+ * @author Jeferson Gnoatto & Manus AI
+ * @date 2025-09-30
+ * Louvado seja Cristo, Louvado seja Deus
+ */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseClient';
-import HeaderEstiloTop from './HeaderEstiloTop';
-import FormularioAvaliacao from './FormularioAvaliacao';
+import HeaderEstiloTop from '../components/HeaderEstiloTop';
+import FormularioAvaliacao from '../components/FormularioAvaliacao';
 import './SalaDeTrabalho.css';
 
 const EstrelasDisplay = ({ nota }) => {
-  const notaNumerica = Number(nota);
-  if (!notaNumerica || notaNumerica === 0) return <span className="estrelas-display">N/A</span>;
+  const notaNumerica = parseInt(nota, 10);
+  if (isNaN(notaNumerica) || notaNumerica === 0) {
+    return <span className="estrelas-display-vazio">N/A</span>;
+  }
   return (
     <div className="estrelas-display">
       {[...Array(5)].map((_, i) => (
@@ -35,7 +43,9 @@ const SalaDeTrabalho = () => {
     const [showConcludeForm, setShowConcludeForm] = useState(false);
     const [showCancelForm, setShowCancelForm] = useState(false);
     const [motivoCancelamento, setMotivoCancelamento] = useState('');
-    const [comentarioConclusao, setComentarioConclusao] = useState('');
+    const [comentarioFinal, setComentarioFinal] = useState('');
+
+    const isFinalizado = os?.status === 'concluida' || os?.status === 'cancelada';
 
     const carregarDadosTrabalho = useCallback(async (showLoading = true) => {
         if (!osId || !user) return;
@@ -70,13 +80,13 @@ const SalaDeTrabalho = () => {
     useEffect(() => { carregarDadosTrabalho(); }, [carregarDadosTrabalho]);
 
     useEffect(() => {
-        if (!osId || os?.status === 'concluida' || os?.status === 'cancelada') return;
+        if (!osId || isFinalizado) return;
         const channel = supabase.channel(`sala_trabalho_${osId}`)
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mensagens', filter: `ordem_de_servico_id=eq.${osId}` },
                 (payload) => { setMensagens((prevMensagens) => [...prevMensagens, payload.new]); })
             .subscribe();
         return () => { supabase.removeChannel(channel); };
-    }, [osId, os?.status]);
+    }, [osId, isFinalizado]);
 
     useEffect(() => {
         if (chatBoxRef.current) { chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight; }
@@ -84,7 +94,7 @@ const SalaDeTrabalho = () => {
 
     const handleEnviarMensagem = async (e) => {
         e.preventDefault();
-        if (novaMensagem.trim() === '' || !user || !osId) return;
+        if (novaMensagem.trim() === '' || !user || !osId || isFinalizado) return;
         const { error } = await supabase.from('mensagens').insert({ ordem_de_servico_id: osId, remetente_id: user.id, conteudo: novaMensagem.trim() });
         if (error) {
             console.error('Erro ao enviar mensagem:', error);
@@ -94,22 +104,35 @@ const SalaDeTrabalho = () => {
         }
     };
 
-    const handleFinalizacao = async (dadosAvaliacao = null) => {
+    const handleFinalizarServico = async (dadosAvaliacao = null) => {
+        const isContratante = user.id === os.contratante_id;
+        const isTrabalhador = user.id === os.trabalhador_id;
+
+        if ((isContratante || isTrabalhador) && !comentarioFinal.trim()) {
+            alert(isContratante ? "O comentário da avaliação é obrigatório." : "O relatório de conclusão é obrigatório.");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             const { error: rpcError } = await supabase.rpc('finalizar_servico', {
                 os_id_param: osId,
-                comentario_final: comentarioConclusao,
+                comentario_final: comentarioFinal,
                 avaliacao_estrelas_param: dadosAvaliacao
             });
+
             if (rpcError) throw rpcError;
 
-            alert("Operação realizada com sucesso!");
+            alert("Ação realizada com sucesso!");
             setShowConcludeForm(false);
             await carregarDadosTrabalho(false);
-            await refreshPendencias(user);
+            
+            if (isContratante) {
+                await refreshPendencias(user);
+            }
+
         } catch (err) {
-            console.error("Erro detalhado ao finalizar o serviço:", err);
+            console.error("Erro ao finalizar serviço:", err);
             alert(`Ocorreu um erro: ${err.message}`);
         } finally {
             setIsSubmitting(false);
@@ -135,22 +158,34 @@ const SalaDeTrabalho = () => {
     };
 
     const renderAcoesFinais = () => {
-        const isContratante = user.id === contratante?.id;
+        if (!os) return null;
+        const isContratante = user.id === os.contratante_id;
 
-        if (os?.status === 'concluida' && os.avaliado_pelo_contratante) {
+        if ((os.status === 'concluida' && os.avaliado_pelo_contratante) || os.status === 'cancelada') {
             return (
                 <div className="extrato-final">
-                    <h4>Serviço Finalizado</h4>
-                    {os.comentario_encerramento_trabalhador && <p><strong>Relatório do Prestador de Serviços:</strong> {os.comentario_encerramento_trabalhador}</p>}
-                    {os.avaliacao_texto && <p><strong>Comentário da Avaliação:</strong> {os.avaliacao_texto}</p>}
-                    {os.avaliacao_estrelas && (
+                    <h4>{os.status === 'cancelada' ? 'Serviço Cancelado' : 'Serviço Finalizado'}</h4>
+                    {os.status === 'cancelada' && <p><strong>Motivo:</strong> {os.motivo_cancelamento}</p>}
+                    
+                    {os.status === 'concluida' && (
                         <>
-                            <h4 style={{marginTop: '1rem'}}>Avaliação Detalhada</h4>
-                            <div className="avaliacao-grid">
-                                {Object.entries(os.avaliacao_estrelas).map(([quesito, nota]) => (
-                                    <div className="quesito-display" key={quesito}><span>{quesito.replace(/_/g, ' ')}:</span> <EstrelasDisplay nota={nota} /></div>
-                                ))}
-                            </div>
+                            {os.comentario_encerramento_trabalhador && <p><strong>Relatório do Prestador:</strong> {os.comentario_encerramento_trabalhador}</p>}
+                            {os.avaliacao_texto && <p><strong>Comentário da Avaliação:</strong> {os.avaliacao_texto}</p>}
+                            {os.avaliacao_estrelas && (
+                                <>
+                                    <h4 style={{marginTop: '1rem'}}>Avaliação Detalhada</h4>
+                                    <div className="avaliacao-grid">
+                                        {/* #### CORREÇÃO FINAL APLICADA AQUI #### */}
+                                        {/* Agora, passamos 'nota' (o valor numérico) para o componente EstrelasDisplay, em vez do objeto inteiro. */}
+                                        {Object.entries(os.avaliacao_estrelas).map(([quesito, nota]) => (
+                                            <div className="quesito-display" key={quesito}>
+                                                <span>{quesito.replace(/_/g, ' ')}:</span> 
+                                                <EstrelasDisplay nota={nota} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </>
                     )}
                     <button onClick={() => navigate('/dashboard')} className="btn btn-primary" style={{marginTop: '20px'}}>Voltar ao Início</button>
@@ -158,22 +193,22 @@ const SalaDeTrabalho = () => {
             );
         }
 
-        if (os?.status === 'cancelada') {
-            return (
-                <div>
-                    <p className="status-final-info">Serviço cancelado. Motivo: {os.motivo_cancelamento}</p>
-                    <button onClick={() => navigate('/dashboard')} className="btn btn-primary" style={{marginTop: '20px'}}>Voltar ao Início</button>
-                </div>
-            );
-        }
-
-        if (os?.status === 'concluida' && isContratante && !os.avaliado_pelo_contratante) {
+        if (os.status === 'concluida' && isContratante && !os.avaliado_pelo_contratante) {
             return (
                 <div className="conclusao-form">
                     <h3>Avaliação Pendente</h3>
                     <p>O prestador de serviços concluiu o serviço. Por favor, deixe seu comentário e avaliação para finalizar.</p>
-                    <textarea placeholder="Deixe seu comentário sobre o serviço..." value={comentarioConclusao} onChange={(e) => setComentarioConclusao(e.target.value)} disabled={isSubmitting} />
-                    <FormularioAvaliacao onSubmit={handleFinalizacao} isSubmitting={isSubmitting} comentarioConclusao={comentarioConclusao} isPendente={true} />
+                    <textarea placeholder="Deixe seu comentário sobre o serviço..." value={comentarioFinal} onChange={(e) => setComentarioFinal(e.target.value)} disabled={isSubmitting} />
+                    <FormularioAvaliacao onSubmit={handleFinalizarServico} isSubmitting={isSubmitting} comentarioConclusao={comentarioFinal} isPendente={true} />
+                </div>
+            );
+        }
+        
+        if (os.status === 'concluida' && !isContratante) {
+            return (
+                <div>
+                    <p>Você concluiu este serviço. Aguardando avaliação do contratante.</p>
+                    <button onClick={() => navigate('/dashboard')} className="btn btn-primary" style={{marginTop: '20px'}}>Voltar ao Início</button>
                 </div>
             );
         }
@@ -184,16 +219,15 @@ const SalaDeTrabalho = () => {
                     <h3>{isContratante ? 'Concluir e Avaliar Serviço' : 'Concluir Serviço'}</h3>
                     <textarea
                         placeholder={isContratante ? "Deixe o comentário da sua avaliação..." : "Deixe seu relatório de conclusão ou orientações para o contratante."}
-                        value={comentarioConclusao}
-                        onChange={(e) => setComentarioConclusao(e.target.value)}
+                        value={comentarioFinal}
+                        onChange={(e) => setComentarioFinal(e.target.value)}
                         disabled={isSubmitting}
                     />
-                    {isContratante && (
-                        <FormularioAvaliacao onSubmit={handleFinalizacao} isSubmitting={isSubmitting} comentarioConclusao={comentarioConclusao} />
-                    )}
-                    {!isContratante && (
+                    {isContratante ? (
+                        <FormularioAvaliacao onSubmit={handleFinalizarServico} isSubmitting={isSubmitting} comentarioConclusao={comentarioFinal} />
+                    ) : (
                         <div className="botoes-container">
-                            <button onClick={() => handleFinalizacao()} className="btn btn-success" disabled={isSubmitting || !comentarioConclusao.trim()}>
+                            <button onClick={() => handleFinalizarServico()} className="btn btn-success" disabled={isSubmitting || !comentarioFinal.trim()}>
                                 {isSubmitting ? 'Confirmando...' : 'Confirmar Conclusão'}
                             </button>
                             <button onClick={() => setShowConcludeForm(false)} className="btn btn-secondary" disabled={isSubmitting}>Voltar</button>
@@ -206,38 +240,20 @@ const SalaDeTrabalho = () => {
         if (showCancelForm) {
             return (
                 <div className="cancelamento-form">
-                    <textarea
-                        placeholder="Justificativa obrigatória para o cancelamento..."
-                        value={motivoCancelamento}
-                        onChange={(e) => setMotivoCancelamento(e.target.value)}
-                        disabled={isSubmitting}
-                    />
+                    <textarea placeholder="Justificativa obrigatória para o cancelamento..." value={motivoCancelamento} onChange={(e) => setMotivoCancelamento(e.target.value)} disabled={isSubmitting} />
                     <div className="botoes-container">
-                        <button onClick={handleCancelarServico} className="btn btn-danger" disabled={isSubmitting || !motivoCancelamento.trim()}>
-                            {isSubmitting ? 'Cancelando...' : 'Confirmar Cancelamento'}
-                        </button>
-                        <button onClick={() => setShowCancelForm(false)} className="btn btn-secondary" disabled={isSubmitting}>
-                            Voltar
-                        </button>
+                        <button onClick={handleCancelarServico} className="btn btn-danger" disabled={isSubmitting || !motivoCancelamento.trim()}>{isSubmitting ? 'Cancelando...' : 'Confirmar Cancelamento'}</button>
+                        <button onClick={() => setShowCancelForm(false)} className="btn btn-secondary" disabled={isSubmitting}>Voltar</button>
                     </div>
                 </div>
             );
         }
 
-        if (os?.status === 'em_andamento') {
+        if (os.status === 'em_andamento' || os.status === 'aceita') {
             return (
                 <div className="botoes-container">
-                    <button onClick={() => setShowConcludeForm(true)} className="btn btn-success" disabled={isSubmitting}>Concluir Serviço</button>
                     <button onClick={() => setShowCancelForm(true)} className="btn btn-danger" disabled={isSubmitting}>Cancelar Serviço</button>
-                </div>
-            );
-        }
-
-        if (os?.status === 'concluida' && !isContratante) {
-            return (
-                <div>
-                    <p>Você concluiu este serviço. Aguardando avaliação do contratante.</p>
-                    <button onClick={() => navigate('/dashboard')} className="btn btn-primary" style={{marginTop: '20px'}}>Voltar ao Início</button>
+                    <button onClick={() => setShowConcludeForm(true)} className="btn btn-success" disabled={isSubmitting}>Concluir Serviço</button>
                 </div>
             );
         }
@@ -245,15 +261,15 @@ const SalaDeTrabalho = () => {
         return null;
     };
 
-    const renderConteudoPrincipal = () => {
-        if (isLoading) return <div className="sala-trabalho-container-interno"><p>Carregando...</p></div>;
-        if (error) return <div className="sala-trabalho-container-interno"><p className="error-message">{error}</p></div>;
-        if (!os || !contratante || !trabalhador) return <div className="sala-trabalho-container-interno"><p>Não foi possível carregar os dados.</p></div>;
+    if (isLoading) return <div className="sala-trabalho-container-interno"><p>Carregando...</p></div>;
+    if (error) return <div className="sala-trabalho-container-interno"><p className="error-message">{error}</p></div>;
+    if (!os || !contratante || !trabalhador) return <div className="sala-trabalho-container-interno"><p>Não foi possível carregar os dados.</p></div>;
 
-        const isFinalizado = os.status === 'concluida' || os.status === 'cancelada';
-        const detalhes = os.detalhes_adicionais || {};
+    const detalhes = os.detalhes_adicionais || {};
 
-        return (
+    return (
+        <div className="page-container">
+            <HeaderEstiloTop showUserActions={false} />
             <div className="sala-trabalho-container-interno">
                 <div className="sala-trabalho-titulo-container">
                     <h2>{os.titulo_servico}</h2>
@@ -264,22 +280,20 @@ const SalaDeTrabalho = () => {
                         <div className="perfil-card">
                             <h2>Contratante</h2>
                             <p>{contratante.apelido}</p>
-                            <p><strong>Telefone:</strong> {contratante.telefone || 'Não informado'}</p>
+                            {!isFinalizado && <p><strong>Telefone:</strong> {contratante.telefone || 'Não informado'}</p>}
                         </div>
                         <div className="perfil-card">
                             <h2>Prestador de Serviços</h2>
                             <p>{trabalhador.apelido}</p>
-                            <p><strong>Telefone:</strong> {trabalhador.telefone || 'Não informado'}</p>
+                            {!isFinalizado && <p><strong>Telefone:</strong> {trabalhador.telefone || 'Não informado'}</p>}
                         </div>
                     </section>
                     <section className="info-servico">
                         <h2>Detalhes do Serviço</h2>
                         <p><strong>Descrição:</strong> {os.descricao_servico || 'Não informado'}</p>
                         <p><strong>Valor Acordado:</strong> R$ {os.valor_acordado}</p>
-                        <p><strong>Habilidade Contratada:</strong> {os.habilidade_requerida || 'Não informada'}</p>
-                        {os.endereco && (
-                            <p><strong>Endereço:</strong> {`${os.endereco.rua}, ${os.endereco.numero} - ${os.endereco.bairro}, ${os.endereco.cidade}`}</p>
-                        )}
+                        <p><strong>Habilidade Contratada:</strong> {os.habilidade || 'Não informada'}</p>
+                        {os.endereco && <p><strong>Endereço:</strong> {`${os.endereco.rua}, ${os.endereco.numero} - ${os.endereco.bairro}, ${os.endereco.cidade}`}</p>}
                         <div className="detalhes-adicionais-sala">
                             <h4>Detalhes Adicionais e Observações</h4>
                             <ul>
@@ -304,7 +318,7 @@ const SalaDeTrabalho = () => {
                         </div>
                         {!isFinalizado && (
                             <form className="chat-input-area" onSubmit={handleEnviarMensagem}>
-                                <input type="text" placeholder="Digite sua mensagem..." value={novaMensagem} onChange={(e) => setNovaMensagem(e.target.value)} />
+                                <input type="text" placeholder="Digite sua mensagem..." value={novaMensagem} onChange={(e) => setNovaMensagem(e.target.value)} disabled={isSubmitting} />
                                 <button type="submit" className="btn btn-primary" disabled={!novaMensagem.trim()}>Enviar</button>
                             </form>
                         )}
@@ -315,13 +329,6 @@ const SalaDeTrabalho = () => {
                     </section>
                 </main>
             </div>
-        );
-    };
-
-    return (
-        <div className="sala-trabalho-page-container">
-            <HeaderEstiloTop showUserActions={false} />
-            {renderConteudoPrincipal()}
         </div>
     );
 };

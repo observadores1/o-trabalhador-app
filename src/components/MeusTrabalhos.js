@@ -1,24 +1,35 @@
-// src/components/MeusTrabalhos.js - VERSÃO FINAL, COMPLETA E CORRIGIDA
+/**
+ * @file MeusTrabalhos.js
+ * @description Componente que exibe a lista de trabalhos de um profissional. (VERSÃO COM FILTRO DE STATUS)
+ * @author Jeferson Gnoatto
+ * @date 2025-09-27
+ * Louvado seja Cristo, Louvado seja Deus
+ */
 import React, { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext'; // Usando o AuthContext para obter o usuário
+import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseClient';
 import { Link } from 'react-router-dom';
 import HeaderEstiloTop from './HeaderEstiloTop';
 import './MeusTrabalhos.css';
 
 const MeusTrabalhos = () => {
-    const { user, loading: authLoading } = useAuth(); // Obtendo o usuário e o estado de loading do contexto
+    const { user, loading: authLoading } = useAuth();
     const [trabalhos, setTrabalhos] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const fetchTrabalhos = useCallback(async () => {
         if (user) {
             setLoading(true);
+            
+            // ================== CORREÇÃO APLICADA AQUI ==================
+            // Adicionamos um filtro para que a busca NÃO inclua OS com status 'pendente'.
             const { data, error } = await supabase
                 .from('ordens_de_servico')
-                .select(`*`)
+                .select('*')
                 .eq('trabalhador_id', user.id)
+                .not('status', 'eq', 'pendente') // <-- FILTRO CRÍTICO ADICIONADO
                 .order('created_at', { ascending: false });
+            // =============================================================
 
             if (error) {
                 console.error('Erro ao buscar trabalhos:', error);
@@ -30,20 +41,17 @@ const MeusTrabalhos = () => {
     }, [user]);
 
     useEffect(() => {
-        // Apenas executa a busca se a autenticação não estiver carregando e o usuário existir
         if (!authLoading && user) {
             fetchTrabalhos();
         } else if (!authLoading && !user) {
-            // Se não há usuário, não há o que carregar
             setLoading(false);
         }
     }, [user, authLoading, fetchTrabalhos]);
 
-    // O estado de carregamento agora considera tanto o auth quanto a busca local
     if (loading || authLoading) {
         return (
             <>
-                <HeaderEstiloTop showUserActions={true} />
+                <HeaderEstiloTop showUserActions={false} />
                 <div className="meus-trabalhos-container">Carregando trabalhos...</div>
             </>
         );
@@ -51,7 +59,7 @@ const MeusTrabalhos = () => {
 
     return (
         <>
-            <HeaderEstiloTop showUserActions={true} />
+            <HeaderEstiloTop showUserActions={false} />
             <div className="meus-trabalhos-container">
                 <div className="meus-trabalhos-header-interno">
                     <h1>Meus Trabalhos</h1>
@@ -61,12 +69,9 @@ const MeusTrabalhos = () => {
                         {trabalhos.map((trabalho) => {
                             const status = (trabalho.status || 'indefinido').toLowerCase().replace(/\s+/g, '_');
                             const isEmAndamento = status === 'em_andamento' || status === 'aceita';
-                            const linkDestino = isEmAndamento 
-                                ? `/trabalho/${trabalho.id}` 
-                                : `/os/${trabalho.id}`;
+                            const linkDestino = isEmAndamento ? `/trabalho/${trabalho.id}` : `/os/${trabalho.id}`;
                             
                             return (
-                                // Usando o status direto do banco para gerar a classe
                                 <div key={trabalho.id} className={`os-card status-${status}`}>
                                     <div className="os-card-header">
                                         <h3>{trabalho.titulo_servico || 'Serviço sem Título'}</h3>

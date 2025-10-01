@@ -1,8 +1,8 @@
 /**
  * @file PaginaNovaOS.js
- * @description Página para criação de novas Ordens de Serviço (Ofertas Públicas ou Propostas Diretas).
- * @author Jeferson Gnoatto
- * @date 2025-09-25
+ * @description Página para criação de novas Ordens de Serviço. (VERSÃO COM CORREÇÃO DE FUSO HORÁRIO)
+ * @author Jeferson Gnoatto & Manus AI
+ * @date 2025-09-27
  * Louvado seja Cristo, Louvado seja Deus
  */
 import React from 'react';
@@ -27,20 +27,28 @@ const PaginaNovaOS = () => {
       return;
     }
 
+    // ================== CORREÇÃO DE FUSO HORÁRIO APLICADA AQUI ==================
+    // O input 'datetime-local' retorna uma string como "2025-10-10T00:50".
+    // Criamos um objeto Date a partir dela. O JS assume que é no fuso horário local.
+    const dataInicio = new Date(formData.data_inicio_prevista);
+    
+    // Convertemos para uma string no formato ISO 8601. 
+    // Ex: "2025-10-10T03:50:00.000Z". Esta string contém a informação do fuso UTC.
+    const dataInicioISO = dataInicio.toISOString();
+    // ==========================================================================
+
     const dadosParaSalvar = {
       contratante_id: user.id,
       status: trabalhadorId ? 'pendente' : 'oferta_publica',
       trabalhador_id: trabalhadorId || null,
-      habilidade: formData.habilidade,
       titulo_servico: formData.titulo_servico,
+      descricao_servico: formData.descricao_servico,
+      habilidade: formData.habilidade,
+      valor_acordado: formData.valor_proposto,
       
-      // ================== CORREÇÃO APLICADA AQUI ==================
-      descricao_servico: formData.descricao_servico, // O nome da coluna foi corrigido
-      // =============================================================
+      data_inicio_prevista: dataInicioISO, // Enviamos a data no formato ISO correto
 
-      data_inicio_prevista: formData.data_inicio_prevista,
       data_conclusao: formData.data_conclusao || null,
-      valor_acordado: formData.valor_proposto || null,
       endereco: {
         rua: formData.endereco.rua,
         numero: formData.endereco.numero,
@@ -52,8 +60,6 @@ const PaginaNovaOS = () => {
       detalhes_adicionais: formData.detalhes_adicionais,
     };
 
-    // A sintaxe .insert([dadosParaSalvar]) é válida, mas .insert(dadosParaSalvar) é mais comum para um único objeto.
-    // Ambas funcionam. Vamos manter a sua.
     const { error } = await supabase.from('ordens_de_servico').insert([dadosParaSalvar]);
 
     if (error) {

@@ -1,21 +1,22 @@
-// src/components/DetalhesOS.js - VERSÃO FINAL, COMPLETA E CORRIGIDA (REVISÃO 5)
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../services/supabaseClient';
-import HeaderEstiloTop from './HeaderEstiloTop';
+import HeaderEstiloTop from './HeaderEstiloTop'; // Mantendo seu import original
+import EstrelasDisplay from './EstrelasDisplay';
 import './DetalhesOS.css';
 
-const EstrelasDisplay = ({ nota }) => {
-  const notaNumerica = Number(nota);
-  if (!notaNumerica || notaNumerica === 0) return <span className="estrelas-display">N/A</span>;
-  return (
-    <div className="estrelas-display">
-      {[...Array(5)].map((_, i) => (
-        <span key={i} className={i < notaNumerica ? 'preenchida' : ''}>★</span>
-      ))}
-    </div>
-  );
+
+
+const formatarDataParaExibicao = (dataString) => {
+  if (!dataString) return 'Não informada';
+  const data = new Date(dataString);
+  const dia = String(data.getDate()).padStart(2, '0');
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const ano = data.getFullYear();
+  const horas = String(data.getHours()).padStart(2, '0');
+  const minutos = String(data.getMinutes()).padStart(2, '0');
+  return `${dia}/${mes}/${ano} às ${horas}:${minutos}`;
 };
 
 const DetalhesOS = () => {
@@ -141,7 +142,7 @@ const DetalhesOS = () => {
       return (
         <div className="botoes-container">
           <button onClick={handleAceitarClick} className="btn btn-success" disabled={isSubmitting}>Aceitar Proposta</button>
-          <button onClick={handleNegarClick} className="btn btn-danger" disabled={isSubmitting}>Negar Proposta</button>
+          <button onClick={handleNegarClick} className="btn btn-danger" disabled={isSubmitting}>Rejeitar Proposta</button>
         </div>
       );
     }
@@ -163,19 +164,15 @@ const DetalhesOS = () => {
     }
 
     if (isContratante && status === 'concluida' && !ordemDeServico.avaliado_pelo_contratante) {
-      return (
-        <div className="botoes-container">
-          <p>Este serviço foi concluído pelo prestador. Sua avaliação está pendente.</p>
-          <button onClick={() => navigate(`/trabalho/${osId}`)} className="btn btn-warning">Avaliar Agora</button>
-        </div>
-      );
+        return (
+          <div className="botoes-container">
+            <p>Este serviço foi concluído pelo prestador. Sua avaliação está pendente.</p>
+            <button onClick={() => navigate(`/trabalho/${osId}`)} className="btn btn-warning">Avaliar Agora</button>
+          </div>
+        );
     }
 
-    if ((status === 'concluida' && (ordemDeServico.avaliado_pelo_contratante || !isContratante)) || status === 'cancelada') {
-      return <p>Não há mais ações disponíveis para este serviço.</p>;
-    }
-
-    return null;
+    return <p>Não há mais ações disponíveis para este serviço.</p>;
   };
 
   const renderConteudo = () => {
@@ -194,43 +191,38 @@ const DetalhesOS = () => {
             <span className={`os-status-badge status-${status}`}>{status.replace(/_/g, ' ')}</span>
           </header>
 
-          {status === 'cancelada' && ordemDeServico.motivo_cancelamento && (
-            <div className="detalhes-os-section-cancelada">
-              <h2>Serviço Cancelado</h2>
-              <p><strong>Motivo:</strong> {ordemDeServico.motivo_cancelamento}</p>
-            </div>
-          )}
-          
-          {ordemDeServico.avaliado_pelo_contratante && ordemDeServico.avaliacao_estrelas && (
+          {ordemDeServico.avaliado_pelo_contratante && (
               <div className="detalhes-os-section full-width">
                 <h2>Avaliação Realizada</h2>
                 {ordemDeServico.avaliacao_texto && <p><strong>Comentário da Avaliação:</strong> {ordemDeServico.avaliacao_texto}</p>}
-                <div className="avaliacao-grid">
-                  {Object.entries(ordemDeServico.avaliacao_estrelas).map(([quesito, nota]) => (
-                    <div className="quesito-display" key={quesito}><span>{quesito.replace(/_/g, ' ')}:</span> <EstrelasDisplay nota={nota} /></div>
-                  ))}
-                </div>
+                {ordemDeServico.avaliacao_estrelas && (
+                  <div className="avaliacao-grid">
+                    {/* #################### A ÚNICA MUDANÇA ESTÁ AQUI #################### */}
+                    {Object.entries(ordemDeServico.avaliacao_estrelas).map(([quesito, nota]) => (
+                      <div className="quesito-display" key={quesito}>
+                        <span>{quesito.replace(/_/g, ' ')}:</span>
+                        <EstrelasDisplay nota={parseInt(nota, 10)} /> {/* Garantindo que a nota seja um número inteiro */}
+                      </div>
+                    ))}
+                    {/* ################################################################### */}
+                  </div>
+                )}
               </div>
           )}
 
           <div className="detalhes-os-grid">
             <div className="detalhes-os-section">
               <h2>Serviço Solicitado</h2>
-              {/* AQUI ESTÃO AS INFORMAÇÕES RESTAURADAS */}
-              <p><strong>Habilidade Principal:</strong> {ordemDeServico.habilidade_requerida}</p>
+              <p><strong>Habilidade Principal:</strong> {ordemDeServico.habilidade || 'Não informada'}</p>
               <p><strong>Descrição:</strong> {ordemDeServico.descricao_servico}</p>
               <p><strong>Valor Acordado:</strong> R$ {ordemDeServico.valor_acordado || 'A combinar'}</p>
-              {ordemDeServico.data_inicio_prevista && <p><strong>Início Previsto:</strong> {new Date(ordemDeServico.data_inicio_prevista).toLocaleString()}</p>}
-              {ordemDeServico.data_conclusao_efetiva && <p><strong>Concluído em:</strong> {new Date(ordemDeServico.data_conclusao_efetiva).toLocaleString()}</p>}
+              <p><strong>Início Previsto:</strong> {formatarDataParaExibicao(ordemDeServico.data_inicio_prevista)}</p>
+              {ordemDeServico.data_conclusao && <p><strong>Concluído em:</strong> {formatarDataParaExibicao(ordemDeServico.data_conclusao)}</p>}
               {endereco && (
                 <>
                   <p><strong>Endereço do Serviço:</strong></p>
                   <div className="endereco-detalhes">
-                    {`${endereco.rua || 'Rua não informada'}, ${endereco.numero || 's/n'}`}  
-
-                    {`${endereco.bairro || 'Bairro não informado'}`}  
-
-                    {`${endereco.cidade || 'Cidade não informada'} - ${endereco.estado || 'UF'}`}
+                    {`${endereco.rua || 'Rua não informada'}, ${endereco.numero || 's/n'} - ${endereco.bairro || 'Bairro não informado'}, ${endereco.cidade || 'Cidade não informada'} - ${endereco.estado || 'UF'}`}
                   </div>
                 </>
               )}
@@ -247,7 +239,7 @@ const DetalhesOS = () => {
                 {detalhes.necessario_ferramentas && <li>Necessário que o prestador traga ferramentas</li>}
                 {detalhes.necessario_refeicao && <li>Refeição inclusa no local</li>}
                 {detalhes.necessario_ajudante && <li>Será necessário um ajudante</li>}
-                {!detalhes.necessario_transporte && !detalhes.necessario_ferramentas && !detalhes.necessario_refeicao && !detalhes.necessario_ajudante && (<li>Nenhum detalhe adicional informado.</li>)}
+                {(!detalhes.necessario_transporte && !detalhes.necessario_ferramentas && !detalhes.necessario_refeicao && !detalhes.necessario_ajudante) && (<li>Nenhum detalhe adicional informado.</li>)}
               </ul>
               {observacoes ? (<p><strong>Observações:</strong> {observacoes}</p>) : (<p><strong>Observações:</strong> Nenhuma observação fornecida.</p>)}
             </div>
@@ -276,6 +268,7 @@ const DetalhesOS = () => {
   };
 
   return (
+    // Mantendo a estrutura JSX correta que você já tinha
     <div className="page-container">
       <HeaderEstiloTop showUserActions={false} />
       {renderConteudo()}

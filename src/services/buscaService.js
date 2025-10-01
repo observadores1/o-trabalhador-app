@@ -22,7 +22,7 @@ export const buscarTrabalhadoresSupabase = async (habilidade, cidade, estado, ba
 
     console.log('Chamando RPC com os parâmetros:', params);
     
-    const { data, error } = await supabase.rpc('buscar_perfis_por_habilidade', params);
+    const { data, error } = await supabase.rpc('buscar_perfis_por_habilidade_v2', params);
 
     if (error) {
       console.error('Erro ao chamar a função RPC de busca:', error);
