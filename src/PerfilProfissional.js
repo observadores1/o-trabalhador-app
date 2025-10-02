@@ -1,5 +1,5 @@
-// src/PerfilProfissional.js - Criado por Jeferson Gnoatto
-// VERSÃO FINAL CORRIGIDA COM BASE NA EVIDÊNCIA VISUAL DO SUPABASE
+// src/pages/PerfilProfissional.js - ATUALIZADO COM CAMPO DE CPF
+// Criado por Jeferson Gnoatto
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,7 @@ import GerenciadorDeFoto from './components/GerenciadorDeFoto';
 import HeaderEstiloTop from './components/HeaderEstiloTop';
 import './PerfilProfissional.css';
 
+// ===== ALTERAÇÃO 1: Adicionado campo de CPF na seção de informações pessoais =====
 const SecaoInfoPessoais = ({ register, control, errors }) => (
     <div className="form-section">
       <h2>Informações Pessoais</h2>
@@ -36,6 +37,27 @@ const SecaoInfoPessoais = ({ register, control, errors }) => (
             />
           )}
         />
+      </div>
+      {/* NOVO CAMPO DE CPF */}
+      <div className="form-group">
+        <label htmlFor="cpf">CPF (necessário para pagamentos)</label>
+        <Controller
+          name="cpf"
+          control={control}
+          rules={{ 
+            validate: value => (value && value.replace(/\D/g, '').length === 11) || 'CPF inválido' 
+          }}
+          render={({ field }) => (
+            <IMaskInput
+              mask="000.000.000-00"
+              value={field.value || ''}
+              onAccept={(value) => field.onChange(value)}
+              placeholder="000.000.000-00"
+              className={errors.cpf ? "error" : ""}
+            />
+          )}
+        />
+        {errors.cpf && <span className="error-message">{errors.cpf.message}</span>}
       </div>
     </div>
   );
@@ -78,9 +100,11 @@ const PerfilProfissional = () => {
     control,
     formState: { errors }
   } = useForm({
+    // ===== ALTERAÇÃO 2: Adicionado 'cpf' aos valores padrão =====
     defaultValues: {
       apelido: '',
       telefone: '',
+      cpf: '', // Novo campo
       endereco: { rua: '', numero: '', bairro: '', cidade: '', estado: '' },
       titulo_profissional: '',
       biografia: '',
@@ -100,6 +124,8 @@ const PerfilProfissional = () => {
         if (perfilData) {
           setValue('apelido', perfilData.apelido || '');
           setValue('telefone', perfilData.telefone || '');
+          // ===== ALTERAÇÃO 3: Carregar o valor do CPF =====
+          setValue('cpf', perfilData.cpf || ''); // Novo campo
           setValue('foto_perfil_url', perfilData.foto_perfil_url || null);
           const endereco = perfilData.endereco || {};
           setValue('endereco.rua', endereco.rua || '');
@@ -111,7 +137,6 @@ const PerfilProfissional = () => {
           setValue('titulo_profissional', profissionalData.titulo_profissional || '');
           setValue('biografia', profissionalData.biografia || '');
           
-          // CORREÇÃO DE CARREGAMENTO: Ler diretamente da tabela, pois a função RPC não existe.
           const habilidades = profissionalData.habilidades || [];
           setValue('habilidades', habilidades);
 
@@ -131,9 +156,11 @@ const PerfilProfissional = () => {
     if (!user) return;
     setIsSaving(true);
     try {
+      // ===== ALTERAÇÃO 4: Adicionado 'cpf' ao objeto de atualização =====
       await supabase.from('perfis').update({
         apelido: data.apelido,
         telefone: data.telefone,
+        cpf: data.cpf, // Novo campo
         endereco: data.endereco,
         foto_perfil_url: data.foto_perfil_url,
         atualizado_em: new Date().toISOString()
@@ -144,10 +171,9 @@ const PerfilProfissional = () => {
         titulo_profissional: data.titulo_profissional,
         biografia: data.biografia,
         disponivel_para_servicos: data.disponivel_para_servicos,
-        habilidades: data.habilidades || [] // Salva as habilidades na coluna correta
+        habilidades: data.habilidades || []
       }, { onConflict: 'perfil_id' });
 
-      // CORREÇÃO DE SALVAMENTO: Chamar a função com o único parâmetro correto.
       const { error: syncError } = await supabase.rpc('sincronizar_habilidades', {
         p_perfil_profissional_id: user.id
       });

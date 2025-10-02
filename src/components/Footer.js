@@ -1,10 +1,3 @@
-/**
- * @file Footer.js
- * @description Componente de rodapé reutilizável para o aplicativo.
- * @author Jeferson Gnoatto
- * @date 2025-09-19
- * Louvado seja Cristo, Louvado seja Deus
- */
 import React from 'react';
 import './Footer.css';
 
@@ -12,9 +5,20 @@ const Footer = () => {
   const anoAtual = new Date().getFullYear();
   return (
     <footer className="app-footer">
-      <p>&copy; {anoAtual} @CertaSoluções. Todos os direitos reservados.</p>
+      <p className="investor-call">
+        Quer ser um investidor deste aplicativo? 
+        <a 
+          href="https://wa.me/5546999374626?text=Ol%C3%A1%2C+tenho+interesse+em+investir+no+aplicativo+O+Trabalhador." 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="whatsapp-link"
+        >
+          Chama no WhatsApp
+        </a>
+      </p>
+      <p className="copyright-text">&copy; {anoAtual} @CertaSoluções. Todos os direitos reservados.</p>
     </footer>
-  );
+   );
 };
 
 export default Footer;

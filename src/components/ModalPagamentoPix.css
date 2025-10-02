@@ -1,0 +1,132 @@
+/* src/components/ModalPagamentoPix.css - VERSÃO FINAL COM RESPONSIVIDADE */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(17, 24, 39, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  /* Adicionado para permitir rolagem em telas pequenas */
+  overflow-y: auto;
+  padding: 20px 0; /* Adiciona um respiro no topo e na base */
+}
+
+.modal-content {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  position: relative;
+  animation: fadeIn 0.3s ease-out;
+  /* Adicionado para garantir que o modal não seja empurrado para fora da tela */
+  margin: auto;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1.0); }
+}
+
+.modal-close-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #4b5563;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.modal-close-button:hover {
+  background-color: #e5e7eb;
+}
+
+.modal-content h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #111827;
+  font-size: 1.5rem;
+}
+
+.modal-content p {
+  color: #4b5563;
+  margin-bottom: 20px;
+}
+
+.qr-code-container {
+  margin: 20px auto;
+  padding: 15px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  display: inline-block;
+}
+
+.qr-code-container img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.pix-copy-paste {
+  margin-top: 20px;
+}
+
+.pix-copy-paste button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.pix-copy-paste button:hover {
+  transform: translateY(-1px);
+}
+
+.spinner-container {
+  padding: 40px 0;
+}
+
+.error-container {
+  padding: 20px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  color: #991b1b;
+}
+
+.error-container h3 {
+  margin-top: 0;
+  color: #b91c1c;
+}
+
+/* ======================================================== */
+/* NOVAS REGRAS DE RESPONSIVIDADE PARA TELAS PEQUENAS */
+/* ======================================================== */
+@media (max-height: 650px) {
+  .modal-overlay {
+    /* Em telas muito baixas, alinha o modal no topo para dar mais espaço para rolagem */
+    align-items: flex-start;
+  }
+}

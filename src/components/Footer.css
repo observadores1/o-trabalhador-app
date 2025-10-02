@@ -1,15 +1,39 @@
-/* Estilos para o componente Footer */
+/* Estilos para o componente Footer (versão atualizada) */
+
 .app-footer {
-  background-color: #1f2937; /* Um cinza escuro */
-  color: #d1d5db; /* Um cinza claro para o texto */
+  background-color: #1f2937; /* Seu cinza escuro original */
+  color: #d1d5db;           /* Seu cinza claro original */
   text-align: center;
-  padding: 20px;
-  margin-top: auto; /* Empurra o rodapé para o final do contêiner flex */
+  padding: 25px 15px;       /* Um pouco mais de espaço vertical */
+  margin-top: auto;
   width: 100%;
   box-sizing: border-box;
-  font-size: 0.9rem;
 }
 
-.app-footer p {
-  margin: 5px 0;
+/* Estilo para a chamada de investidor */
+.investor-call {
+  margin: 0 0 12px 0; /* Espaço entre a chamada e o copyright */
+  font-size: 1rem;    /* Levemente maior para destaque */
+  font-weight: 500;
+  color: #ffffff;     /* Branco para um pouco mais de contraste */
+}
+
+/* Estilo para o link do WhatsApp */
+.whatsapp-link {
+  color: #fBBF24; /* Um tom de amarelo/dourado para chamar atenção */
+  font-weight: 700;
+  text-decoration: underline;
+  margin-left: 8px;
+  transition: color 0.3s ease;
+}
+
+.whatsapp-link:hover {
+  color: #FDE68A; /* Amarelo mais claro no hover */
+}
+
+/* Estilo para o texto de copyright (seu estilo original) */
+.copyright-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #d1d5db; /* Mantém a cor original para ser mais sutil */
 }

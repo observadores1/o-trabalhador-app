@@ -1,24 +1,86 @@
-// src/pages/ResultadosBusca.js - VERSÃO FINAL CORRIGIDA (SEM AVISOS)
+// src/pages/ResultadosBusca.js - ATUALIZADO COM MODAL DE PAGAMENTO
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import HeaderEstiloTop from '../components/HeaderEstiloTop';
 import { buscarPerfis } from '../services/buscaService';
 import { supabase } from '../services/supabaseClient';
+import { useAuth } from '../contexts/AuthContext';
+import ModalPagamentoPix from '../components/ModalPagamentoPix'; // ===== ALTERAÇÃO 1: Importar o Modal =====
 import './ResultadosBusca.css';
 
 const FOTO_PADRAO_URL = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face';
 
-const ResultadosBusca = ( ) => {
+// ===== ALTERAÇÃO 2: Modificar o Card para controlar o Modal =====
+const CardTrabalhadorBloqueado = ({ trabalhador } ) => {
+  const [showModal, setShowModal] = useState(false);
+
+  const handleDesbloquear = () => {
+    setShowModal(true); // Ação do botão agora é apenas abrir o modal
+  };
+
+  return (
+    <>
+      {/* O Modal será renderizado aqui quando showModal for true */}
+      {showModal && (
+        <ModalPagamentoPix
+          tipoPagamento="taxa_os"
+          valor={5.00} // Valor para o contratante desbloquear
+          onClose={() => setShowModal(false)}
+          onPaymentSuccess={() => {
+            // Esta função será chamada no futuro quando o pagamento for confirmado
+            setShowModal(false);
+            alert('Pagamento recebido! Acesso liberado.');
+            // Idealmente, aqui forçaríamos uma re-renderização ou atualização do status do usuário
+          }}
+        />
+      )}
+
+      {/* O card visual continua o mesmo */}
+      <div className="trabalhador-card bloqueado">
+        <img 
+          src={trabalhador.foto_perfil_url || FOTO_PADRAO_URL} 
+          alt="Profissional"
+          className="avatar-pequeno" 
+        />
+        <div className="trabalhador-info">
+          <h3>Profissional Qualificado</h3>
+          <p>{trabalhador.titulo_profissional || 'Trabalhador'}</p>
+          
+          <div className="avaliacao">
+            <span>⭐ {trabalhador.avaliacao_media ? Number(trabalhador.avaliacao_media).toFixed(1) : 'N/A'}</span>
+            <span>
+              ({trabalhador.total_avaliacoes} {trabalhador.total_avaliacoes === 1 ? 'avaliação' : 'avaliações'})
+            </span>
+          </div>
+          <p className="texto-bloqueado">Para ver o perfil, pague a taxa de visualização.</p>
+        </div>
+
+        <button className="btn btn-premium" onClick={handleDesbloquear}>
+          Desbloquear (R$ 5)
+        </button>
+      </div>
+    </>
+  );
+};
+// =================================================================
+
+const ResultadosBusca = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { statusMonetizacao } = useAuth();
 
   const [resultados, setResultados] = useState([]);
-  const [isLoading, setIsLoading] = useState(true); // Agora será usado
-  const [error, setError] = useState(null);         // Agora será usado
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [termoBusca, setTermoBusca] = useState({});
 
   useEffect(() => {
+    if (statusMonetizacao.isLoading) {
+      setIsLoading(true);
+      return;
+    }
+
     const params = new URLSearchParams(location.search);
     const filtros = {
       habilidade: params.get('habilidade'),
@@ -76,7 +138,7 @@ const ResultadosBusca = ( ) => {
     };
 
     executarBusca();
-  }, [location.search]);
+  }, [location.search, statusMonetizacao.isLoading]);
 
   const handleVerPerfil = (trabalhadorId) => {
     if (trabalhadorId) navigate(`/perfil/${trabalhadorId}`);
@@ -84,7 +146,6 @@ const ResultadosBusca = ( ) => {
 
   const onVoltarBusca = () => navigate('/dashboard');
 
-  // ================== LÓGICA DE RENDERIZAÇÃO CORRIGIDA ==================
   const renderConteudo = () => {
     if (isLoading) {
       return <p>Buscando trabalhadores...</p>;
@@ -114,47 +175,47 @@ const ResultadosBusca = ( ) => {
       <>
         <h2>Trabalhadores Encontrados para "{termoBusca.habilidade}"</h2>
         <div className="lista-trabalhadores">
-          {resultados.map((trabalhador) => (
-            <div key={trabalhador.id} className="trabalhador-card">
-              <img 
-                src={trabalhador.foto_perfil_url || FOTO_PADRAO_URL} 
-                alt={trabalhador.apelido}
-                className="avatar-pequeno" 
-              />
-              <div className="trabalhador-info">
-                <h3>{trabalhador.apelido}</h3>
-                <p>{trabalhador.titulo_profissional || 'Trabalhador'}</p>
-                
-                <div className="avaliacao">
-                  <span>⭐ {trabalhador.avaliacao_media ? Number(trabalhador.avaliacao_media).toFixed(1) : 'N/A'}</span>
-                  <span>
-                    ({trabalhador.total_avaliacoes} {trabalhador.total_avaliacoes === 1 ? 'avaliação' : 'avaliações'})
-                  </span>
-                </div>
+          {resultados.map((trabalhador) => {
+            const podeVerPerfil = statusMonetizacao.podeCriarOS;
 
-                <div className="habilidades-preview">
-                  {(trabalhador.habilidades || []).slice(0, 3).map(h => (
-                    <span key={h} className="habilidade-tag-preview">{h}</span>
-                  ))}
+            if (podeVerPerfil) {
+              return (
+                <div key={trabalhador.id} className="trabalhador-card">
+                  <img 
+                    src={trabalhador.foto_perfil_url || FOTO_PADRAO_URL} 
+                    alt={trabalhador.apelido}
+                    className="avatar-pequeno" 
+                  />
+                  <div className="trabalhador-info">
+                    <h3>{trabalhador.apelido}</h3>
+                    <p>{trabalhador.titulo_profissional || 'Trabalhador'}</p>
+                    <div className="avaliacao">
+                      <span>⭐ {trabalhador.avaliacao_media ? Number(trabalhador.avaliacao_media).toFixed(1) : 'N/A'}</span>
+                      <span>({trabalhador.total_avaliacoes} {trabalhador.total_avaliacoes === 1 ? 'avaliação' : 'avaliações'})</span>
+                    </div>
+                    <div className="habilidades-preview">
+                      {(trabalhador.habilidades || []).slice(0, 3).map(h => <span key={h} className="habilidade-tag-preview">{h}</span>)}
+                    </div>
+                  </div>
+                  <button className="btn btn-primary" onClick={() => handleVerPerfil(trabalhador.id)}>
+                    Ver Perfil
+                  </button>
                 </div>
-              </div>
-
-              <button className="btn btn-primary" onClick={() => handleVerPerfil(trabalhador.id)}>
-                Ver Perfil
-              </button>
-            </div>
-          ))}
+              );
+            } else {
+              return <CardTrabalhadorBloqueado key={trabalhador.id} trabalhador={trabalhador} />;
+            }
+          })}
         </div>
         <button onClick={onVoltarBusca} className="btn btn-secondary btn-nova-busca">Fazer Nova Busca</button>
       </>
     );
   };
-  // ========================================================================
 
   return (
     <div className="resultados-page-container">
       <HeaderEstiloTop showUserActions={true} />
-      <main className="resultados-main-content">
+      <main className="main-content">
         {renderConteudo()}
       </main>
     </div>

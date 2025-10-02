@@ -1,21 +1,57 @@
-/**
- * @file Oportunidades.js
- * @description Tela para trabalhadores buscarem e visualizarem oportunidades de serviço.
- * @author Jeferson Gnoatto
- * @date 2025-09-25
- * Louvado seja Cristo, Louvado seja Deus
- */
+// src/pages/Oportunidades.js - ATUALIZADO COM MODAL DE PAGAMENTO
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
-import SeletorDeLocalizacao from './SeletorDeLocalizacao';
-import HeaderEstiloTop from './HeaderEstiloTop';
+import SeletorDeLocalizacao from '../components/SeletorDeLocalizacao';
+import HeaderEstiloTop from '../components/HeaderEstiloTop';
+import ModalPagamentoPix from '../components/ModalPagamentoPix'; // ===== ALTERAÇÃO 1: Importar o Modal =====
 import './Oportunidades.css';
 
+// ======================= ALTERAÇÃO 2: Modificar o Card para controlar o Modal =======================
+const CardOportunidadeBloqueado = ({ os }) => {
+  const [showModal, setShowModal] = useState(false);
+
+  const handleAssinar = () => {
+    setShowModal(true); // Ação do botão agora é apenas abrir o modal
+  };
+
+  return (
+    <>
+      {/* O Modal será renderizado aqui quando showModal for true */}
+      {showModal && (
+        <ModalPagamentoPix
+          tipoPagamento="assinatura"
+          valor={15.00} // Valor para a assinatura do trabalhador
+          onClose={() => setShowModal(false)}
+          onPaymentSuccess={() => {
+            setShowModal(false);
+            alert('Pagamento recebido! Assinatura ativada.');
+          }}
+        />
+      )}
+
+      {/* O card visual continua o mesmo */}
+      <div className="card-oportunidade bloqueado">
+        <div className="card-oportunidade-header">
+          <h3>{os.titulo_servico}</h3>
+          {os.valor_acordado && <span className="preco">R$ {os.valor_acordado}</span>}
+        </div>
+        <p className="habilidade-tag">{os.habilidade}</p>
+        <p className="endereco">{`Serviço em ${os.endereco.cidade}`}</p>
+        <p className="texto-bloqueado">Assine para ver os detalhes e aceitar trabalhos.</p>
+        <button onClick={handleAssinar} className="btn btn-premium">
+          Ativar Assinatura - Assine por 30 dias por (R$ 15,00)
+        </button>
+      </div>
+    </>
+  );
+};
+// ========================================================================================
+
 const Oportunidades = () => {
-  // ... (lógica do componente permanece a mesma)
-  const { user } = useAuth();
+  const { user, statusMonetizacao } = useAuth();
   const navigate = useNavigate();
   const [propostasDiretas, setPropostasDiretas] = useState([]);
   const [resultadosBusca, setResultadosBusca] = useState([]);
@@ -30,6 +66,11 @@ const Oportunidades = () => {
   const [perfilUsuario, setPerfilUsuario] = useState(null);
 
   useEffect(() => {
+    if (statusMonetizacao.isLoading) {
+      setIsLoading(true);
+      return;
+    }
+
     const buscarDadosIniciais = async () => {
       setIsLoading(true);
       const { data: habilidadesData } = await supabase.from('habilidades').select('nome').order('nome');
@@ -47,7 +88,7 @@ const Oportunidades = () => {
       setIsLoading(false);
     };
     buscarDadosIniciais();
-  }, [user]);
+  }, [user, statusMonetizacao.isLoading]);
 
   const handleBuscaManual = async () => {
     setIsSearching(true);
@@ -93,17 +134,27 @@ const Oportunidades = () => {
     if (!modoBusca) return <p>Use os filtros ou o botão "Perto de Casa" para encontrar oportunidades.</p>;
     if (!resultadosBusca || resultadosBusca.length === 0) return <p>Nenhuma oportunidade encontrada com os critérios selecionados.</p>;
 
+    const podeAceitar = statusMonetizacao.podeAceitarTrabalho;
+
+    const renderCard = (os) => {
+      if (podeAceitar) {
+        return <CardOportunidade key={os.id} os={os} />;
+      } else {
+        return <CardOportunidadeBloqueado key={os.id} os={os} />;
+      }
+    };
+
     if (modoBusca === 'perto_de_casa') {
       return resultadosBusca.map(grupo => (
         <div key={grupo.habilidade} className="grupo-habilidade">
           <h4>Oportunidades como {grupo.habilidade}</h4>
-          {grupo.oportunidades.map(os => <CardOportunidade key={os.id} os={os} />)}
+          {grupo.oportunidades.map(os => renderCard(os))}
         </div>
       ));
     }
 
     if (modoBusca === 'manual') {
-      return resultadosBusca.map(os => <CardOportunidade key={os.id} os={os} />);
+      return resultadosBusca.map(os => renderCard(os));
     }
   };
 
@@ -141,7 +192,6 @@ const Oportunidades = () => {
           <div className="filtros-container">
             <div className="filtro-item">
               <label htmlFor="filtro-habilidade">Habilidade</label>
-              {/* CORREÇÃO APLICADA AQUI */}
               <select id="filtro-habilidade" value={filtroHabilidade} onChange={(e) => setFiltroHabilidade(e.target.value)} disabled={modoBusca === 'perto_de_casa'} className="form-input">
                 {modoBusca === 'perto_de_casa' ? (<option>Todas as suas habilidades</option>) : (<><option value="">Qualquer Habilidade</option>{listaDeHabilidades.map(h => <option key={h.nome} value={h.nome}>{h.nome}</option>)}</>)}
               </select>
@@ -152,7 +202,6 @@ const Oportunidades = () => {
             </div>
             <div className="filtro-item">
               <label htmlFor="filtro-data">A partir da Data</label>
-              {/* CORREÇÃO APLICADA AQUI */}
               <input id="filtro-data" type="date" value={filtroData} onChange={(e) => setFiltroData(e.target.value)} className="form-input" />
             </div>
           </div>

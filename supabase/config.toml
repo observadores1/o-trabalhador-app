@@ -1,0 +1,22 @@
+
+[functions.gerar-pix-assinatura]
+enabled = true
+verify_jwt = true
+import_map = "./functions/gerar-pix-assinatura/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/gerar-pix-assinatura/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/gerar-pix-assinatura/*.html" ]
+
+[functions.webhook-pagseguro]
+enabled = true
+verify_jwt = true
+import_map = "./functions/webhook-pagseguro/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/webhook-pagseguro/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/webhook-pagseguro/*.html" ]
