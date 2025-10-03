@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import BuscaContratante from '../components/BuscaContratante';
 import HeaderEstiloTop from '../components/HeaderEstiloTop';
+import InstallPWA from '../components/InstallPWA';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -78,6 +79,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
+      <InstallPWA mode="banner" />
       <HeaderEstiloTop showUserActions={true} />
       {temPendencias && <PopupAvaliacaoPendente />}
       <main className="dashboard-main">

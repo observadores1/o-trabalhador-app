@@ -1,4 +1,7 @@
+// src/components/Footer.js - CÓDIGO ATUALIZADO
+
 import React from 'react';
+import InstallPWA from './InstallPWA'; // ===== 1. IMPORTE O COMPONENTE AQUI =====
 import './Footer.css';
 
 const Footer = () => {
@@ -16,9 +19,15 @@ const Footer = () => {
           Chama no WhatsApp
         </a>
       </p>
+
+      {/* ===== 2. ADICIONE O COMPONENTE AQUI, NO MEIO ===== */}
+      <div className="install-section">
+        <InstallPWA mode="button" />
+      </div>
+
       <p className="copyright-text">&copy; {anoAtual} @CertaSoluções. Todos os direitos reservados.</p>
     </footer>
-   );
+    );
 };
 
 export default Footer;
