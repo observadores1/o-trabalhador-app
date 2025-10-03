@@ -1,4 +1,4 @@
-// src/pages/Dashboard.js - SEU CÓDIGO + CÂMERAS DE RASTREAMENTO
+// src/pages/Dashboard.js - CÓDIGO ATUALIZADO
 
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -105,27 +105,29 @@ const Dashboard = () => {
           <div className="trabalhador-dashboard">
             <h2>Bem-vindo ao seu painel</h2>
             <div className="dashboard-cards">
-              <div className="dashboard-card">
+              {/* ===== INÍCIO DA ALTERAÇÃO ===== */}
+              <div className="dashboard-card card-perfil">
                 <h3>Meu Perfil</h3>
                 <p>Gerencie suas informações profissionais</p>
                 <button className="btn btn-primary" onClick={() => navigate(`/perfil/editar`)}>
                   Editar Perfil
                 </button>
               </div>
-              <div className="dashboard-card">
+              <div className="dashboard-card card-oportunidades">
                 <h3>Oportunidades</h3>
                 <p>Veja trabalhos disponíveis na sua área</p>
                 <button className="btn btn-primary" onClick={() => navigate('/oportunidades')}>
                   Ver Oportunidades
                 </button>
               </div>
-              <div className="dashboard-card">
+              <div className="dashboard-card card-meus-trabalhos">
                 <h3>Meus Trabalhos</h3>
                 <p>Acompanhe seus trabalhos em andamento</p>
                 <button className="btn btn-primary" onClick={() => navigate('/meus-trabalhos')}>
                   Ver Trabalhos
                 </button>
               </div>
+              {/* ===== FIM DA ALTERAÇÃO ===== */}
             </div>
           </div>
         )}

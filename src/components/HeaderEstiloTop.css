@@ -1,4 +1,4 @@
-/* src/components/HeaderEstiloTop.css */
+/* src/components/HeaderEstiloTop.css - CÓDIGO ATUALIZADO */
 
 .header-estilo-top {
   background-color: #1d4ed8; /* Azul do tema */
@@ -45,3 +45,32 @@
   font-size: 0.9rem;
   font-weight: 500;
 }
+
+/* ===== INÍCIO DA ALTERAÇÃO ===== */
+
+/* Contêiner para os botões de ação */
+.header-user-actions {
+  display: flex;
+  gap: 10px; /* Espaço entre os botões */
+}
+
+/* --- Media Query para telas pequenas --- */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column; /* Empilha o logo e a área do usuário */
+    gap: 15px;
+  }
+
+  .user-info {
+    flex-direction: column; /* Empilha o "Olá" e os botões */
+    width: 100%;
+    align-items: center;
+  }
+
+  .header-user-actions {
+    justify-content: center; /* Centraliza os botões no espaço disponível */
+    width: 100%;
+  }
+}
+
+/* ===== FIM DA ALTERAÇÃO ===== */

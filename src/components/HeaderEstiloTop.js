@@ -1,4 +1,4 @@
-// src/components/HeaderEstiloTop.js
+// src/components/HeaderEstiloTop.js - CÓDIGO ATUALIZADO
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -33,12 +33,16 @@ const HeaderEstiloTop = ({ showUserActions = true }) => {
             // Versão completa para o Dashboard
             <>
               <span>Olá, {nomeUsuario}</span>
-              <button onClick={() => navigate('/perfil/editar')} className="btn btn-secondary">
-                Perfil
-              </button>
-              <button onClick={handleLogout} className="btn btn-danger">
-                Sair
-              </button>
+              {/* ===== INÍCIO DA ALTERAÇÃO ===== */}
+              <div className="header-user-actions">
+                <button onClick={() => navigate('/perfil/editar')} className="btn btn-secondary">
+                  Perfil
+                </button>
+                <button onClick={handleLogout} className="btn btn-danger">
+                  Sair
+                </button>
+              </div>
+              {/* ===== FIM DA ALTERAÇÃO ===== */}
             </>
           ) : (
             // Versão simplificada para páginas internas
