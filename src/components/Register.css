@@ -34,13 +34,14 @@
 }
 
 .success-message {
-  background-color: #efe;
-  color: #3c3;
-  padding: 10px;
-  border-radius: 5px;
+  background-color: #d4edda; /* Fundo verde claro mantido */
+  color: #0d47a1;             /* Cor do texto alterada para azul escuro */
+  font-weight: bold;         /* Texto em negrito */
+  padding: 15px;
+  border-radius: 8px;
   margin-bottom: 20px;
   text-align: center;
-  border: 1px solid #cfc;
+  border: 1px solid #c3e6cb; /* Borda verde claro mantida */
 }
 
 .register-form {

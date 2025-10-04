@@ -5,7 +5,7 @@
  * @date 2025-09-19
  * Louvado seja Cristo, Louvado seja Deus
  */
-import React from 'react'; // Removido useState e useEffect que não são mais necessários aqui
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
@@ -24,22 +24,28 @@ import SalaDeTrabalho from './components/SalaDeTrabalho';
 import MeusTrabalhos from './components/MeusTrabalhos';
 import ResultadosBusca from './components/ResultadosBusca';
 import Footer from './components/Footer';
-// A importação do ModalInvestimento foi removida
+
+// ================== PASSO 1: IMPORTAR O NOVO COMPONENTE ==================
+import ForgotPassword from './components/ForgotPassword';
+// =======================================================================
 
 import './App.css';
 import './botoes.css';
 
-// O componente AppLayout agora está mais limpo, sem a lógica do modal
 function AppLayout() {
   const { session } = useAuth();
 
   return (
     <div className="App">
-      {/* A renderização do modal foi removida daqui */}
       <div className="content-wrap">
         <Routes>
           <Route path="/login" element={<ProtectedRoute requireAuth={false}><Login /></ProtectedRoute>} />
           <Route path="/register" element={<ProtectedRoute requireAuth={false}><Register /></ProtectedRoute>} />
+          
+          {/* ================== PASSO 2: ADICIONAR A NOVA ROTA ================== */}
+          <Route path="/forgot-password" element={<ProtectedRoute requireAuth={false}><ForgotPassword /></ProtectedRoute>} />
+          {/* ==================================================================== */}
+
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/perfil/:id" element={<ProtectedRoute><PerfilVitrine /></ProtectedRoute>} />
           <Route path="/perfil/editar" element={<ProtectedRoute><PerfilProfissional /></ProtectedRoute>} />
