@@ -1,7 +1,7 @@
 /**
  * @file SalaDeTrabalho.js
  * @description Componente central para ações e extrato final de uma OS. (VERSÃO COM CORREÇÃO FINAL NA EXIBIÇÃO DAS ESTRELAS)
- * @author Jeferson Gnoatto & Manus AI
+ * @author Jeferson Gnoatto
  * @date 2025-09-30
  * Louvado seja Cristo, Louvado seja Deus
  */
