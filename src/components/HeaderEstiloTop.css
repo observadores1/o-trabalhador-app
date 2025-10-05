@@ -45,3 +45,30 @@
   font-size: 0.9rem;
   font-weight: 500;
 }
+/* Estilo para o novo botão "Trocar Perfil" (azul claro) */
+.user-info .btn-info {
+  background-color: #17a2b8;
+  border: 1px solid #17a2b8;
+}
+/* Estilo para o novo botão de troca de perfil (design aprimorado) */
+.user-info .btn-switch-profile {
+  background-color: #28a745; /* Verde, indicando perfil ativo */
+  border: 1px solid #28a745;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px; /* Ajuste no padding */
+}
+
+.user-info .btn-switch-profile:hover {
+  background-color: #218838; /* Verde mais escuro no hover */
+}
+
+.switch-icon {
+  font-size: 1.2rem; /* Tamanho do ícone de flechas */
+  line-height: 1;
+}
+
+.switch-text {
+  font-weight: 600;
+}

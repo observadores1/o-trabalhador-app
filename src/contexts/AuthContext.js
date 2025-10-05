@@ -1,6 +1,6 @@
-// src/contexts/AuthContext.js - VERSÃO CORRIGIDA DO ERRO DE SINTAXE
+// src/contexts/AuthContext.js - VERSÃO COM LÓGICA DE TROCA DE PERFIL
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '../services/supabaseClient'; // Certifique-se que o caminho está correto
+import { supabase } from '../services/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -17,11 +17,22 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [avaliacoesPendentes, setAvaliacoesPendentes] = useState([]);
   
+  // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+  const [perfilAtivo, setPerfilAtivo] = useState('trabalhador'); // 'trabalhador' ou 'contratante'
+  // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+
   const [statusMonetizacao, setStatusMonetizacao] = useState({
     podeCriarOS: false,
     podeAceitarTrabalho: false,
     isLoading: true,
   });
+
+  // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+  // Função para alternar entre os perfis
+  const trocarPerfil = () => {
+    setPerfilAtivo(prev => (prev === 'contratante' ? 'trabalhador' : 'contratante'));
+  };
+  // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
 
   const refreshPendencias = useCallback(async (currentUser) => {
     if (currentUser && currentUser.user_metadata?.tipo_usuario === 'contratante') {
@@ -102,6 +113,10 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
 
       if (currentUser) {
+        // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+        // Define o perfil padrão com base nos metadados do usuário ao logar
+        setPerfilAtivo(currentUser.user_metadata?.tipo_usuario || 'trabalhador');
+        // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
         await refreshPendencias(currentUser);
         await verificarStatusMonetizacao(currentUser);
       } else {
@@ -180,6 +195,11 @@ export const AuthProvider = ({ children }) => {
     refreshPendencias,
     statusMonetizacao,
     verificarStatusMonetizacao,
+    // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+    // Exportando o estado e a função para serem usados em outros componentes
+    perfilAtivo,
+    trocarPerfil,
+    // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
   };
 
   return (

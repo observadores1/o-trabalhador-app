@@ -1,18 +1,19 @@
-// src/components/Dashboard.js - VERSÃO CORRIGIDA E COMPLETA COM BANNER PWA
+// src/components/Dashboard.js - VERSÃO FINAL REATIVA À TROCA DE PERFIL
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import BuscaContratante from './BuscaContratante';
 import HeaderEstiloTop from './HeaderEstiloTop';
-import InstallPWA from './InstallPWA'; // Importa o componente PWA
+import InstallPWA from './InstallPWA';
 import './Dashboard.css';
 
-// Recebe a prop 'installPrompt' vinda do App.js
 const Dashboard = ({ installPrompt }) => {
-  const { user, avaliacoesPendentes, loading } = useAuth();
+  // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+  // Removido 'user' e adicionado 'perfilAtivo'
+  const { avaliacoesPendentes, loading, perfilAtivo } = useAuth();
+  // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+  
   const navigate = useNavigate();
-
-  const tipoUsuario = user?.user_metadata?.tipo_usuario || 'trabalhador';
 
   const handleBuscar = (filtros) => {
     if (!filtros.habilidade) {
@@ -67,15 +68,15 @@ const Dashboard = ({ installPrompt }) => {
 
   return (
     <div className="dashboard-container">
-      {/* ===== INÍCIO DA CORREÇÃO PWA ===== */}
-      {/* Renderiza o banner de instalação no topo do Dashboard */}
       <InstallPWA prompt={installPrompt} mode="banner" />
-      {/* ===== FIM DA CORREÇÃO PWA ===== */}
       
       <HeaderEstiloTop showUserActions={true} />
       {temPendencias && <PopupAvaliacaoPendente />}
       <main className="dashboard-main">
-        {tipoUsuario === 'contratante' ? (
+        {/* ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL ===== */}
+        {/* A condição agora usa o estado dinâmico 'perfilAtivo' */}
+        {perfilAtivo === 'contratante' ? (
+        // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
           <div className="contratante-dashboard">
             <h2>Encontre o profissional ideal</h2>
             <BuscaContratante onBuscar={handleBuscar} />
@@ -99,21 +100,21 @@ const Dashboard = ({ installPrompt }) => {
           <div className="trabalhador-dashboard">
             <h2>Bem-vindo ao seu painel</h2>
             <div className="dashboard-cards">
-              <div className="dashboard-card">
+              <div className="dashboard-card card-perfil">
                 <h3>Meu Perfil</h3>
                 <p>Gerencie suas informações profissionais</p>
                 <button className="btn btn-primary" onClick={() => navigate(`/perfil/editar`)}>
                   Editar Perfil
                 </button>
               </div>
-              <div className="dashboard-card">
+              <div className="dashboard-card card-oportunidades">
                 <h3>Oportunidades</h3>
                 <p>Veja trabalhos disponíveis na sua área</p>
                 <button className="btn btn-primary" onClick={() => navigate('/oportunidades')}>
                   Ver Oportunidades
                 </button>
               </div>
-              <div className="dashboard-card">
+              <div className="dashboard-card card-meus-trabalhos">
                 <h3>Meus Trabalhos</h3>
                 <p>Acompanhe seus trabalhos em andamento</p>
                 <button className="btn btn-primary" onClick={() => navigate('/meus-trabalhos')}>
