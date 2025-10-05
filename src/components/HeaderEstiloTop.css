@@ -74,3 +74,19 @@
 }
 
 /* ===== FIM DA ALTERAÇÃO ===== */
+//* ===== INÍCIO DA REGRA CORRIGIDA E MAIS ESPECÍFICA ===== */
+
+/* 
+  Nova regra que se aplica a um elemento que tenha AMBAS as classes.
+  Isso aumenta a especificidade e garante que ela sobrescreva a regra .btn-danger genérica.
+*/
+.btn-danger.btn-logout-header {
+  background-color: #1e40af; /* Tom de azul mais escuro que o fundo */
+  border: 1px solid #1c3d9e; /* Borda sutil para dar profundidade */
+}
+
+.btn-danger.btn-logout-header:hover:not(:disabled) {
+  background-color: #1c3d9e; /* Azul ainda mais escuro no hover */
+}
+
+/* ===== FIM DA REGRA CORRIGIDA ===== */

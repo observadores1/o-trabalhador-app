@@ -1,5 +1,4 @@
-// src/pages/Dashboard.js - CÓDIGO ATUALIZADO
-
+// src/pages/Dashboard.js - VERSÃO COMPLETA E REATIVA AO PERFIL ATIVO
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -8,38 +7,24 @@ import HeaderEstiloTop from '../components/HeaderEstiloTop';
 import InstallPWA from '../components/InstallPWA';
 import './Dashboard.css';
 
-const Dashboard = () => {
-  const { user, avaliacoesPendentes, loading } = useAuth();
+const Dashboard = ({ installPrompt }) => {
+  const { avaliacoesPendentes, loading, perfilAtivo } = useAuth();
   const navigate = useNavigate();
-
-  const tipoUsuario = user?.user_metadata?.tipo_usuario || 'trabalhador';
 
   const handleBuscar = (filtros) => {
     if (!filtros.habilidade) {
       alert('Por favor, selecione uma habilidade para realizar a busca.');
       return;
     }
-
-    // ================== CÂMERA DE SEGURANÇA #2 ==================
-    console.log('[CÂMERA 2 - Dashboard] Filtros recebidos do formulário:', filtros);
-    // ==========================================================
-
     const params = new URLSearchParams();
     params.append('habilidade', filtros.habilidade);
-
     if (filtros.cidade) {
       params.append('cidade', filtros.cidade);
     }
     if (filtros.estado) {
       params.append('estado', filtros.estado);
     }
-
     const urlDeBusca = `/resultados-busca?${params.toString()}`;
-
-    // ================== CÂMERA DE SEGURANÇA #3 ==================
-    console.log('[CÂMERA 3 - Dashboard] Navegando para a URL:', urlDeBusca);
-    // ==========================================================
-
     navigate(urlDeBusca);
   };
 
@@ -79,11 +64,12 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <InstallPWA mode="banner" />
+      <InstallPWA prompt={installPrompt} mode="banner" />
+      
       <HeaderEstiloTop showUserActions={true} />
       {temPendencias && <PopupAvaliacaoPendente />}
       <main className="dashboard-main">
-        {tipoUsuario === 'contratante' ? (
+        {perfilAtivo === 'contratante' ? (
           <div className="contratante-dashboard">
             <h2>Encontre o profissional ideal</h2>
             <BuscaContratante onBuscar={handleBuscar} />
@@ -107,7 +93,6 @@ const Dashboard = () => {
           <div className="trabalhador-dashboard">
             <h2>Bem-vindo ao seu painel</h2>
             <div className="dashboard-cards">
-              {/* ===== INÍCIO DA ALTERAÇÃO ===== */}
               <div className="dashboard-card card-perfil">
                 <h3>Meu Perfil</h3>
                 <p>Gerencie suas informações profissionais</p>
@@ -129,7 +114,6 @@ const Dashboard = () => {
                   Ver Trabalhos
                 </button>
               </div>
-              {/* ===== FIM DA ALTERAÇÃO ===== */}
             </div>
           </div>
         )}

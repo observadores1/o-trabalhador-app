@@ -5,7 +5,9 @@
  * @date 2025-09-19
  * Louvado seja Cristo, Louvado seja Deus
  */
-import React from 'react';
+
+// ===== 1. ADICIONAR 'useState' E 'useEffect' À IMPORTAÇÃO DO REACT =====
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
@@ -24,10 +26,7 @@ import SalaDeTrabalho from './components/SalaDeTrabalho';
 import MeusTrabalhos from './components/MeusTrabalhos';
 import ResultadosBusca from './components/ResultadosBusca';
 import Footer from './components/Footer';
-
-// ================== PASSO 1: IMPORTAR O NOVO COMPONENTE ==================
 import ForgotPassword from './components/ForgotPassword';
-// =======================================================================
 
 import './App.css';
 import './botoes.css';
@@ -35,18 +34,35 @@ import './botoes.css';
 function AppLayout() {
   const { session } = useAuth();
 
+  // ===== 2. ADICIONAR A LÓGICA DE CAPTURA DO EVENTO PWA =====
+  const [installPrompt, setInstallPrompt] = useState(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault();
+      setInstallPrompt(event);
+      console.log("✅ Evento de instalação do PWA capturado e pronto para ser usado.");
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+  // ==========================================================
+
   return (
     <div className="App">
       <div className="content-wrap">
         <Routes>
           <Route path="/login" element={<ProtectedRoute requireAuth={false}><Login /></ProtectedRoute>} />
           <Route path="/register" element={<ProtectedRoute requireAuth={false}><Register /></ProtectedRoute>} />
-          
-          {/* ================== PASSO 2: ADICIONAR A NOVA ROTA ================== */}
           <Route path="/forgot-password" element={<ProtectedRoute requireAuth={false}><ForgotPassword /></ProtectedRoute>} />
-          {/* ==================================================================== */}
-
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          
+          {/* ===== 3. PASSAR A PROP 'installPrompt' PARA O DASHBOARD ===== */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard installPrompt={installPrompt} /></ProtectedRoute>} />
+          
           <Route path="/perfil/:id" element={<ProtectedRoute><PerfilVitrine /></ProtectedRoute>} />
           <Route path="/perfil/editar" element={<ProtectedRoute><PerfilProfissional /></ProtectedRoute>} />
           <Route path="/nova-os" element={<ProtectedRoute><PaginaNovaOS /></ProtectedRoute>} />
@@ -62,7 +78,9 @@ function AppLayout() {
         </Routes>
       </div>
       {session && <WhatsAppButton />}
-      <Footer />
+      
+      {/* ===== 4. PASSAR A PROP 'installPrompt' PARA O FOOTER ===== */}
+      <Footer installPrompt={installPrompt} />
     </div>
   );
 }

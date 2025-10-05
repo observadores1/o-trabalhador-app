@@ -1,10 +1,11 @@
 // src/components/Footer.js - CÓDIGO ATUALIZADO
 
 import React from 'react';
-import InstallPWA from './InstallPWA'; // ===== 1. IMPORTE O COMPONENTE AQUI =====
+import InstallPWA from './InstallPWA';
 import './Footer.css';
 
-const Footer = () => {
+// ===== 1. ALTERAR A ASSINATURA PARA RECEBER 'installPrompt' =====
+const Footer = ({ installPrompt }) => {
   const anoAtual = new Date().getFullYear();
   return (
     <footer className="app-footer">
@@ -20,14 +21,14 @@ const Footer = () => {
         </a>
       </p>
 
-      {/* ===== 2. ADICIONE O COMPONENTE AQUI, NO MEIO ===== */}
       <div className="install-section">
-        <InstallPWA mode="button" />
+        {/* ===== 2. PASSAR A PROP RECEBIDA PARA O COMPONENTE 'InstallPWA' ===== */}
+        <InstallPWA prompt={installPrompt} mode="button" />
       </div>
 
       <p className="copyright-text">&copy; {anoAtual} @CertaSoluções. Todos os direitos reservados.</p>
     </footer>
-    );
+     );
 };
 
 export default Footer;

@@ -1,4 +1,4 @@
-// src/contexts/AuthContext.js - VERSÃO CORRIGIDA COM ABORTCONTROLLER
+// src/contexts/AuthContext.js - VERSÃO COMPLETA COM ALTERNÂNCIA DE PERFIL
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient'; // Certifique-se que o caminho está correto
 
@@ -22,6 +22,17 @@ export const AuthProvider = ({ children }) => {
     podeAceitarTrabalho: false,
     isLoading: true,
   });
+
+  // ===== 1. ADICIONAR ESTADO PARA O PERFIL ATIVO =====
+  const [perfilAtivo, setPerfilAtivo] = useState('trabalhador'); // 'trabalhador' é o padrão
+
+  // ===== 2. CRIAR FUNÇÃO PARA ALTERNAR O PERFIL =====
+  const alternarPerfil = () => {
+    setPerfilAtivo(perfilAtual => 
+      perfilAtual === 'trabalhador' ? 'contratante' : 'trabalhador'
+    );
+    console.log(`Perfil alternado para: ${perfilAtivo === 'trabalhador' ? 'contratante' : 'trabalhador'}`);
+  };
 
   const refreshPendencias = useCallback(async (currentUser) => {
     if (currentUser && currentUser.user_metadata?.tipo_usuario === 'contratante') {
@@ -93,7 +104,6 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    // ===== INÍCIO DA CORREÇÃO =====
     const controller = new AbortController();
     const signal = controller.signal;
 
@@ -103,10 +113,10 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
 
       if (currentUser) {
-        // Passamos o 'signal' para as chamadas que podem ser canceladas
-        // Nota: O Supabase v2 não suporta AbortController diretamente em todas as chamadas.
-        // A principal fonte do erro 406 é a chamada inicial de getSession.
-        // O listener onAuthStateChange é mais seguro por natureza.
+        // ===== 3. DEFINIR O PERFIL INICIAL NO LOGIN =====
+        const tipoUsuarioInicial = currentUser.user_metadata?.tipo_usuario || 'trabalhador';
+        setPerfilAtivo(tipoUsuarioInicial);
+
         await refreshPendencias(currentUser);
         await verificarStatusMonetizacao(currentUser);
       } else {
@@ -116,9 +126,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
 
-    // A chamada que provavelmente causa o erro é esta:
     supabase.auth.getSession().then(({ data: { session } }) => {
-        // Verificamos se o componente ainda está montado antes de atualizar o estado
         if (!signal.aborted) {
             handleAuthChange(session);
         }
@@ -131,11 +139,9 @@ export const AuthProvider = ({ children }) => {
     });
 
     return () => {
-      // Quando o componente desmontar, abortamos a requisição
       controller.abort();
       subscription.unsubscribe();
     };
-    // ===== FIM DA CORREÇÃO =====
   }, [refreshPendencias, verificarStatusMonetizacao]);
 
   const signUp = async (email, password, userData) => {
@@ -177,6 +183,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ===== 4. EXPORTAR O NOVO ESTADO E A FUNÇÃO =====
   const value = {
     user,
     session: user ? { user } : null,
@@ -189,6 +196,8 @@ export const AuthProvider = ({ children }) => {
     refreshPendencias,
     statusMonetizacao,
     verificarStatusMonetizacao,
+    perfilAtivo,     // <-- Exporta o perfil ativo
+    alternarPerfil,  // <-- Exporta a função de alternância
   };
 
   return (
