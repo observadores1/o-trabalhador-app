@@ -1,7 +1,7 @@
 /**
  * @file PaginaNovaOS.js
  * @description Página para criação de novas Ordens de Serviço. (VERSÃO FINAL SEM AVISOS)
- * @author Jeferson Gnoatto & Manus AI
+ * @author Jeferson Gnoatto
  * @date 2025-10-02
  * Louvado seja Cristo, Louvado seja Deus
  */
