@@ -1,3 +1,4 @@
+// src/App.js - VERSÃO CORRIGIDA E COMPLETA COM LÓGICA PWA
 /**
  * @file App.js
  * @description Componente principal e roteador do aplicativo.
@@ -5,7 +6,7 @@
  * @date 2025-09-19
  * Louvado seja Cristo, Louvado seja Deus
  */
-import React from 'react'; // Removido useState e useEffect que não são mais necessários aqui
+import React, { useState, useEffect } from 'react'; // Re-adicionado useState e useEffect
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
@@ -24,23 +25,39 @@ import SalaDeTrabalho from './components/SalaDeTrabalho';
 import MeusTrabalhos from './components/MeusTrabalhos';
 import ResultadosBusca from './components/ResultadosBusca';
 import Footer from './components/Footer';
-// A importação do ModalInvestimento foi removida
 
 import './App.css';
 import './botoes.css';
 
-// O componente AppLayout agora está mais limpo, sem a lógica do modal
 function AppLayout() {
   const { session } = useAuth();
+  // ===== INÍCIO DA CORREÇÃO PWA =====
+  const [installPrompt, setInstallPrompt] = useState(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event) => {
+      event.preventDefault(); // Impede que o navegador mostre o banner padrão
+      setInstallPrompt(event); // Salva o evento para usarmos depois
+      console.log("PWA: Evento 'beforeinstallprompt' capturado.");
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // Função de limpeza para remover o listener quando o componente desmontar
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+  // ===== FIM DA CORREÇÃO PWA =====
 
   return (
     <div className="App">
-      {/* A renderização do modal foi removida daqui */}
       <div className="content-wrap">
         <Routes>
+          {/* Passando a prop 'installPrompt' para o Dashboard */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard installPrompt={installPrompt} /></ProtectedRoute>} />
           <Route path="/login" element={<ProtectedRoute requireAuth={false}><Login /></ProtectedRoute>} />
           <Route path="/register" element={<ProtectedRoute requireAuth={false}><Register /></ProtectedRoute>} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/perfil/:id" element={<ProtectedRoute><PerfilVitrine /></ProtectedRoute>} />
           <Route path="/perfil/editar" element={<ProtectedRoute><PerfilProfissional /></ProtectedRoute>} />
           <Route path="/nova-os" element={<ProtectedRoute><PaginaNovaOS /></ProtectedRoute>} />
@@ -56,7 +73,8 @@ function AppLayout() {
         </Routes>
       </div>
       {session && <WhatsAppButton />}
-      <Footer />
+      {/* Passando a prop 'installPrompt' para o Footer */}
+      <Footer installPrompt={installPrompt} />
     </div>
   );
 }

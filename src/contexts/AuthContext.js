@@ -1,4 +1,4 @@
-// src/contexts/AuthContext.js - VERSÃO CORRIGIDA COM ABORTCONTROLLER
+// src/contexts/AuthContext.js - VERSÃO CORRIGIDA DO ERRO DE SINTAXE
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient'; // Certifique-se que o caminho está correto
 
@@ -93,7 +93,6 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    // ===== INÍCIO DA CORREÇÃO =====
     const controller = new AbortController();
     const signal = controller.signal;
 
@@ -103,10 +102,6 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
 
       if (currentUser) {
-        // Passamos o 'signal' para as chamadas que podem ser canceladas
-        // Nota: O Supabase v2 não suporta AbortController diretamente em todas as chamadas.
-        // A principal fonte do erro 406 é a chamada inicial de getSession.
-        // O listener onAuthStateChange é mais seguro por natureza.
         await refreshPendencias(currentUser);
         await verificarStatusMonetizacao(currentUser);
       } else {
@@ -116,9 +111,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
 
-    // A chamada que provavelmente causa o erro é esta:
     supabase.auth.getSession().then(({ data: { session } }) => {
-        // Verificamos se o componente ainda está montado antes de atualizar o estado
         if (!signal.aborted) {
             handleAuthChange(session);
         }
@@ -131,11 +124,9 @@ export const AuthProvider = ({ children }) => {
     });
 
     return () => {
-      // Quando o componente desmontar, abortamos a requisição
       controller.abort();
       subscription.unsubscribe();
     };
-    // ===== FIM DA CORREÇÃO =====
   }, [refreshPendencias, verificarStatusMonetizacao]);
 
   const signUp = async (email, password, userData) => {
