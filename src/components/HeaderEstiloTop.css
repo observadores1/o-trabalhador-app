@@ -1,4 +1,4 @@
-/* src/components/HeaderEstiloTop.css */
+/* src/components/HeaderEstiloTop.css - VERSÃO COMPLETA E FINALMENTE RESPONSIVA */
 
 .header-estilo-top {
   background-color: #1d4ed8; /* Azul do tema */
@@ -45,11 +45,39 @@
   font-size: 0.9rem;
   font-weight: 500;
 }
-/* Estilo para o novo botão "Trocar Perfil" (azul claro) */
-.user-info .btn-info {
-  background-color: #17a2b8;
-  border: 1px solid #17a2b8;
+
+/* Estilo base para todos os botões no cabeçalho */
+.user-info .btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  color: white;
 }
+
+.user-info .btn:hover {
+  opacity: 0.9;
+}
+
+.user-info .btn:active {
+  transform: scale(0.98); /* Efeito de clique */
+}
+
+/* Estilo para o botão "Perfil" e "Início" (cinza/secundário) */
+.user-info .btn-secondary {
+  background-color: #0e35df;
+  border: 1px solid #1165af;
+}
+
+/* Estilo para o botão "Sair" (vermelho) */
+.user-info .btn-danger {
+  background-color: #dc3545;
+  border: 1px solid #dc3545;
+}
+
 /* Estilo para o novo botão de troca de perfil (design aprimorado) */
 .user-info .btn-switch-profile {
   background-color: #28a745; /* Verde, indicando perfil ativo */
@@ -57,7 +85,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px; /* Ajuste no padding */
+  padding: 6px 10px;
 }
 
 .user-info .btn-switch-profile:hover {
@@ -71,4 +99,41 @@
 
 .switch-text {
   font-weight: 600;
+}
+
+
+/* =============================================== */
+/* === REGRAS DE RESPONSIVIDADE PARA CELULARES === */
+/* =============================================== */
+
+/* Aplica estes estilos quando a tela for menor que 600px */
+@media (max-width: 600px) {
+
+  .header-content {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  /* CORREÇÃO DE ESPECIFICIDADE: Este seletor é mais forte e vai sobrescrever a regra do 'botoes.css' */
+  .header-estilo-top .user-info {
+    flex-direction: row; /* FORÇA os botões a ficarem em linha */
+    flex-wrap: wrap; 
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .user-info span {
+    width: 100%;
+    text-align: center;
+    margin-bottom: 5px;
+  }
+
+  .user-info .btn {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+  }
+
+  .user-info .btn-switch-profile {
+    padding: 5px 8px;
+  }
 }
