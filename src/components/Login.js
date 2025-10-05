@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import logo from '../assets/logo.png'; // <-- IMPORTAÇÃO DO LOGO
+import logo from '../assets/logo.png';
 import './Login.css';
 
 const Login = () => {
@@ -27,19 +27,34 @@ const Login = () => {
     e.preventDefault();
     
     if (!email || !password) {
-      setError('Por favor, preencha todos os campos');
+      setError('Por favor, preencha todos os campos.');
       return;
     }
 
     setLoading(true);
     setError('');
 
-    const { error } = await signIn(email, password);
+    try {
+      const { error: signInError } = await signIn(email, password);
     
-    if (error) {
-      setError(error.message);
-    } else {
-      navigate(from, { replace: true });
+      if (signInError) {
+        // ================== LÓGICA DE TRADUÇÃO ADICIONADA AQUI ==================
+        if (signInError.message === 'Invalid login credentials') {
+          setError('Credenciais de login inválidas. Verifique seu e-mail e senha.');
+        } else if (signInError.message === 'Email not confirmed') {
+          setError('Seu e-mail ainda não foi confirmado. Por favor, verifique sua caixa de entrada.');
+        } else {
+          setError('Ocorreu um erro ao tentar fazer login. Tente novamente.');
+          console.error('Erro de login do Supabase:', signInError.message);
+        }
+        // =======================================================================
+      } else {
+        navigate(from, { replace: true });
+      }
+    } catch (err) {
+      // Captura erros de rede ou outros problemas inesperados
+      console.error("Erro inesperado no login:", err);
+      setError('Não foi possível conectar ao servidor. Verifique sua internet.');
     }
     
     setLoading(false);
@@ -49,19 +64,13 @@ const Login = () => {
     <div className="login-container">
       <div className="login-card">
         
-        {/* ================== CORREÇÕES APLICADAS AQUI ================== */}
-        
-        {/* 1. Logo adicionado */}
         <img src={logo} alt="Logo O Trabalhador" className="login-logo" />
 
-        {/* 2. Título em duas linhas */}
         <h2>
           Entrar no
           <span className="app-name">O Trabalhador</span>
         </h2>
         
-        {/* ============================================================= */}
-
         {error && <div className="error-message">{error}</div>}
         
         <form onSubmit={handleSubmit} className="login-form">
@@ -100,6 +109,7 @@ const Login = () => {
         
         <div className="login-links">
           <Link to="/register">Não tem conta? Cadastre-se</Link>
+          {/* O link para /forgot-password agora funcionará após criarmos a página */}
           <Link to="/forgot-password">Esqueceu a senha?</Link>
         </div>
       </div>

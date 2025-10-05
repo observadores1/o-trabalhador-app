@@ -57,7 +57,7 @@ const Register = () => {
     if (error) {
       setError(error.message);
     } else {
-      setSuccess('Conta criada com sucesso! Verifique seu email para confirmar a conta.');
+      setSuccess('Conta criada com sucesso! Verifique seu email para confirmar a conta, ou aguarde uns minutos. Não esqueça de conferir a caixa de spam!');
       setTimeout(() => {
         navigate('/login');
       }, 3000);

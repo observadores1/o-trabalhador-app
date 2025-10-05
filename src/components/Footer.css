@@ -37,3 +37,8 @@
   font-size: 0.9rem;
   color: #d1d5db; /* Mantém a cor original para ser mais sutil */
 }
+/* Adicione ao final de Footer.css */
+
+.install-section {
+  margin: 8px 0; /* Adiciona um espaço vertical de 15px acima e abaixo */
+}
