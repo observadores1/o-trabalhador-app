@@ -1,14 +1,17 @@
-// src/components/Footer.js - CÓDIGO ATUALIZADO
-
+// src/components/Footer.js - VERSÃO CORRIGIDA E COMPLETA COM BOTÃO PWA
 import React from 'react';
-import InstallPWA from './InstallPWA';
 import './Footer.css';
+import InstallPWA from './InstallPWA'; // Importa o componente PWA
 
-// ===== 1. ALTERAR A ASSINATURA PARA RECEBER 'installPrompt' =====
-const Footer = ({ installPrompt }) => {
+const Footer = ({ installPrompt }) => { // Recebe a prop 'installPrompt'
   const anoAtual = new Date().getFullYear();
   return (
     <footer className="app-footer">
+      {/* ===== INÍCIO DA CORREÇÃO PWA ===== */}
+      {/* Renderiza o botão de instalação apenas se o evento foi capturado */}
+      <InstallPWA prompt={installPrompt} mode="button" />
+      {/* ===== FIM DA CORREÇÃO PWA ===== */}
+
       <p className="investor-call">
         Quer ser um investidor deste aplicativo? 
         <a 
@@ -20,15 +23,9 @@ const Footer = ({ installPrompt }) => {
           Chama no WhatsApp
         </a>
       </p>
-
-      <div className="install-section">
-        {/* ===== 2. PASSAR A PROP RECEBIDA PARA O COMPONENTE 'InstallPWA' ===== */}
-        <InstallPWA prompt={installPrompt} mode="button" />
-      </div>
-
       <p className="copyright-text">&copy; {anoAtual} @CertaSoluções. Todos os direitos reservados.</p>
     </footer>
-     );
+    );
 };
 
 export default Footer;

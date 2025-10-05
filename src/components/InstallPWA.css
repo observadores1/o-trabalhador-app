@@ -1,89 +1,45 @@
-/* src/components/InstallPWA.css */
+/* src/components/InstallPWA.css - NOVO ARQUIVO */
 
-/* --- Estilos para o MODO BANNER --- */
-.install-banner-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background-color: #1d4ed8; /* Azul do tema */
-  color: white;
-  padding: 15px 20px;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-  z-index: 2000;
+.pwa-install-banner {
+  background-color: #f0f8ff; /* Azul claro */
+  color: #333;
+  padding: 10px 15px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
+  border-bottom: 1px solid #d4e8f7;
+  font-size: 0.9rem;
 }
 
-.install-banner-content {
-  text-align: left;
-}
-
-.install-banner-content h4,
-.install-banner-content p {
+.pwa-install-banner p {
   margin: 0;
-  padding: 0;
 }
 
-.install-banner-content h4 {
-  font-size: 1.1rem;
-  margin-bottom: 4px;
-}
-
-.install-banner-content p {
-  font-size: 0.85rem;
-  opacity: 0.9;
-}
-
-.install-banner-button {
-  background-color: #22c55e; /* Verde vibrante */
+.btn-install {
+  background-color: #007bff;
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 5px;
   cursor: pointer;
-  white-space: nowrap; /* Impede que o texto "Instalar" quebre a linha */
-  transition: background-color 0.3s;
+  font-weight: 600;
 }
 
-.install-banner-button:hover {
-  background-color: #16a34a;
+.btn-install:hover {
+  background-color: #0056b3;
 }
 
-
-/* --- Estilos para o MODO BOTÃO (no rodapé) --- */
-.install-button-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 10px;
-  text-align: center;
-}
-
-.install-button-container span {
-  font-size: 0.9rem;
-  color: #e4e0e0; /* Ajuste a cor conforme o fundo do seu rodapé */
-}
-
-.install-button-link {
-  background: none;
-  border: none;
-  color: #1d4ed8; /* Azul do tema */
-  text-decoration: underline;
+.btn-install-footer {
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 5px 10px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: bold;
-  padding: 0;
+  font-size: 0.8rem;
+  margin-right: 15px;
 }
 
-.install-button-link:hover {
-  color: #076edb;
+.btn-install-footer:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }

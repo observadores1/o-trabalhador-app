@@ -1,5 +1,4 @@
-// src/components/HeaderEstiloTop.js - VERSÃO COM BOTÃO DE ALTERNÂNCIA
-
+// src/components/HeaderEstiloTop.js - VERSÃO COM O BOTÃO DE TROCA DE PERFIL (DESIGN MELHORADO)
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -7,8 +6,7 @@ import logo from '../assets/logo.png';
 import './HeaderEstiloTop.css';
 
 const HeaderEstiloTop = ({ showUserActions = true }) => {
-  // ===== 1. IMPORTAR 'alternarPerfil' E 'perfilAtivo' DO CONTEXTO =====
-  const { user, signOut, alternarPerfil, perfilAtivo } = useAuth();
+  const { user, signOut, trocarPerfil, perfilAtivo } = useAuth();
   const navigate = useNavigate();
 
   const nomeUsuario = user?.user_metadata?.apelido || user?.email;
@@ -27,31 +25,25 @@ const HeaderEstiloTop = ({ showUserActions = true }) => {
         </div>
 
         <div className="user-info">
-          {showUserActions ? (
+          {showUserActions && user ? (
             <>
               <span>Olá, {nomeUsuario}</span>
-              <div className="header-user-actions">
-                {/* ===== 2. ADICIONAR O BOTÃO DE ALTERNÂNCIA DE PERFIL ===== */}
-                <button 
-                  onClick={alternarPerfil} 
-                  className="btn btn-primary" // Usando uma cor que chama a atenção
-                  title={`Mudar para visão de ${perfilAtivo === 'trabalhador' ? 'Contratante' : 'Trabalhador'}`}
-                >
-                  {/* Ícone de troca (Unicode) para feedback visual */}
-                  &#x21C4; Mudar Perfil
-                </button>
-                
-                <button onClick={() => navigate('/perfil/editar')} className="btn btn-secondary">
-                  Perfil
-                </button>
-                
-                <button 
-                  onClick={handleLogout} 
-                  className="btn btn-danger btn-logout-header"
-                >
-                  Sair
-                </button>
-              </div>
+              
+              {/* ===== BOTÃO DE TROCA DE PERFIL - VERSÃO MELHORADA ===== */}
+              <button onClick={trocarPerfil} className="btn btn-switch-profile" title="Alternar perfil">
+                <span className="switch-icon">⇄</span> {/* Ícone de troca */}
+                <span className="switch-text">
+                  {perfilAtivo === 'contratante' ? 'Contratante' : 'Trabalhador'}
+                </span>
+              </button>
+              {/* ======================================================= */}
+
+              <button onClick={() => navigate('/perfil/editar')} className="btn btn-secondary">
+                Perfil
+              </button>
+              <button onClick={handleLogout} className="btn btn-danger">
+                Sair
+              </button>
             </>
           ) : (
             <button onClick={() => navigate('/dashboard')} className="btn btn-secondary">

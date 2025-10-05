@@ -1,4 +1,4 @@
-/* src/components/HeaderEstiloTop.css - CÓDIGO ATUALIZADO */
+/* src/components/HeaderEstiloTop.css */
 
 .header-estilo-top {
   background-color: #1d4ed8; /* Azul do tema */
@@ -45,48 +45,30 @@
   font-size: 0.9rem;
   font-weight: 500;
 }
-
-/* ===== INÍCIO DA ALTERAÇÃO ===== */
-
-/* Contêiner para os botões de ação */
-.header-user-actions {
+/* Estilo para o novo botão "Trocar Perfil" (azul claro) */
+.user-info .btn-info {
+  background-color: #17a2b8;
+  border: 1px solid #17a2b8;
+}
+/* Estilo para o novo botão de troca de perfil (design aprimorado) */
+.user-info .btn-switch-profile {
+  background-color: #28a745; /* Verde, indicando perfil ativo */
+  border: 1px solid #28a745;
   display: flex;
-  gap: 10px; /* Espaço entre os botões */
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px; /* Ajuste no padding */
 }
 
-/* --- Media Query para telas pequenas --- */
-@media (max-width: 768px) {
-  .header-content {
-    flex-direction: column; /* Empilha o logo e a área do usuário */
-    gap: 15px;
-  }
-
-  .user-info {
-    flex-direction: column; /* Empilha o "Olá" e os botões */
-    width: 100%;
-    align-items: center;
-  }
-
-  .header-user-actions {
-    justify-content: center; /* Centraliza os botões no espaço disponível */
-    width: 100%;
-  }
+.user-info .btn-switch-profile:hover {
+  background-color: #218838; /* Verde mais escuro no hover */
 }
 
-/* ===== FIM DA ALTERAÇÃO ===== */
-//* ===== INÍCIO DA REGRA CORRIGIDA E MAIS ESPECÍFICA ===== */
-
-/* 
-  Nova regra que se aplica a um elemento que tenha AMBAS as classes.
-  Isso aumenta a especificidade e garante que ela sobrescreva a regra .btn-danger genérica.
-*/
-.btn-danger.btn-logout-header {
-  background-color: #1e40af; /* Tom de azul mais escuro que o fundo */
-  border: 1px solid #1c3d9e; /* Borda sutil para dar profundidade */
+.switch-icon {
+  font-size: 1.2rem; /* Tamanho do ícone de flechas */
+  line-height: 1;
 }
 
-.btn-danger.btn-logout-header:hover:not(:disabled) {
-  background-color: #1c3d9e; /* Azul ainda mais escuro no hover */
+.switch-text {
+  font-weight: 600;
 }
-
-/* ===== FIM DA REGRA CORRIGIDA ===== */

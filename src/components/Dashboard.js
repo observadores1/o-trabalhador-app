@@ -1,14 +1,18 @@
-// src/pages/Dashboard.js - VERSÃO COMPLETA E REATIVA AO PERFIL ATIVO
+// src/components/Dashboard.js - VERSÃO FINAL REATIVA À TROCA DE PERFIL
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import BuscaContratante from '../components/BuscaContratante';
-import HeaderEstiloTop from '../components/HeaderEstiloTop';
-import InstallPWA from '../components/InstallPWA';
+import BuscaContratante from './BuscaContratante';
+import HeaderEstiloTop from './HeaderEstiloTop';
+import InstallPWA from './InstallPWA';
 import './Dashboard.css';
 
 const Dashboard = ({ installPrompt }) => {
+  // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+  // Removido 'user' e adicionado 'perfilAtivo'
   const { avaliacoesPendentes, loading, perfilAtivo } = useAuth();
+  // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+  
   const navigate = useNavigate();
 
   const handleBuscar = (filtros) => {
@@ -69,7 +73,10 @@ const Dashboard = ({ installPrompt }) => {
       <HeaderEstiloTop showUserActions={true} />
       {temPendencias && <PopupAvaliacaoPendente />}
       <main className="dashboard-main">
+        {/* ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL ===== */}
+        {/* A condição agora usa o estado dinâmico 'perfilAtivo' */}
         {perfilAtivo === 'contratante' ? (
+        // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
           <div className="contratante-dashboard">
             <h2>Encontre o profissional ideal</h2>
             <BuscaContratante onBuscar={handleBuscar} />

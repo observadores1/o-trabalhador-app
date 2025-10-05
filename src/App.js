@@ -1,3 +1,4 @@
+// src/App.js - VERSÃO CORRIGIDA E COMPLETA COM LÓGICA PWA
 /**
  * @file App.js
  * @description Componente principal e roteador do aplicativo.
@@ -5,9 +6,7 @@
  * @date 2025-09-19
  * Louvado seja Cristo, Louvado seja Deus
  */
-
-// ===== 1. ADICIONAR 'useState' E 'useEffect' À IMPORTAÇÃO DO REACT =====
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // Re-adicionado useState e useEffect
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Login from './components/Login';
@@ -26,43 +25,39 @@ import SalaDeTrabalho from './components/SalaDeTrabalho';
 import MeusTrabalhos from './components/MeusTrabalhos';
 import ResultadosBusca from './components/ResultadosBusca';
 import Footer from './components/Footer';
-import ForgotPassword from './components/ForgotPassword';
 
 import './App.css';
 import './botoes.css';
 
 function AppLayout() {
   const { session } = useAuth();
-
-  // ===== 2. ADICIONAR A LÓGICA DE CAPTURA DO EVENTO PWA =====
+  // ===== INÍCIO DA CORREÇÃO PWA =====
   const [installPrompt, setInstallPrompt] = useState(null);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event) => {
-      event.preventDefault();
-      setInstallPrompt(event);
-      console.log("✅ Evento de instalação do PWA capturado e pronto para ser usado.");
+      event.preventDefault(); // Impede que o navegador mostre o banner padrão
+      setInstallPrompt(event); // Salva o evento para usarmos depois
+      console.log("PWA: Evento 'beforeinstallprompt' capturado.");
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
+    // Função de limpeza para remover o listener quando o componente desmontar
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
-  // ==========================================================
+  // ===== FIM DA CORREÇÃO PWA =====
 
   return (
     <div className="App">
       <div className="content-wrap">
         <Routes>
+          {/* Passando a prop 'installPrompt' para o Dashboard */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard installPrompt={installPrompt} /></ProtectedRoute>} />
           <Route path="/login" element={<ProtectedRoute requireAuth={false}><Login /></ProtectedRoute>} />
           <Route path="/register" element={<ProtectedRoute requireAuth={false}><Register /></ProtectedRoute>} />
-          <Route path="/forgot-password" element={<ProtectedRoute requireAuth={false}><ForgotPassword /></ProtectedRoute>} />
-          
-          {/* ===== 3. PASSAR A PROP 'installPrompt' PARA O DASHBOARD ===== */}
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard installPrompt={installPrompt} /></ProtectedRoute>} />
-          
           <Route path="/perfil/:id" element={<ProtectedRoute><PerfilVitrine /></ProtectedRoute>} />
           <Route path="/perfil/editar" element={<ProtectedRoute><PerfilProfissional /></ProtectedRoute>} />
           <Route path="/nova-os" element={<ProtectedRoute><PaginaNovaOS /></ProtectedRoute>} />
@@ -78,8 +73,7 @@ function AppLayout() {
         </Routes>
       </div>
       {session && <WhatsAppButton />}
-      
-      {/* ===== 4. PASSAR A PROP 'installPrompt' PARA O FOOTER ===== */}
+      {/* Passando a prop 'installPrompt' para o Footer */}
       <Footer installPrompt={installPrompt} />
     </div>
   );

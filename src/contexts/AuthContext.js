@@ -1,6 +1,6 @@
-// src/contexts/AuthContext.js - VERSÃO COMPLETA COM ALTERNÂNCIA DE PERFIL
+// src/contexts/AuthContext.js - VERSÃO COM LÓGICA DE TROCA DE PERFIL
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '../services/supabaseClient'; // Certifique-se que o caminho está correto
+import { supabase } from '../services/supabaseClient';
 
 const AuthContext = createContext();
 
@@ -17,22 +17,22 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [avaliacoesPendentes, setAvaliacoesPendentes] = useState([]);
   
+  // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+  const [perfilAtivo, setPerfilAtivo] = useState('trabalhador'); // 'trabalhador' ou 'contratante'
+  // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+
   const [statusMonetizacao, setStatusMonetizacao] = useState({
     podeCriarOS: false,
     podeAceitarTrabalho: false,
     isLoading: true,
   });
 
-  // ===== 1. ADICIONAR ESTADO PARA O PERFIL ATIVO =====
-  const [perfilAtivo, setPerfilAtivo] = useState('trabalhador'); // 'trabalhador' é o padrão
-
-  // ===== 2. CRIAR FUNÇÃO PARA ALTERNAR O PERFIL =====
-  const alternarPerfil = () => {
-    setPerfilAtivo(perfilAtual => 
-      perfilAtual === 'trabalhador' ? 'contratante' : 'trabalhador'
-    );
-    console.log(`Perfil alternado para: ${perfilAtivo === 'trabalhador' ? 'contratante' : 'trabalhador'}`);
+  // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+  // Função para alternar entre os perfis
+  const trocarPerfil = () => {
+    setPerfilAtivo(prev => (prev === 'contratante' ? 'trabalhador' : 'contratante'));
   };
+  // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
 
   const refreshPendencias = useCallback(async (currentUser) => {
     if (currentUser && currentUser.user_metadata?.tipo_usuario === 'contratante') {
@@ -113,10 +113,10 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
 
       if (currentUser) {
-        // ===== 3. DEFINIR O PERFIL INICIAL NO LOGIN =====
-        const tipoUsuarioInicial = currentUser.user_metadata?.tipo_usuario || 'trabalhador';
-        setPerfilAtivo(tipoUsuarioInicial);
-
+        // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+        // Define o perfil padrão com base nos metadados do usuário ao logar
+        setPerfilAtivo(currentUser.user_metadata?.tipo_usuario || 'trabalhador');
+        // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
         await refreshPendencias(currentUser);
         await verificarStatusMonetizacao(currentUser);
       } else {
@@ -183,7 +183,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // ===== 4. EXPORTAR O NOVO ESTADO E A FUNÇÃO =====
   const value = {
     user,
     session: user ? { user } : null,
@@ -196,8 +195,11 @@ export const AuthProvider = ({ children }) => {
     refreshPendencias,
     statusMonetizacao,
     verificarStatusMonetizacao,
-    perfilAtivo,     // <-- Exporta o perfil ativo
-    alternarPerfil,  // <-- Exporta a função de alternância
+    // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+    // Exportando o estado e a função para serem usados em outros componentes
+    perfilAtivo,
+    trocarPerfil,
+    // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
   };
 
   return (
