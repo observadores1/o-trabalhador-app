@@ -1,18 +1,16 @@
-// src/components/Dashboard.js - VERSÃO FINAL REATIVA À TROCA DE PERFIL
-import React from 'react';
+// src/components/Dashboard.js - VERSÃO FINAL, COMPLETA E SEGURA
+import React from 'react'; // Removido useState e useEffect que não são mais necessários aqui
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import BuscaContratante from './BuscaContratante';
 import HeaderEstiloTop from './HeaderEstiloTop';
 import InstallPWA from './InstallPWA';
+import ModalManual from './ModalManual'; // Importa o novo componente
 import './Dashboard.css';
 
 const Dashboard = ({ installPrompt }) => {
-  // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
-  // Removido 'user' e adicionado 'perfilAtivo'
-  const { avaliacoesPendentes, loading, perfilAtivo } = useAuth();
-  // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
-  
+  // A lógica do manual agora é controlada pelo AuthContext
+  const { avaliacoesPendentes, loading, perfilAtivo, marcarManualComoVisto, mostrarManual } = useAuth();
   const navigate = useNavigate();
 
   const handleBuscar = (filtros) => {
@@ -68,15 +66,15 @@ const Dashboard = ({ installPrompt }) => {
 
   return (
     <div className="dashboard-container">
+      {/* O modal agora é controlado 100% pelo contexto */}
+      {mostrarManual && <ModalManual perfil={perfilAtivo} onClose={marcarManualComoVisto} />}
+
       <InstallPWA prompt={installPrompt} mode="banner" />
       
       <HeaderEstiloTop showUserActions={true} />
       {temPendencias && <PopupAvaliacaoPendente />}
       <main className="dashboard-main">
-        {/* ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL ===== */}
-        {/* A condição agora usa o estado dinâmico 'perfilAtivo' */}
         {perfilAtivo === 'contratante' ? (
-        // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
           <div className="contratante-dashboard">
             <h2>Encontre o profissional ideal</h2>
             <BuscaContratante onBuscar={handleBuscar} />

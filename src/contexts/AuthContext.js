@@ -1,4 +1,4 @@
-// src/contexts/AuthContext.js - VERSÃO COM LÓGICA DE TROCA DE PERFIL
+// src/contexts/AuthContext.js - VERSÃO FINAL, COMPLETA E SEGURA
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient';
 
@@ -16,10 +16,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [avaliacoesPendentes, setAvaliacoesPendentes] = useState([]);
-  
-  // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
-  const [perfilAtivo, setPerfilAtivo] = useState('trabalhador'); // 'trabalhador' ou 'contratante'
-  // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+  const [perfilAtivo, setPerfilAtivo] = useState('trabalhador');
+
+  // ===== INÍCIO DA IMPLEMENTAÇÃO DO MANUAL =====
+  const [viuManual, setViuManual] = useState(true); // Começa como true para não piscar na tela
+  const [mostrarManual, setMostrarManual] = useState(false); // Controla a visibilidade do modal
+  // ===== FIM DA IMPLEMENTAÇÃO DO MANUAL =====
 
   const [statusMonetizacao, setStatusMonetizacao] = useState({
     podeCriarOS: false,
@@ -27,12 +29,33 @@ export const AuthProvider = ({ children }) => {
     isLoading: true,
   });
 
-  // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
-  // Função para alternar entre os perfis
   const trocarPerfil = () => {
     setPerfilAtivo(prev => (prev === 'contratante' ? 'trabalhador' : 'contratante'));
   };
-  // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+
+  // ===== INÍCIO DA IMPLEMENTAÇÃO DO MANUAL =====
+  const toggleManual = (estado) => {
+    setMostrarManual(prev => typeof estado === 'boolean' ? estado : !prev);
+  };
+
+  const marcarManualComoVisto = async () => {
+    if (!user) return;
+    try {
+      const { error } = await supabase
+        .from('perfis') // Nome da tabela confirmado por você
+        .update({ viu_manual: true })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      setViuManual(true);
+      toggleManual(false); // Fecha o modal
+      console.log("Manual marcado como visto no banco de dados.");
+    } catch (error) {
+      console.error("Erro ao marcar manual como visto:", error.message);
+    }
+  };
+  // ===== FIM DA IMPLEMENTAÇÃO DO MANUAL =====
 
   const refreshPendencias = useCallback(async (currentUser) => {
     if (currentUser && currentUser.user_metadata?.tipo_usuario === 'contratante') {
@@ -113,29 +136,39 @@ export const AuthProvider = ({ children }) => {
       setUser(currentUser);
 
       if (currentUser) {
-        // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
-        // Define o perfil padrão com base nos metadados do usuário ao logar
+        const { data: profileData, error: profileError } = await supabase
+          .from('perfis')
+          .select('viu_manual')
+          .eq('id', currentUser.id)
+          .single();
+
+        if (profileError) {
+          console.error("Erro ao buscar status do manual:", profileError);
+        } else {
+          const jaViu = profileData?.viu_manual || false;
+          setViuManual(jaViu);
+          if (!jaViu) {
+            toggleManual(true); // Se nunca viu, abre o manual automaticamente
+          }
+        }
+        
         setPerfilAtivo(currentUser.user_metadata?.tipo_usuario || 'trabalhador');
-        // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
         await refreshPendencias(currentUser);
         await verificarStatusMonetizacao(currentUser);
       } else {
         setAvaliacoesPendentes([]);
         setStatusMonetizacao({ podeCriarOS: false, podeAceitarTrabalho: false, isLoading: false });
+        setViuManual(true);
       }
       setLoading(false);
     };
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!signal.aborted) {
-            handleAuthChange(session);
-        }
+        if (!signal.aborted) { handleAuthChange(session); }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!signal.aborted) {
-        handleAuthChange(session);
-      }
+      if (!signal.aborted) { handleAuthChange(session); }
     });
 
     return () => {
@@ -195,11 +228,12 @@ export const AuthProvider = ({ children }) => {
     refreshPendencias,
     statusMonetizacao,
     verificarStatusMonetizacao,
-    // ===== INÍCIO DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
-    // Exportando o estado e a função para serem usados em outros componentes
     perfilAtivo,
     trocarPerfil,
-    // ===== FIM DA IMPLEMENTAÇÃO DA TROCA DE PERFIL =====
+    viuManual,
+    marcarManualComoVisto,
+    mostrarManual,
+    toggleManual,
   };
 
   return (

@@ -1,0 +1,52 @@
+/* src/components/ModalManual.css - NOVO ARQUIVO */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-manual-container {
+  background-color: white;
+  padding: 25px;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 90%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-manual-header {
+  overflow-y: auto; /* Adiciona scroll se o conteúdo for grande */
+  padding-right: 15px; /* Espaço para a barra de rolagem */
+}
+
+.modal-manual-header h2 {
+  margin-top: 0;
+  color: #1d4ed8;
+}
+
+.modal-manual-header ul {
+  padding-left: 20px;
+}
+
+.modal-manual-header li {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.modal-manual-footer {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  text-align: center;
+}
