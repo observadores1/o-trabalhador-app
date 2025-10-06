@@ -1,26 +1,25 @@
-/* Estilos para o componente Footer (versão atualizada) */
+/* src/components/Footer.css - VERSÃO FINAL, LIMPA E CORRIGIDA */
 
+/* MANTIDO: Estilos originais do seu rodapé que estavam funcionando */
 .app-footer {
-  background-color: #1f2937; /* Seu cinza escuro original */
-  color: #d1d5db;           /* Seu cinza claro original */
+  background-color: #1f2937;
+  color: #d1d5db;
   text-align: center;
-  padding: 25px 15px;       /* Um pouco mais de espaço vertical */
+  padding: 25px 15px;
   margin-top: auto;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Estilo para a chamada de investidor */
 .investor-call {
-  margin: 0 0 12px 0; /* Espaço entre a chamada e o copyright */
-  font-size: 1rem;    /* Levemente maior para destaque */
+  margin: 15px 0 12px 0;
+  font-size: 1rem;
   font-weight: 500;
-  color: #ffffff;     /* Branco para um pouco mais de contraste */
+  color: #ffffff;
 }
 
-/* Estilo para o link do WhatsApp */
 .whatsapp-link {
-  color: #fBBF24; /* Um tom de amarelo/dourado para chamar atenção */
+  color: #fBBF24;
   font-weight: 700;
   text-decoration: underline;
   margin-left: 8px;
@@ -28,12 +27,31 @@
 }
 
 .whatsapp-link:hover {
-  color: #FDE68A; /* Amarelo mais claro no hover */
+  color: #FDE68A;
 }
 
-/* Estilo para o texto de copyright (seu estilo original) */
 .copyright-text {
   margin: 0;
   font-size: 0.9rem;
-  color: #d1d5db; /* Mantém a cor original para ser mais sutil */
+  color: #d1d5db;
+}
+
+/* ADICIONADO: Estilos corretos e limpos para o link de ajuda */
+.footer-help-link {
+  margin: 12px 0;
+}
+
+.link-style-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: #9ca3af;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.link-style-button:hover {
+  color: #d1d5db;
 }

@@ -1,7 +1,7 @@
-/* src/components/HeaderEstiloTop.css - VERSÃO COMPLETA E FINALMENTE RESPONSIVA */
+/* src/components/HeaderEstiloTop.css - VERSÃO FINAL COM CORREÇÃO !IMPORTANT */
 
 .header-estilo-top {
-  background-color: #1d4ed8; /* Azul do tema */
+  background-color: #1d4ed8;
   color: white;
   padding: 10px 25px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -13,7 +13,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1200px; /* Limita a largura em telas grandes */
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -25,7 +25,7 @@
 }
 
 .logo-img {
-  height: 35px; /* Ajuste o tamanho do logo conforme necessário */
+  height: 35px;
   width: 35px;
 }
 
@@ -46,7 +46,6 @@
   font-weight: 500;
 }
 
-/* Estilo base para todos os botões no cabeçalho */
 .user-info .btn {
   padding: 6px 12px;
   border: none;
@@ -63,24 +62,21 @@
 }
 
 .user-info .btn:active {
-  transform: scale(0.98); /* Efeito de clique */
+  transform: scale(0.98);
 }
 
-/* Estilo para o botão "Perfil" e "Início" (cinza/secundário) */
 .user-info .btn-secondary {
   background-color: #0e35df;
   border: 1px solid #1165af;
 }
 
-/* Estilo para o botão "Sair" (vermelho) */
 .user-info .btn-danger {
   background-color: #dc3545;
   border: 1px solid #dc3545;
 }
 
-/* Estilo para o novo botão de troca de perfil (design aprimorado) */
 .user-info .btn-switch-profile {
-  background-color: #28a745; /* Verde, indicando perfil ativo */
+  background-color: #28a745;
   border: 1px solid #28a745;
   display: flex;
   align-items: center;
@@ -89,11 +85,11 @@
 }
 
 .user-info .btn-switch-profile:hover {
-  background-color: #218838; /* Verde mais escuro no hover */
+  background-color: #218838;
 }
 
 .switch-icon {
-  font-size: 1.2rem; /* Tamanho do ícone de flechas */
+  font-size: 1.2rem;
   line-height: 1;
 }
 
@@ -101,12 +97,6 @@
   font-weight: 600;
 }
 
-
-/* =============================================== */
-/* === REGRAS DE RESPONSIVIDADE PARA CELULARES === */
-/* =============================================== */
-
-/* Aplica estes estilos quando a tela for menor que 600px */
 @media (max-width: 600px) {
 
   .header-content {
@@ -114,9 +104,9 @@
     gap: 15px;
   }
 
-  /* CORREÇÃO DE ESPECIFICIDADE: Este seletor é mais forte e vai sobrescrever a regra do 'botoes.css' */
   .header-estilo-top .user-info {
-    flex-direction: row; /* FORÇA os botões a ficarem em linha */
+    /* A BOMBA ATÔMICA PARA GARANTIR A VITÓRIA */
+    flex-direction: row !important; 
     flex-wrap: wrap; 
     justify-content: center;
     gap: 10px;
