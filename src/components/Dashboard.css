@@ -237,3 +237,38 @@
   visibility: visible;
   opacity: 1;
 }
+/* Adicione este código ao FINAL do seu arquivo Dashboard.css */
+
+/* ================================================================== */
+/* ===== INÍCIO DAS ALTERAÇÕES PARA LAYOUT RESPONSIVO (03/10/2025) ===== */
+/* ================================================================== */
+
+/* --- 1. Correção para os botões do Header --- */
+/* Esta regra assume que os botões estão dentro de um elemento com a classe 'user-actions' 
+   dentro do seu componente HeaderEstiloTop. Se não funcionar, precisarei ver o código do Header. */
+.user-actions {
+  display: flex;
+  gap: 10px; /* Adiciona um espaço entre os botões */
+  justify-content: center; /* Centraliza os botões */
+  flex-wrap: wrap; /* Permite que quebrem a linha se necessário, mas o gap evita sobreposição */
+}
+
+
+/* --- 2. Reordenação dos Cards do Dashboard para Mobile --- */
+
+/* Em telas pequenas (mobile-first), o container dos cards será flex e em coluna */
+@media (max-width: 768px) {
+  .dashboard-cards {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Definimos a ordem visual para telas pequenas */
+  .card-oportunidades { order: 1; }
+  .card-meus-trabalhos { order: 2; }
+  .card-perfil { order: 3; } /* 'Meu Perfil' será o último */
+}
+
+/* ================================================================ */
+/* ===== FIM DAS ALTERAÇÕES PARA LAYOUT RESPONSIVO (03/10/2025) ===== */
+/* ================================================================ */

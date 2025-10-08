@@ -56,7 +56,7 @@
   background-color: #dadedf;
 }
 
-/* 5. Ações de Cancelamento (Vermelho) - Cancelar, Sair, Excluir */
+/* 5. Ações de Cancelamento (Vermelho) - Cancelar, Excluir */
 .btn-danger {
   background-color: #e74c3c; /* Vermelho */
 }

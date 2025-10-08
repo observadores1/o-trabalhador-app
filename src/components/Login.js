@@ -1,4 +1,4 @@
-// src/components/Login.js - VERSÃO FINAL COM POP-UP DE BOAS-VINDAS
+// src/components/Login.js - VERSÃO FINAL COM CONFLITOS RESOLVIDOS
 /**
  * @file Login.js
  * @description Componente de autenticação de usuário.
@@ -6,11 +6,11 @@
  * @date 2025-09-25
  * Louvado seja Cristo, Louvado seja Deus
  */
-import React, { useState, useEffect } from 'react'; // ADICIONADO: useEffect
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import logo from '../assets/logo.png';
-import WelcomePopup from './WelcomePopup'; // ADICIONADO: Importa o pop-up
+import WelcomePopup from './WelcomePopup'; // MANTIDO: Importação do pop-up
 import './Login.css';
 
 const Login = () => {
@@ -19,9 +19,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // ===== INÍCIO DA LÓGICA DO POP-UP =====
+  // MANTIDO: Lógica de estado do pop-up
   const [showWelcomePopup, setShowWelcomePopup] = useState(false);
-  // ===== FIM DA LÓGICA DO POP-UP =====
 
   const { signIn } = useAuth();
   const navigate = useNavigate();
@@ -29,40 +28,49 @@ const Login = () => {
   
   const from = location.state?.from?.pathname || '/dashboard';
 
-  // ===== INÍCIO DA LÓGICA DO POP-UP =====
+  // MANTIDO: Lógica de exibição do pop-up
   useEffect(() => {
-    // Verifica se o usuário já viu o pop-up nesta sessão
     const hasSeenPopup = sessionStorage.getItem('hasSeenWelcomePopup');
     if (!hasSeenPopup) {
-      // Se não viu, mostra o pop-up
       setShowWelcomePopup(true);
     }
-  }, []); // O array vazio [] garante que este efeito rode apenas uma vez
+  }, []);
 
   const handleClosePopup = () => {
-    // Fecha o pop-up e marca no sessionStorage que ele já foi visto
     setShowWelcomePopup(false);
     sessionStorage.setItem('hasSeenWelcomePopup', 'true');
   };
-  // ===== FIM DA LÓGICA DO POP-UP =====
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!email || !password) {
-      setError('Por favor, preencha todos os campos');
+      setError('Por favor, preencha todos os campos.');
       return;
     }
 
     setLoading(true);
     setError('');
 
-    const { error } = await signIn(email, password);
+    // MANTIDO: Lógica de tratamento de erro robusta da branch 'main'
+    try {
+      const { error: signInError } = await signIn(email, password);
     
-    if (error) {
-      setError(error.message);
-    } else {
-      navigate(from, { replace: true });
+      if (signInError) {
+        if (signInError.message === 'Invalid login credentials') {
+          setError('Credenciais de login inválidas. Verifique seu e-mail e senha.');
+        } else if (signInError.message === 'Email not confirmed') {
+          setError('Seu e-mail ainda não foi confirmado. Por favor, verifique sua caixa de entrada.');
+        } else {
+          setError('Ocorreu um erro ao tentar fazer login. Tente novamente.');
+          console.error('Erro de login do Supabase:', signInError.message);
+        }
+      } else {
+        navigate(from, { replace: true });
+      }
+    } catch (err) {
+      console.error("Erro inesperado no login:", err);
+      setError('Não foi possível conectar ao servidor. Verifique sua internet.');
     }
     
     setLoading(false);
@@ -70,7 +78,7 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      {/* ADICIONADO: Renderização condicional do pop-up */}
+      {/* MANTIDO: Renderização condicional do pop-up */}
       {showWelcomePopup && <WelcomePopup onClose={handleClosePopup} />}
 
       <div className="login-card">
@@ -79,7 +87,7 @@ const Login = () => {
           Entrar no
           <span className="app-name">O Trabalhador</span>
         </h2>
-
+        
         {error && <div className="error-message">{error}</div>}
         
         <form onSubmit={handleSubmit} className="login-form">
@@ -118,6 +126,7 @@ const Login = () => {
         
         <div className="login-links">
           <Link to="/register">Não tem conta? Cadastre-se</Link>
+          {/* MANTIDO: Link para 'forgot-password' da branch 'main' */}
           <Link to="/forgot-password">Esqueceu a senha?</Link>
         </div>
       </div>

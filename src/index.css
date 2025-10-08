@@ -11,3 +11,21 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+/* =============================================== */
+/* REMOÇÃO FORÇADA DO BADGE DE PLATAFORMA          */
+/* =============================================== */
+
+/*
+  Este código garante que o badge "Made with Manus"
+  seja permanentemente removido da aplicação final.
+  Ele usa um seletor de atributo para identificar o
+  elemento injetado e o torna invisível.
+*/
+div[id^="manus-badge"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
