@@ -1,4 +1,4 @@
-// src/App.js - VERSÃO CORRIGIDA E COMPLETA COM LÓGICA PWA
+// src/App.js - VERSÃO FINAL COM PIXEL DO FACEBOOK INTEGRADO
 /**
  * @file App.js
  * @description Componente principal e roteador do aplicativo.
@@ -6,9 +6,15 @@
  * @date 2025-09-19
  * Louvado seja Cristo, Louvado seja Deus
  */
-import React, { useState, useEffect } from 'react'; // Re-adicionado useState e useEffect
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+// ===== INÍCIO DA IMPLEMENTAÇÃO DO PIXEL =====
+import ReactPixel from 'react-facebook-pixel';
+import PixelTracker from './components/PixelTracker'; // Importa nosso componente rastreador
+// ===== FIM DA IMPLEMENTAÇÃO DO PIXEL =====
+
 import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -29,32 +35,40 @@ import Footer from './components/Footer';
 import './App.css';
 import './botoes.css';
 
+// ===== INÍCIO DA IMPLEMENTAÇÃO DO PIXEL =====
+// Opções de configuração do Pixel
+const options = {
+  autoConfig: true, // Deixe como true para configuração automática
+  debug: false,     // Mude para true para ver logs detalhados no console do navegador
+};
+// Inicializa o Pixel com seu ID. Isso só precisa ser feito uma vez.
+ReactPixel.init('1481808609495330', null, options);
+// O primeiro 'PageView' é disparado automaticamente na inicialização.
+// ===== FIM DA IMPLEMENTAÇÃO DO PIXEL =====
+
+
 function AppLayout() {
   const { session } = useAuth();
-  // ===== INÍCIO DA CORREÇÃO PWA =====
   const [installPrompt, setInstallPrompt] = useState(null);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event) => {
-      event.preventDefault(); // Impede que o navegador mostre o banner padrão
-      setInstallPrompt(event); // Salva o evento para usarmos depois
+      event.preventDefault();
+      setInstallPrompt(event);
       console.log("PWA: Evento 'beforeinstallprompt' capturado.");
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Função de limpeza para remover o listener quando o componente desmontar
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
-  // ===== FIM DA CORREÇÃO PWA =====
 
   return (
     <div className="App">
       <div className="content-wrap">
         <Routes>
-          {/* Passando a prop 'installPrompt' para o Dashboard */}
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard installPrompt={installPrompt} /></ProtectedRoute>} />
           <Route path="/login" element={<ProtectedRoute requireAuth={false}><Login /></ProtectedRoute>} />
           <Route path="/register" element={<ProtectedRoute requireAuth={false}><Register /></ProtectedRoute>} />
@@ -73,7 +87,6 @@ function AppLayout() {
         </Routes>
       </div>
       {session && <WhatsAppButton />}
-      {/* Passando a prop 'installPrompt' para o Footer */}
       <Footer installPrompt={installPrompt} />
     </div>
   );
@@ -83,6 +96,10 @@ function App() {
   return (
     <AuthProvider>
       <Router>
+        {/* ===== INÍCIO DA IMPLEMENTAÇÃO DO PIXEL ===== */}
+        {/* O PixelTracker escuta as mudanças de rota e dispara os PageViews */}
+        <PixelTracker />
+        {/* ===== FIM DA IMPLEMENTAÇÃO DO PIXEL ===== */}
         <AppLayout />
       </Router>
     </AuthProvider>
