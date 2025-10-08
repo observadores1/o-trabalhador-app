@@ -1,3 +1,4 @@
+// src/components/Login.js - VERSÃO FINAL COM POP-UP DE BOAS-VINDAS
 /**
  * @file Login.js
  * @description Componente de autenticação de usuário.
@@ -5,10 +6,11 @@
  * @date 2025-09-25
  * Louvado seja Cristo, Louvado seja Deus
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // ADICIONADO: useEffect
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import logo from '../assets/logo.png'; // <-- IMPORTAÇÃO DO LOGO
+import logo from '../assets/logo.png';
+import WelcomePopup from './WelcomePopup'; // ADICIONADO: Importa o pop-up
 import './Login.css';
 
 const Login = () => {
@@ -17,11 +19,32 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
+  // ===== INÍCIO DA LÓGICA DO POP-UP =====
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
+  // ===== FIM DA LÓGICA DO POP-UP =====
+
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
   const from = location.state?.from?.pathname || '/dashboard';
+
+  // ===== INÍCIO DA LÓGICA DO POP-UP =====
+  useEffect(() => {
+    // Verifica se o usuário já viu o pop-up nesta sessão
+    const hasSeenPopup = sessionStorage.getItem('hasSeenWelcomePopup');
+    if (!hasSeenPopup) {
+      // Se não viu, mostra o pop-up
+      setShowWelcomePopup(true);
+    }
+  }, []); // O array vazio [] garante que este efeito rode apenas uma vez
+
+  const handleClosePopup = () => {
+    // Fecha o pop-up e marca no sessionStorage que ele já foi visto
+    setShowWelcomePopup(false);
+    sessionStorage.setItem('hasSeenWelcomePopup', 'true');
+  };
+  // ===== FIM DA LÓGICA DO POP-UP =====
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,20 +70,15 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      <div className="login-card">
-        
-        {/* ================== CORREÇÕES APLICADAS AQUI ================== */}
-        
-        {/* 1. Logo adicionado */}
-        <img src={logo} alt="Logo O Trabalhador" className="login-logo" />
+      {/* ADICIONADO: Renderização condicional do pop-up */}
+      {showWelcomePopup && <WelcomePopup onClose={handleClosePopup} />}
 
-        {/* 2. Título em duas linhas */}
+      <div className="login-card">
+        <img src={logo} alt="Logo O Trabalhador" className="login-logo" />
         <h2>
           Entrar no
           <span className="app-name">O Trabalhador</span>
         </h2>
-        
-        {/* ============================================================= */}
 
         {error && <div className="error-message">{error}</div>}
         
